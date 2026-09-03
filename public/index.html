@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>NEXORA</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #FAFBFC;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      color: #111827;
+    }
+    .splash {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo {
+      width: 64px;
+      height: 64px;
+      background: #6366F1;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 28px;
+    }
+    .tagline {
+      font-size: 14px;
+      color: #6B7280;
+    }
+  </style>
+  <script>
+    // If running in Capacitor webview without server.url override, redirect to main entry
+    if (window.location.pathname.endsWith('index.html')) {
+      window.location.replace('/');
+    }
+  </script>
+</head>
+<body>
+  <div class="splash">
+    <div class="logo">N</div>
+    <div class="tagline">Work. Plan. Build. Live.</div>
+  </div>
+</body>
+</html>

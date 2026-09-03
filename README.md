@@ -1,34 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NEXORA
 
-## Getting Started
+> **Work. Plan. Build. Live.**  
+> A unified work-and-life management platform.  
+> Jira's power without Jira's unnecessary complexity.
 
-First, run the development server:
+---
 
+## Unified Cross-Platform Architecture
+
+NEXORA runs the **exact same codebase** across both **Web** (Desktop & Mobile browsers) and **Native Android** (APK / Google Play via Capacitor):
+
+- **Web:** Next.js (App Router, Turbopack, SSR, TypeScript, CSS Design Tokens).
+- **Android:** Native Capacitor wrapper located in `/android` pointing directly to the unified UI.
+- **Database:** PostgreSQL via Supabase with row-level multi-tenancy (`workspace_id`) and 100% RLS coverage.
+- **Security:** 103 automated tests verifying tenancy isolation, IDOR resistance, and role hierarchy.
+
+---
+
+## Quick Start
+
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
+Copy the template and add your Supabase credentials:
+```bash
+cp .env.local.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run Security Tests
+Verify all 103 security and RLS tests:
+```bash
+npm run test:security
+```
 
-## Learn More
+### 4. Run Web Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Native Android Development
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Sync web assets and open directly in Android Studio:
+```bash
+npm run build
+npm run android:sync
+npm run android:open
+```
 
-## Deploy on Vercel
+To build a debug `.apk` on Windows:
+```powershell
+cd android
+.\gradlew.bat assembleDebug
+```
+The APK will be generated at `android/app/build/outputs/apk/debug/app-debug.apk`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Documentation
+
+- **Full Setup Guide:** See [SETUP_GUIDE.md](./SETUP_GUIDE.md) for detailed database migration, environment setup, and Android device debugging steps.
+- **Product & Architecture Spec:** See [NEXORA Master Document](c:/Users/biswa/Downloads/NEXORA_MASTER_DOCUMENT.md).
