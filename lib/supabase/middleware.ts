@@ -1,15 +1,65 @@
 /**
- * Supabase middleware for session refresh.
+ * Supabase middleware for session refresh + security enforcement.
  * §13.2: Sessions use short-lived access tokens + rotating refresh tokens.
+ * §13.8: Rate limiting on auth routes.
+ * §12.1: First layer in the authorization chain.
  */
 
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import { checkRateLimit, RATE_LIMITS, rateLimitHeaders } from '@/lib/security/rate-limit';
+import { logger } from '@/lib/logger';
+
+const AUTH_ROUTES = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
+const PUBLIC_ROUTES = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/callback', '/api/health', '/'];
 
 export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  const pathname = request.nextUrl.pathname;
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+  const requestId = crypto.randomUUID();
+
+  let supabaseResponse = NextResponse.next({ request });
+
+  // === Rate limiting on auth routes ===
+  if (AUTH_ROUTES.some((route) => pathname.startsWith(route)) && request.method === 'POST') {
+    const limitKey = `auth:${ip}:${pathname}`;
+    const config = pathname.includes('login') ? RATE_LIMITS.login
+      : pathname.includes('signup') ? RATE_LIMITS.signup
+      : RATE_LIMITS.passwordReset;
+
+    const result = checkRateLimit(limitKey, config);
+
+    if (!result.success) {
+      logger.warn('Rate limit exceeded', {
+        request_id: requestId,
+        action: 'rate_limit_exceeded',
+        outcome: 'throttled',
+        ip,
+        path: pathname,
+      });
+
+      return new NextResponse(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        {
+          status: 429,
+          headers: {
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil((result.resetAt - Date.now()) / 1000)),
+            ...rateLimitHeaders(result),
+          },
+        }
+      );
+    }
+
+    // Attach rate limit headers to successful responses
+    const headers = rateLimitHeaders(result);
+    for (const [key, value] of Object.entries(headers)) {
+      supabaseResponse.headers.set(key, value);
+    }
+  }
+
+  // === Security headers on every response ===
+  supabaseResponse.headers.set('X-Request-ID', requestId);
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -23,9 +73,8 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
+          supabaseResponse.headers.set('X-Request-ID', requestId);
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -40,13 +89,26 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protected routes — redirect to login if not authenticated
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    !request.nextUrl.pathname.startsWith('/api/health') &&
-    request.nextUrl.pathname !== '/'
-  ) {
+  // === Redirect authenticated users away from auth pages ===
+  if (user && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
+  // === Protected routes — redirect to login if not authenticated ===
+  const isPublicRoute = PUBLIC_ROUTES.some((route) =>
+    pathname === route || pathname.startsWith(route)
+  );
+
+  if (!user && !isPublicRoute) {
+    logger.info('Unauthenticated access attempt', {
+      request_id: requestId,
+      action: 'auth_redirect',
+      outcome: 'denied',
+      path: pathname,
+    });
+
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
     return NextResponse.redirect(url);

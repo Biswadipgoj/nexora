@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 /**
  * Login page.
@@ -67,10 +68,14 @@ export default function LoginPage() {
     <div className="auth-form">
       {/* Mobile logo */}
       <div className="auth-form__mobile-logo">
-        <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect width="48" height="48" rx="12" fill="var(--color-accent)" />
-          <path d="M14 34V14L24 28L34 14V34" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <Image 
+          src="/logo.jpg" 
+          alt="NEXORA Logo" 
+          width={36} 
+          height={36} 
+          className="auth-form__mobile-logo-img" 
+          priority
+        />
         <span className="auth-form__mobile-logo-text">NEXORA</span>
       </div>
 
@@ -199,6 +204,12 @@ export default function LoginPage() {
           align-items: center;
           gap: var(--space-2);
           margin-bottom: var(--space-8);
+        }
+
+        .auth-form__mobile-logo-img {
+          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+          border-radius: 8px;
+          object-fit: cover;
         }
 
         .auth-form__mobile-logo-text {

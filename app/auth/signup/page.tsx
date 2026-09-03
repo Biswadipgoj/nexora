@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import Image from 'next/image';
 
 /**
  * Signup page.
@@ -105,10 +106,14 @@ export default function SignupPage() {
   return (
     <div className="auth-form">
       <div className="auth-form__mobile-logo">
-        <svg width="36" height="36" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <rect width="48" height="48" rx="12" fill="var(--color-accent)" />
-          <path d="M14 34V14L24 28L34 14V34" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
+        <Image 
+          src="/logo.jpg" 
+          alt="NEXORA Logo" 
+          width={36} 
+          height={36} 
+          className="auth-form__mobile-logo-img" 
+          priority
+        />
         <span className="auth-form__mobile-logo-text">NEXORA</span>
       </div>
 

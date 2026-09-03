@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 /**
  * Onboarding — Create first workspace.
@@ -118,10 +119,14 @@ export default function OnboardingPage() {
     <div className="onboarding">
       <div className="onboarding__container">
         <div className="onboarding__logo">
-          <svg width="40" height="40" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-            <rect width="48" height="48" rx="12" fill="var(--color-accent)" />
-            <path d="M14 34V14L24 28L34 14V34" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <Image 
+            src="/logo.jpg" 
+            alt="NEXORA Logo" 
+            width={40} 
+            height={40} 
+            className="onboarding__logo-img" 
+            priority
+          />
         </div>
 
         {step === 'creating' && !error ? (
@@ -206,6 +211,12 @@ export default function OnboardingPage() {
           display: flex;
           justify-content: center;
           margin-bottom: var(--space-8);
+        }
+
+        .onboarding__logo-img {
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+          border-radius: 10px;
+          object-fit: cover;
         }
 
         .onboarding__title {

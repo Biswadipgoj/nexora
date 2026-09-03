@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { createServerClient } from '@/lib/supabase/server';
 import type { Metadata } from 'next';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Dashboard — NEXORA',
@@ -44,10 +45,14 @@ export default async function DashboardPage() {
       <aside className="dashboard__sidebar" role="navigation" aria-label="Main navigation">
         <div className="dashboard__sidebar-header">
           <div className="dashboard__logo">
-            <svg width="28" height="28" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-              <rect width="48" height="48" rx="12" fill="var(--color-accent)" />
-              <path d="M14 34V14L24 28L34 14V34" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <Image 
+              src="/logo.jpg" 
+              alt="NEXORA Logo" 
+              width={28} 
+              height={28} 
+              className="dashboard__logo-img" 
+              priority
+            />
             <span className="dashboard__logo-text">NEXORA</span>
           </div>
         </div>
@@ -88,6 +93,10 @@ export default async function DashboardPage() {
         </nav>
 
         <div className="dashboard__sidebar-footer">
+          <div className="dashboard__security-status">
+            <span className="status-dot" />
+            <span className="dashboard__security-label">All systems secure</span>
+          </div>
           <div className="dashboard__user-info">
             <div className="dashboard__avatar" aria-hidden="true">
               {user.email?.charAt(0).toUpperCase() ?? 'U'}
@@ -121,10 +130,13 @@ export default async function DashboardPage() {
         {/* Empty state — §30.2: Empty states teach */}
         <div className="dashboard__empty">
           <div className="dashboard__empty-icon">
-            <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-              <circle cx="32" cy="32" r="32" fill="var(--color-accent-subtle)"/>
-              <path d="M22 42V22L32 36L42 22V42" stroke="var(--color-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            <Image 
+              src="/empty_state.jpg" 
+              alt="Network visualization" 
+              width={280} 
+              height={180} 
+              className="dashboard__empty-img" 
+            />
           </div>
           <h2 className="dashboard__empty-title">Your day starts here</h2>
           <p className="dashboard__empty-text">
@@ -176,6 +188,12 @@ export default async function DashboardPage() {
           display: flex;
           align-items: center;
           gap: var(--space-3);
+        }
+
+        .dashboard__logo-img {
+          box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+          border-radius: 6px;
+          object-fit: cover;
         }
 
         .dashboard__logo-text {
@@ -251,6 +269,25 @@ export default async function DashboardPage() {
         .dashboard__sidebar-footer {
           padding: var(--space-4) var(--space-4);
           border-top: 1px solid var(--color-border-subtle);
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
+        }
+
+        .dashboard__security-status {
+          display: flex;
+          align-items: center;
+          gap: var(--space-2);
+          padding: var(--space-2) var(--space-3);
+          background: var(--color-success-subtle);
+          border-radius: var(--radius-md);
+          border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .dashboard__security-label {
+          font-size: var(--font-size-xs);
+          font-weight: var(--font-weight-medium);
+          color: var(--color-success-text);
         }
 
         .dashboard__user-info {
@@ -354,7 +391,13 @@ export default async function DashboardPage() {
         }
 
         .dashboard__empty-icon {
-          margin-bottom: var(--space-6);
+          margin-bottom: var(--space-8);
+        }
+
+        .dashboard__empty-img {
+          border-radius: var(--radius-2xl);
+          box-shadow: var(--shadow-lg);
+          object-fit: cover;
         }
 
         .dashboard__empty-title {
