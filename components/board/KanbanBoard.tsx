@@ -47,9 +47,10 @@ interface StatusColumn {
 }
 
 const DEFAULT_STATUSES: StatusColumn[] = [
-  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
-  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
-  { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
+  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#8B5CF6' },
+  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#F59E0B' },
+  { id: 'status-review', name: 'Code Review', category: 'in_progress', position: 2, color: '#06B6D4' },
+  { id: 'status-done', name: 'Done', category: 'done', position: 3, color: '#10B981' },
 ];
 
 export function KanbanBoard({
@@ -531,21 +532,25 @@ export function KanbanBoard({
         }
 
         .board-column {
-          background: var(--color-bg-subtle);
-          border: 1px solid var(--color-border);
-          border-radius: 14px;
-          padding: 12px;
+          background: rgba(30, 37, 62, 0.65);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 18px;
+          padding: 14px;
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 12px;
           min-height: 480px;
-          transition: all var(--transition-fast);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          box-shadow: var(--shadow-sm), var(--border-rim-highlight);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .board-column--dragover {
-          border-color: var(--color-primary);
-          background: var(--color-surface-active);
-          box-shadow: 0 0 16px rgba(99, 102, 241, 0.15);
+          border-color: var(--aurora-iris);
+          background: rgba(42, 51, 84, 0.88);
+          box-shadow: 0 0 28px rgba(139, 92, 246, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+          transform: scale(1.01);
         }
 
         .column-header {

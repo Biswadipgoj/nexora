@@ -221,21 +221,25 @@ export function DashboardTopBar({
           display: flex;
           align-items: center;
           gap: 6px;
-          background: var(--color-primary-gradient);
+          background: linear-gradient(135deg, var(--aurora-iris) 0%, var(--aurora-aqua) 100%);
           color: #FFFFFF;
           border: none;
-          border-radius: 10px;
-          padding: 8px 16px;
+          border-radius: 9999px;
+          padding: 8px 18px;
           font-size: 0.8125rem;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
-          transition: all var(--transition-smooth);
+          box-shadow: 0 0 20px rgba(139, 92, 246, 0.35);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .btn-primary-gradient:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+          transform: translateY(-1px) scale(1.03);
+          box-shadow: 0 0 28px rgba(139, 92, 246, 0.5);
+        }
+
+        .btn-primary-gradient:active {
+          transform: scale(0.97);
         }
 
         @media (max-width: 768px) {

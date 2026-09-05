@@ -86,10 +86,11 @@ export function WorkItemCard({
   return (
     <motion.div
       whileHover={{
-        y: -2,
-        transition: { duration: 0.15 },
+        y: -3,
+        scale: 1.015,
+        transition: { type: 'spring', stiffness: 450, damping: 25 },
       }}
-      whileTap={{ scale: 0.98 }}
+      whileTap={{ scale: 0.97 }}
       className="card-container glass-card"
       onClick={onClick}
       role="button"
