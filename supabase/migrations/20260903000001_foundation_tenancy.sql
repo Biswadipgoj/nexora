@@ -147,7 +147,7 @@ alter table workspaces force row level security;
 -- SELECT: users can see workspaces they are members of
 create policy workspaces_select on workspaces
   for select using (
-    id in (select auth_workspace_ids())
+    (id in (select auth_workspace_ids()) or owner_id = auth.uid())
     and deleted_at is null
   );
 
@@ -193,9 +193,16 @@ create policy ws_members_insert on workspace_members
       -- Allow self-insert for the workspace owner during creation
       user_id = auth.uid()
       and role = 'owner'
-      and not exists (
-        select 1 from workspace_members wm
-        where wm.workspace_id = workspace_members.workspace_id
+      and (
+        not exists (
+          select 1 from workspace_members wm
+          where wm.workspace_id = workspace_members.workspace_id
+        )
+        or exists (
+          select 1 from workspaces w
+          where w.id = workspace_members.workspace_id
+            and w.owner_id = auth.uid()
+        )
       )
     )
   );

@@ -36,7 +36,7 @@ create policy projects_insert on projects
   for insert with check (
     workspace_id in (select auth_workspace_ids())
     and has_workspace_role(workspace_id, 'member')
-    and creator_id = auth.uid()
+    and created_by = auth.uid()
   );
 
 create policy projects_update on projects

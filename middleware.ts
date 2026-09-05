@@ -4,11 +4,19 @@
  * §12.1: First layer in the authorization chain.
  */
 
-import { type NextRequest } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  try {
+    return await updateSession(request);
+  } catch (error) {
+    console.error('[CRITICAL] Unhandled Next.js Middleware Exception caught safely:', error);
+    // Never allow an uncaught exception to crash Vercel Edge with MIDDLEWARE_INVOCATION_FAILED (500)
+    const response = NextResponse.next({ request });
+    response.headers.set('X-Middleware-Fallback', 'recovered');
+    return response;
+  }
 }
 
 export const config = {

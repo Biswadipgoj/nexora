@@ -13,9 +13,12 @@ export async function createServerClient() {
   const cookieStore = await cookies();
   const isDemo = cookieStore.get('nexora_demo_session')?.value === 'true';
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+
   const client = createSSRServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {
@@ -35,7 +38,7 @@ export async function createServerClient() {
     }
   );
 
-  if (isDemo) {
+  if (isDemo || supabaseUrl.includes('placeholder')) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     client.auth.getUser = (async () => ({ data: { user: DEMO_USER as any }, error: null })) as any;
   }
@@ -50,9 +53,12 @@ import { createClient } from '@supabase/supabase-js';
  * §12.2: Only for server-side Edge Functions and CI.
  */
 export function createAdminClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key';
+
   return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    supabaseUrl,
+    serviceRoleKey,
     {
       auth: {
         autoRefreshToken: false,

@@ -113,18 +113,29 @@ NEXORA includes three sequentially organized SQL migrations in `supabase/migrati
 
 ---
 
-### Option A: Applying via Supabase Web Dashboard (Recommended)
+### Option A: One-Click Setup via Master Script (Easiest & Recommended)
 
-1. Open your Supabase project dashboard and click on **SQL Editor** in the left sidebar.
+We have consolidated the entire database schema, triggers, and hardened RLS policies into a single, idempotent master setup script:
+`supabase/COMPLETE_SUPABASE_SETUP.sql`
+
+1. Open your Supabase project dashboard → click on **SQL Editor** in the left sidebar.
 2. Click **+ New Query**.
-3. Open `supabase/migrations/20260903000001_foundation_tenancy.sql`, copy all text, paste into the editor, and click **Run**.
-4. Create another **New Query**, copy the contents of `supabase/migrations/20260903000002_work_item_engine.sql`, and click **Run**.
-5. Create a third **New Query**, copy the contents of `supabase/migrations/20260903000003_rls_work_item_engine.sql`, and click **Run**.
-6. Verify that all 3 executions complete with `Success. No rows returned`.
+3. Copy the entire contents of [**`supabase/COMPLETE_SUPABASE_SETUP.sql`**](../supabase/COMPLETE_SUPABASE_SETUP.sql).
+4. Paste into the SQL Editor and click the green **Run** button.
+5. In ~2 seconds, all 25 tables, security definer functions, triggers, and Row Level Security policies are generated with zero errors!
 
 ---
 
-### Option B: Applying via Supabase CLI
+### Option B: Applying Individual Migrations Sequentially
+
+If you prefer running the three migration files individually:
+1. Run `supabase/migrations/20260903000001_foundation_tenancy.sql` (Workspaces, members, tenancy RLS).
+2. Run `supabase/migrations/20260903000002_work_item_engine.sql` (Projects, work items, sequence generator).
+3. Run `supabase/migrations/20260903000003_rls_work_item_engine.sql` (Strict RLS policies).
+
+---
+
+### Option C: Applying via Supabase CLI
 
 If you have the Supabase CLI installed:
 
