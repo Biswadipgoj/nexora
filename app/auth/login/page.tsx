@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/ui/Logo';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -10,15 +11,25 @@ import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Sign in');
+
+  useEffect(() => {
+    // Prefetch dashboard in background so post-auth transition is instant
+    try {
+      router.prefetch('/dashboard');
+    } catch {}
+  }, [router]);
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
+    setLoadingText('Verifying credentials...');
 
     try {
       const supabase = createClient();
@@ -28,6 +39,8 @@ export default function LoginPage() {
       });
 
       if (authError) {
+        setLoading(false);
+        setLoadingText('Sign in');
         if (authError.message.toLowerCase().includes('email not confirmed')) {
           setError('Please confirm your email address before signing in. Check your inbox for the verification link.');
         } else if (authError.message.toLowerCase().includes('invalid login credentials')) {
@@ -38,17 +51,23 @@ export default function LoginPage() {
         return;
       }
 
-      // Hard navigation ensures all session cookies are committed to browser and passed cleanly to Next.js middleware & server components
-      window.location.href = '/dashboard';
+      setLoadingText('Launching workspace...');
+      router.refresh();
+      router.replace('/dashboard');
+
+      // Safety fallback to guarantee navigation occurs smoothly
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 750);
     } catch (err: unknown) {
+      setLoading(false);
+      setLoadingText('Sign in');
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
         setError('Cannot connect to authentication service. Please check your network connection.');
       } else {
         setError(msg || 'Could not connect to authentication service. Please try again.');
       }
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -168,6 +187,7 @@ export default function LoginPage() {
           required
           fullWidth
           variant="outlined"
+          disabled={loading}
           slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
           sx={{
             '& .MuiOutlinedInput-root': {
@@ -189,6 +209,7 @@ export default function LoginPage() {
           required
           fullWidth
           variant="outlined"
+          disabled={loading}
           slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
           sx={{
             '& .MuiOutlinedInput-root': {
@@ -213,11 +234,20 @@ export default function LoginPage() {
           variant="contained"
           disabled={loading}
           sx={{
-            py: 1.1,
+            py: 1.15,
             fontSize: '0.875rem',
+            fontWeight: 600,
+            textTransform: 'none',
           }}
         >
-          {loading ? <CircularProgress size={18} color="inherit" /> : 'Sign in'}
+          {loading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <CircularProgress size={16} color="inherit" />
+              <span>{loadingText}</span>
+            </div>
+          ) : (
+            'Sign in'
+          )}
         </Button>
       </form>
 

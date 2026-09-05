@@ -32,14 +32,17 @@ export default async function DashboardPage() {
     is_personal: boolean;
   } = DEMO_WORKSPACE;
 
+  let initialWorkItems: any[] = [];
+
   if (isDemo) {
     projects = [DEMO_PROJECT];
     primaryWorkspace = DEMO_WORKSPACE;
+    initialWorkItems = getDemoWorkItems();
   } else {
-    // Fetch workspaces
+    // 1. Fetch workspaces and nested projects in a single round-trip
     const { data: workspaces } = await supabase
       .from('workspaces')
-      .select('id, name, slug, is_personal')
+      .select('id, name, slug, is_personal, projects(id, name, key, mode, is_personal, deleted_at)')
       .limit(8);
 
     const hasWorkspaces = workspaces && workspaces.length > 0;
@@ -49,18 +52,10 @@ export default async function DashboardPage() {
     }
 
     primaryWorkspace = workspaces.find((w) => !w.is_personal) ?? workspaces[0];
+    const wsProjects = ((primaryWorkspace as Record<string, unknown>).projects as Array<Record<string, unknown>>) || [];
+    projects = wsProjects.filter((p) => !p.deleted_at) as unknown as Array<{ id: string; name: string; key: string; mode: string; is_personal?: boolean }>;
 
-    // Fetch projects in workspace
-    const { data: projs } = await supabase
-      .from('projects')
-      .select('id, name, key, mode, is_personal')
-      .eq('workspace_id', primaryWorkspace.id)
-      .is('deleted_at', null)
-      .limit(8);
-
-    projects = projs ?? [];
-
-    // If workspace has no projects, automatically ensure a default agile project exists
+    // 2. If workspace has no projects, auto-initialize project with default statuses and starter items
     if (projects.length === 0) {
       const defaultProj = await ensureDefaultProject(
         supabase,
@@ -72,30 +67,52 @@ export default async function DashboardPage() {
         projects = [defaultProj];
       }
     }
-  }
 
-  // Fetch initial work items for the active project
-  let initialWorkItems: any[] = [];
-  if (isDemo) {
-    initialWorkItems = getDemoWorkItems();
-  } else if (projects.length > 0) {
-    try {
-      const { data: dbItems } = await supabase
-        .from('work_items')
-        .select(`
-          id, workspace_id, project_id, team_id, parent_id,
-          type_id, status_id, sequence, title, description,
-          priority, creator_id, start_date, due_date, estimate,
-          position, sprint_id, completed_at, created_at, updated_at
-        `)
-        .eq('project_id', projects[0].id)
-        .is('deleted_at', null)
-        .order('position', { ascending: true })
-        .limit(50);
+    // 3. Fetch initial work items for active project
+    if (projects.length > 0) {
+      try {
+        const { data: dbItems } = await supabase
+          .from('work_items')
+          .select(`
+            id, workspace_id, project_id, team_id, parent_id,
+            type_id, status_id, sequence, title, description,
+            priority, creator_id, start_date, due_date, estimate,
+            position, sprint_id, completed_at, created_at, updated_at
+          `)
+          .eq('project_id', projects[0].id)
+          .is('deleted_at', null)
+          .order('position', { ascending: true })
+          .limit(50);
 
-      initialWorkItems = dbItems ?? [];
-    } catch (fetchErr) {
-      console.warn('[DashboardPage] Initial work items notice:', fetchErr);
+        initialWorkItems = dbItems ?? [];
+
+        // If project exists but has 0 items (fresh account), seed starter items so board is never empty
+        if (initialWorkItems.length === 0) {
+          await ensureDefaultProject(
+            supabase,
+            primaryWorkspace.id,
+            user.id,
+            primaryWorkspace.name
+          );
+
+          const { data: refreshed } = await supabase
+            .from('work_items')
+            .select(`
+              id, workspace_id, project_id, team_id, parent_id,
+              type_id, status_id, sequence, title, description,
+              priority, creator_id, start_date, due_date, estimate,
+              position, sprint_id, completed_at, created_at, updated_at
+            `)
+            .eq('project_id', projects[0].id)
+            .is('deleted_at', null)
+            .order('position', { ascending: true })
+            .limit(50);
+
+          initialWorkItems = refreshed ?? [];
+        }
+      } catch (fetchErr) {
+        console.warn('[DashboardPage] Work items fetch notice:', fetchErr);
+      }
     }
   }
 

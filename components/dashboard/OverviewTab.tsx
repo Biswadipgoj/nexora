@@ -86,6 +86,7 @@ export function OverviewTab({ user, workspaceId, workItems, setWorkItems, projec
           projectName={projects[0]?.name || 'Workspace Board'}
           projectKey={projects[0]?.key || 'APP'}
           projectMode={(projects[0]?.mode as 'simple' | 'advanced') || 'advanced'}
+          initialItems={workItems}
         />
       </div>
     </motion.div>

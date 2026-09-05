@@ -79,6 +79,7 @@ export interface KanbanBoardProps {
   projectKey: string;
   projectName: string;
   projectMode?: 'simple' | 'advanced';
+  initialItems?: WorkItemData[];
 }
 
 const PRIORITY_LABELS: Record<number, { label: string; color: string }> = {
@@ -95,11 +96,20 @@ export function KanbanBoard({
   projectKey,
   projectName,
   projectMode = 'simple',
+  initialItems,
 }: KanbanBoardProps) {
-  const [statuses, setStatuses] = useState<StatusColumn[]>([]);
-  const [types, setTypes] = useState<Array<{ id: string; name: string }>>([]);
-  const [items, setItems] = useState<WorkItemData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [statuses, setStatuses] = useState<StatusColumn[]>([
+    { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
+    { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
+    { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
+  ]);
+  const [types, setTypes] = useState<Array<{ id: string; name: string }>>([
+    { id: 'type-task', name: 'Task' },
+    { id: 'type-bug', name: 'Bug' },
+    { id: 'type-feature', name: 'Feature' },
+  ]);
+  const [items, setItems] = useState<WorkItemData[]>(initialItems || []);
+  const [loading, setLoading] = useState(initialItems ? false : true);
   const [error, setError] = useState<string | null>(null);
 
   // Nexora Views: 'board' | 'backlog' | 'roadmap'
@@ -131,18 +141,13 @@ export function KanbanBoard({
 
     if (!projectId) {
       setItems([]);
-      setStatuses([
-        { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
-        { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
-        { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
-      ]);
-      setTypes([
-        { id: 'type-task', name: 'Task' },
-        { id: 'type-bug', name: 'Bug' },
-        { id: 'type-feature', name: 'Feature' },
-      ]);
       setLoading(false);
       return;
+    }
+
+    // If initial items were provided from server, don't show loading spinner
+    if (isInitial && initialItems && initialItems.length > 0) {
+      setLoading(false);
     }
 
     try {
@@ -156,29 +161,20 @@ export function KanbanBoard({
 
       if (itemsData.statuses && itemsData.statuses.length > 0) {
         setStatuses(itemsData.statuses);
-      } else {
-        setStatuses([
-          { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
-          { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
-          { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
-        ]);
       }
 
       if (itemsData.types && itemsData.types.length > 0) {
         setTypes(itemsData.types);
-      } else {
-        setTypes([
-          { id: 'type-task', name: 'Task' },
-          { id: 'type-bug', name: 'Bug' },
-          { id: 'type-feature', name: 'Feature' },
-        ]);
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Network connection error');
+      // Only set error if we don't already have items displayed
+      if (!initialItems || initialItems.length === 0) {
+        setError(err instanceof Error ? err.message : 'Network connection error');
+      }
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [projectId, initialItems]);
 
   useEffect(() => {
     let ignore = false;
