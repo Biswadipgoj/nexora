@@ -252,6 +252,33 @@ export default function LoginPage() {
         </Link>
       </div>
 
+      <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid #E5E7EB', textAlign: 'center' }}>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              const res = await fetch('/api/auth/demo', { method: 'POST' });
+              if (res.ok) {
+                window.location.href = '/dashboard';
+                return;
+              }
+            } catch {}
+            window.location.href = '/dashboard';
+          }}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#6366F1',
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            textDecoration: 'underline',
+          }}
+        >
+          ⚡ Or jump straight into Demo Workspace (No sign-up needed)
+        </button>
+      </div>
+
       <style>{`
         .login-card {
           background-color: #FFFFFF;

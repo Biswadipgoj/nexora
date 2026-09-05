@@ -4,6 +4,7 @@ import { LivingAuroraCanvas } from '@/components/ui/motion/LivingAuroraCanvas';
 import { LandingHeader } from '@/components/landing/LandingHeader';
 import { HeroLiveSandbox } from '@/components/landing/HeroLiveSandbox';
 import { DimensionalFeatureGrid } from '@/components/landing/DimensionalFeatureGrid';
+import { DemoWorkspaceButton } from '@/components/landing/DemoWorkspaceButton';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
@@ -55,13 +56,7 @@ export default async function Home() {
             <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
           </Link>
 
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-[var(--surface-elevated)] px-6 py-3.5 text-sm font-semibold text-[var(--text-main)] shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all hover:border-white/30 hover:bg-[var(--surface-hover)] active:scale-95"
-          >
-            <AutoAwesomeRoundedIcon sx={{ fontSize: 18, color: 'var(--aurora-amber)' }} />
-            <span>Explore Demo Workspace</span>
-          </Link>
+          <DemoWorkspaceButton />
         </div>
 
         {/* Trust Badges */}
