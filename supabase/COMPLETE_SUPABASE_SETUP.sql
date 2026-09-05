@@ -336,10 +336,10 @@ create table if not exists labels (
   workspace_id  uuid not null references workspaces(id) on delete cascade,
   name          text not null check (length(name) between 1 and 50),
   color         text not null default '#6B7280',
-  created_at    timestamptz not null default now(),
-  unique (workspace_id, lower(name))
+  created_at    timestamptz not null default now()
 );
 
+create unique index if not exists idx_labels_ws_lower_name on labels(workspace_id, lower(name));
 create index if not exists idx_labels_ws on labels(workspace_id);
 
 -- 13. Statuses
@@ -463,10 +463,10 @@ create table if not exists custom_field_definitions (
                   ('text', 'number', 'date', 'select', 'multi_select', 'checkbox', 'url', 'user')),
   options       jsonb,
   created_by    uuid not null references auth.users(id),
-  created_at    timestamptz not null default now(),
-  unique (workspace_id, lower(name))
+  created_at    timestamptz not null default now()
 );
 
+create unique index if not exists idx_cfd_ws_lower_name on custom_field_definitions(workspace_id, lower(name));
 create index if not exists idx_cfd_ws on custom_field_definitions(workspace_id);
 
 create table if not exists custom_field_values (
