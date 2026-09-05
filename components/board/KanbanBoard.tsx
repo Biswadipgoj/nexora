@@ -9,6 +9,7 @@ import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 import ViewWeekRoundedIcon from '@mui/icons-material/ViewWeekRounded';
 import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
+import { TASK_CATEGORIES, getCategoryByIdOrName } from '@/lib/constants/categories';
 
 export interface WorkItemData {
   id: string;
@@ -63,15 +64,14 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const [items, setItems] = useState<WorkItemData[]>(initialItems);
   const [statuses, setStatuses] = useState<StatusColumn[]>(DEFAULT_STATUSES);
-  const [types, setTypes] = useState<Array<{ id: string; name: string }>>([
-    { id: 'type-task', name: 'Task' },
-    { id: 'type-bug', name: 'Bug' },
-    { id: 'type-feature', name: 'Feature' },
-  ]);
+  const [types, setTypes] = useState<Array<{ id: string; name: string }>>(
+    TASK_CATEGORIES.map((c) => ({ id: c.id, name: c.name }))
+  );
 
   // Filters & View Mode
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
 
   // Modals & Drawers
@@ -131,7 +131,7 @@ export function KanbanBoard({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Filter items based on search and priority
+  // Filter items based on search, priority, and category
   const filteredItems = useMemo(() => {
     return items.filter((item) => {
       if (searchQuery.trim()) {
@@ -143,9 +143,15 @@ export function KanbanBoard({
       if (selectedPriority !== null && item.priority !== selectedPriority) {
         return false;
       }
+      if (selectedCategory) {
+        const itCat = getCategoryByIdOrName(item.type_id);
+        if (itCat.id !== selectedCategory) {
+          return false;
+        }
+      }
       return true;
     });
-  }, [items, searchQuery, selectedPriority, projectKey]);
+  }, [items, searchQuery, selectedPriority, selectedCategory, projectKey]);
 
   // Map items to columns
   const columnItemsMap = useMemo(() => {
@@ -268,6 +274,29 @@ export function KanbanBoard({
               </button>
             ))}
           </div>
+
+          {/* Category Quick Filter */}
+          <div className="category-filter-wrap">
+            <select
+              value={selectedCategory || ''}
+              onChange={(e) => setSelectedCategory(e.target.value || null)}
+              className="category-filter-select"
+              aria-label="Filter tasks by category"
+            >
+              <option value="">All Categories ({items.length})</option>
+              {TASK_CATEGORIES.map((cat) => {
+                const count = items.filter((it) => {
+                  const itCat = getCategoryByIdOrName(it.type_id);
+                  return itCat.id === cat.id;
+                }).length;
+                return (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.shortName} ({count})
+                  </option>
+                );
+              })}
+            </select>
+          </div>
         </div>
 
         <div className="board-controls__right">
@@ -343,28 +372,33 @@ export function KanbanBoard({
                     <span>Drop tasks here</span>
                   </div>
                 ) : (
-                  colItems.map((item) => (
-                    <div
-                      key={item.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, item.id)}
-                    >
-                      <WorkItemCard
-                        id={item.id}
-                        sequence={item.sequence || 1}
-                        projectKey={projectKey}
-                        title={item.title}
-                        priority={item.priority ?? 0}
-                        statusId={col.id}
-                        dueDate={item.due_date}
-                        typeName={types[0]?.name || 'Task'}
-                        assignees={item.assignees}
-                        onClick={() => setSelectedItem(item)}
-                        onStatusChange={(newSt) => handleStatusChange(item.id, newSt)}
-                        availableStatuses={statuses}
-                      />
-                    </div>
-                  ))
+                  colItems.map((item) => {
+                    const itemCat = getCategoryByIdOrName(
+                      item.type_id || types.find((t) => t.id === item.type_id)?.name
+                    );
+                    return (
+                      <div
+                        key={item.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, item.id)}
+                      >
+                        <WorkItemCard
+                          id={item.id}
+                          sequence={item.sequence || 1}
+                          projectKey={projectKey}
+                          title={item.title}
+                          priority={item.priority ?? 0}
+                          statusId={col.id}
+                          dueDate={item.due_date}
+                          typeName={itemCat.name}
+                          assignees={item.assignees}
+                          onClick={() => setSelectedItem(item)}
+                          onStatusChange={(newSt) => handleStatusChange(item.id, newSt)}
+                          availableStatuses={statuses}
+                        />
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </div>
@@ -431,11 +465,19 @@ export function KanbanBoard({
           display: flex;
           align-items: center;
           gap: 8px;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 10px;
-          padding: 6px 12px;
-          width: 240px;
+          background: rgba(255, 255, 255, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          border-radius: 12px;
+          padding: 7px 14px;
+          width: 260px;
+          box-shadow: inset 0 1px 2px rgba(20, 15, 60, 0.06), 0 2px 8px rgba(20, 15, 60, 0.08);
+          backdrop-filter: blur(20px);
+          transition: all 0.2s ease;
+        }
+
+        .board-search:focus-within {
+          border-color: var(--aurora-iris);
+          box-shadow: 0 0 18px rgba(109, 40, 217, 0.35), inset 0 1px 2px rgba(20, 15, 60, 0.06);
         }
 
         .board-search__input {
@@ -443,88 +485,128 @@ export function KanbanBoard({
           border: none;
           outline: none;
           font-size: 0.8125rem;
-          color: var(--color-text-primary);
+          font-weight: 600;
+          color: var(--text-main);
           width: 100%;
         }
 
         .priority-filters {
           display: flex;
-          gap: 4px;
+          gap: 6px;
         }
 
         .filter-pill {
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          color: var(--color-text-secondary);
+          background: rgba(255, 255, 255, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          color: var(--text-main);
           font-size: 0.75rem;
-          font-weight: 500;
-          padding: 4px 10px;
-          border-radius: 8px;
+          font-weight: 700;
+          padding: 5px 14px;
+          border-radius: 9999px;
           cursor: pointer;
-          transition: all var(--transition-fast);
+          box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .filter-pill:hover {
-          background: var(--color-surface-hover);
-          color: var(--color-text-primary);
+          background: rgba(255, 255, 255, 0.75);
+          border-color: #ffffff;
+          transform: translateY(-1px);
         }
 
         .filter-pill--active {
-          background: var(--color-surface-active);
-          color: var(--color-primary);
-          border-color: var(--color-border-accent);
+          background: linear-gradient(135deg, #6d28d9, #7c3aed);
+          color: #ffffff;
+          border-color: rgba(255, 255, 255, 0.5);
+          box-shadow: 0 4px 14px rgba(109, 40, 217, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .category-filter-wrap {
+          display: flex;
+          align-items: center;
+        }
+
+        .category-filter-select {
+          background: rgba(255, 255, 255, 0.55);
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          color: var(--text-main);
+          font-size: 0.8125rem;
           font-weight: 600;
+          padding: 6px 12px;
+          border-radius: 9999px;
+          outline: none;
+          cursor: pointer;
+          backdrop-filter: blur(12px);
+          box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+          transition: all 0.2s ease;
+        }
+
+        .category-filter-select:hover,
+        .category-filter-select:focus {
+          background: rgba(255, 255, 255, 0.85);
+          border-color: #6d28d9;
+          box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
         }
 
         .board-controls__right {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .icon-btn {
-          width: 32px;
-          height: 32px;
+          width: 36px;
+          height: 36px;
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: 8px;
-          color: var(--color-text-secondary);
+          background: rgba(255, 255, 255, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.8);
+          border-radius: 10px;
+          color: var(--text-main);
           cursor: pointer;
+          box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+          transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+          background: rgba(255, 255, 255, 0.75);
+          border-color: #ffffff;
+          transform: translateY(-1px);
         }
 
         .icon-btn--active {
-          color: var(--color-primary);
-          border-color: var(--color-border-accent);
+          color: #0284c7;
+          border-color: #0284c7;
+          box-shadow: 0 0 14px rgba(2, 132, 199, 0.4);
         }
 
         .btn-create {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: var(--color-primary);
+          background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #0284c7 100%);
           color: #FFFFFF;
-          border: none;
-          border-radius: 8px;
-          padding: 6px 12px;
+          border: 1px solid rgba(255, 255, 255, 0.4);
+          border-radius: 9999px;
+          padding: 8px 18px;
           font-size: 0.8125rem;
-          font-weight: 600;
+          font-weight: 700;
           cursor: pointer;
-          transition: all var(--transition-fast);
+          box-shadow: 0 4px 18px rgba(109, 40, 217, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .btn-create:hover {
-          background: var(--color-primary-hover);
-          transform: translateY(-1px);
+          transform: translateY(-1px) scale(1.03);
+          box-shadow: 0 8px 24px rgba(109, 40, 217, 0.6), inset 0 1.5px 0 #ffffff;
         }
 
         /* Columns Grid */
         .board-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-          gap: 16px;
+          grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+          gap: 18px;
           flex: 1;
           align-items: flex-start;
           overflow-x: auto;
@@ -532,62 +614,65 @@ export function KanbanBoard({
         }
 
         .board-column {
-          background: rgba(30, 37, 62, 0.65);
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          border-radius: 18px;
-          padding: 14px;
+          background: rgba(255, 255, 255, 0.28);
+          border: 1px solid rgba(255, 255, 255, 0.65);
+          border-radius: 20px;
+          padding: 16px;
           display: flex;
           flex-direction: column;
           gap: 12px;
-          min-height: 480px;
-          backdrop-filter: blur(16px);
-          -webkit-backdrop-filter: blur(16px);
-          box-shadow: var(--shadow-sm), var(--border-rim-highlight);
+          min-height: 520px;
+          backdrop-filter: blur(28px) saturate(220%) brightness(106%);
+          -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(106%);
+          box-shadow: 0 8px 24px -2px rgba(20, 15, 60, 0.12), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.85);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .board-column--dragover {
           border-color: var(--aurora-iris);
-          background: rgba(42, 51, 84, 0.88);
-          box-shadow: 0 0 28px rgba(139, 92, 246, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
-          transform: scale(1.01);
+          background: rgba(255, 255, 255, 0.52);
+          box-shadow: 0 0 32px rgba(109, 40, 217, 0.4), inset 0 1.5px 0 0 #ffffff;
+          transform: scale(1.015);
         }
 
         .column-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 4px 6px 8px;
+          padding: 4px 6px 10px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+          margin-bottom: 4px;
         }
 
         .column-header__info {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .column-dot {
-          width: 8px;
-          height: 8px;
+          width: 9px;
+          height: 9px;
           border-radius: 50%;
+          box-shadow: 0 0 10px currentColor;
         }
 
         .column-title {
           font-size: 0.8125rem;
-          font-weight: 700;
-          color: var(--color-text-primary);
+          font-weight: 800;
+          color: var(--text-main);
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
         }
 
         .column-count {
           font-family: var(--font-mono);
           font-size: 0.6875rem;
-          font-weight: 600;
-          color: var(--color-text-tertiary);
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          padding: 1px 6px;
+          font-weight: 800;
+          color: var(--text-main);
+          background: rgba(255, 255, 255, 0.6);
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          padding: 2px 8px;
           border-radius: 9999px;
         }
 
@@ -600,13 +685,13 @@ export function KanbanBoard({
           border-radius: 6px;
           border: none;
           background: transparent;
-          color: var(--color-text-tertiary);
+          color: var(--text-muted);
           cursor: pointer;
         }
 
         .column-add-btn:hover {
-          background: var(--color-surface);
-          color: var(--color-text-primary);
+          background: rgba(255, 255, 255, 0.5);
+          color: var(--text-main);
         }
 
         .card-list {
@@ -621,11 +706,12 @@ export function KanbanBoard({
         }
 
         .column-empty-state {
-          border: 2px dashed var(--color-border);
-          border-radius: 10px;
+          border: 2px dashed rgba(255, 255, 255, 0.55);
+          border-radius: 12px;
           padding: 32px 16px;
           text-align: center;
-          color: var(--color-text-tertiary);
+          color: var(--text-muted);
+          font-weight: 600;
           font-size: 0.75rem;
         }
       `}</style>

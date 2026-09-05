@@ -5,6 +5,7 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { HeroLiveSandbox } from '@/components/landing/HeroLiveSandbox';
 import { DimensionalFeatureGrid } from '@/components/landing/DimensionalFeatureGrid';
 import { DemoWorkspaceButton } from '@/components/landing/DemoWorkspaceButton';
+import { CreatorBadge } from '@/components/ui/CreatorBadge';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
@@ -17,7 +18,7 @@ export default async function Home() {
   } = await supabase.auth.getUser();
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[var(--canvas-bg)] text-[var(--text-main)] selection:bg-[var(--aurora-iris)] selection:text-white">
+    <div className="landing-page-root">
       {/* Dynamic Ambient Living Aurora Orbs */}
       <LivingAuroraCanvas />
 
@@ -25,34 +26,45 @@ export default async function Home() {
       <LandingHeader user={user} />
 
       {/* Main Hero Stage */}
-      <main className="relative z-10 mx-auto max-w-6xl px-4 pt-12 pb-24 text-center sm:pt-20">
-        {/* Release Pill Badge */}
-        <div className="inline-flex items-center gap-2 rounded-full border border-[var(--aurora-iris)]/30 bg-[var(--surface-primary)] px-4 py-1.5 text-xs font-semibold shadow-[0_0_20px_rgba(139,92,246,0.25)] backdrop-blur-xl">
-          <span className="flex h-2 w-2 rounded-full bg-[var(--aurora-aqua)] animate-pulse" />
-          <span className="text-[var(--text-main)]">NEXORA 2.0</span>
-          <span className="text-[var(--text-muted)]">•</span>
-          <span className="text-[var(--aurora-iris)] font-mono">Prismatic Aurora Engine</span>
+      <main className="landing-hero-stage">
+        {/* Floating Live Badges */}
+        <div className="hero-floating-badge hero-floating-badge--left">
+          <span style={{ color: '#059669', fontSize: '1rem' }}>⚡</span>
+          <span>2.4x Faster Sprint Delivery</span>
+        </div>
+        <div className="hero-floating-badge hero-floating-badge--right">
+          <span style={{ color: '#2563eb', fontSize: '1rem' }}>✓</span>
+          <span>99.4% On-Time Completion</span>
+        </div>
+
+        {/* Release Pill Badge (No duplicate NEXORA) */}
+        <div className="hero-pill-badge">
+          <span className="hero-beacon" />
+          <span>NEW RELEASE</span>
+          <span style={{ color: 'var(--text-muted)' }}>•</span>
+          <span style={{ color: 'var(--aurora-iris)', fontWeight: 600 }}>
+            Modern Workspace for Productive Teams
+          </span>
         </div>
 
         {/* Hero Title with Shimmering Gradient */}
-        <h1 className="mx-auto mt-6 max-w-4xl text-4xl font-extrabold tracking-tight sm:text-6xl sm:leading-tight">
-          The agile workspace engineered for{' '}
-          <span className="text-prismatic">pure velocity & tactile depth</span>
+        <h1 className="hero-main-title">
+          Where high-performing teams plan, track, and{' '}
+          <span className="text-prismatic">deliver great work</span>
         </h1>
 
         {/* Subtitle */}
-        <p className="mx-auto mt-6 max-w-2xl text-base text-[var(--text-muted)] sm:text-lg leading-relaxed">
-          Break free from sterile monochrome and flat layouts. NEXORA combines fluid 120fps spring physics,
-          frosted dimensional glass, and multi-tenant security across Web, Windows, and Android.
+        <p className="hero-subtitle">
+          From daily task lists to company-wide roadmaps, NEXORA brings your team's projects into one clear, focused, and intuitive workspace.
         </p>
 
         {/* Hero Action Buttons */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+        <div className="hero-cta-group">
           <Link
             href={user ? '/dashboard' : '/auth/signup'}
-            className="group relative inline-flex items-center gap-2.5 overflow-hidden rounded-full bg-gradient-to-r from-[var(--aurora-iris)] via-[#9333ea] to-[var(--aurora-aqua)] px-7 py-3.5 text-sm font-bold text-white shadow-[0_0_30px_rgba(139,92,246,0.4)] transition-all hover:scale-105 active:scale-95"
+            className="btn-hero-cta btn-hero-cta--primary"
           >
-            <span>{user ? 'Open Workspace' : 'Start Building Free'}</span>
+            <span>{user ? 'Open Workspace' : 'Start Free Workspace'}</span>
             <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
           </Link>
 
@@ -60,27 +72,27 @@ export default async function Home() {
         </div>
 
         {/* Trust Badges */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-xs text-[var(--text-muted)]">
-          <span className="flex items-center gap-1.5">
+        <div className="hero-trust-bar">
+          <span className="hero-trust-item">
             <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            Zero-lag optimistic updates
+            Real-time team collaboration
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="hero-trust-item">
             <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            100% Supabase RLS coverage
+            Customizable team workflows
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="hero-trust-item">
             <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            Non-flat dimensional glass
+            Enterprise privacy & security
           </span>
-          <span className="flex items-center gap-1.5">
+          <span className="hero-trust-item">
             <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
             Web • Windows • Android
           </span>
         </div>
 
         {/* Live Interactive Kanban Sandbox */}
-        <section id="sandbox" className="mt-12 text-left">
+        <section id="sandbox" style={{ marginTop: 48, textAlign: 'left' }}>
           <HeroLiveSandbox />
         </section>
 
@@ -88,41 +100,53 @@ export default async function Home() {
         <DimensionalFeatureGrid />
 
         {/* Bottom CTA Banner */}
-        <div className="relative mx-auto mt-16 max-w-4xl overflow-hidden rounded-3xl border border-white/20 bg-gradient-to-br from-[var(--surface-elevated)] to-[var(--surface-primary)] p-10 shadow-[var(--shadow-lg)] backdrop-blur-3xl">
-          <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-[var(--aurora-iris)]/20 blur-3xl" />
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--aurora-iris)]/20 text-[var(--aurora-iris)] shadow-[0_0_20px_rgba(139,92,246,0.3)]">
-              <BoltRoundedIcon sx={{ fontSize: 30 }} />
+        <div className="landing-cta-banner">
+          <div className="cta-banner-glow" />
+          <div className="cta-banner-inner">
+            <div className="cta-banner-icon">
+              <BoltRoundedIcon sx={{ fontSize: 32 }} />
             </div>
-            <h3 className="mt-4 text-2xl font-bold text-white sm:text-3xl">
-              Ready to feel the difference?
+            <h3 className="cta-banner-title">
+              Ready to elevate how your team works?
             </h3>
-            <p className="mt-2 max-w-xl text-sm text-[var(--text-muted)]">
-              Jump directly into your workspace with zero configuration, instant zero-lag syncing, and a responsive experience that inspires you to create.
+            <p className="cta-banner-desc">
+              Join thousands of forward-thinking teams shipping higher-impact deliverables on schedule with NEXORA.
             </p>
-            <div className="mt-6 flex flex-wrap gap-4">
+            <div className="cta-banner-actions">
               <Link
                 href={user ? '/dashboard' : '/auth/signup'}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--aurora-iris)] to-[var(--aurora-aqua)] px-7 py-3 text-sm font-bold text-white shadow-[0_0_25px_rgba(139,92,246,0.4)] transition-transform hover:scale-105 active:scale-95"
+                className="btn-landing-primary"
+                style={{ padding: '12px 28px', fontSize: '0.9375rem' }}
               >
-                <span>{user ? 'Enter Dashboard' : 'Create Free Account'}</span>
-                <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
+                <span>{user ? 'Enter Dashboard' : 'Get Started Free'}</span>
+                <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
               </Link>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <footer className="mt-20 border-t border-white/10 pt-8 text-xs text-[var(--text-subtle)] flex flex-wrap items-center justify-between gap-4">
+        <footer className="landing-footer">
           <span>© 2026 NEXORA. All rights reserved.</span>
-          <div className="flex items-center gap-6">
-            <Link href="/auth/login" className="hover:text-white transition-colors">
+
+          {/* Unique Creator Signature with Playful Burst Animation */}
+          <div className="landing-footer-creator">
+            <CreatorBadge size="md" />
+          </div>
+
+          <div className="landing-footer-links">
+            <Link href="/auth/login" className="landing-footer-link">
               Sign In
             </Link>
-            <Link href="/dashboard" className="hover:text-white transition-colors">
+            <Link href="/dashboard" className="landing-footer-link">
               Demo
             </Link>
-            <a href="https://github.com/Biswadipgoj/nexora" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+            <a
+              href="https://github.com/Biswadipgoj/nexora"
+              target="_blank"
+              rel="noreferrer"
+              className="landing-footer-link"
+            >
               GitHub
             </a>
           </div>

@@ -21,17 +21,17 @@ interface SandboxTask {
 const INITIAL_TASKS: SandboxTask[] = [
   {
     id: 'sb-1',
-    key: 'NEX-101',
-    title: 'Ship 120fps hardware-accelerated motion engine',
+    key: 'PROJ-101',
+    title: 'Finalize Q3 product launch timeline & team deliverables',
     column: 'todo',
     priority: 'urgent',
-    tag: 'Motion',
+    tag: 'Operations',
     points: 8,
   },
   {
     id: 'sb-2',
-    key: 'NEX-102',
-    title: 'Prismatic Aurora glassmorphism tokens & specular rims',
+    key: 'PROJ-102',
+    title: 'Design customer onboarding experience for new web app',
     column: 'progress',
     priority: 'high',
     tag: 'Design',
@@ -39,20 +39,20 @@ const INITIAL_TASKS: SandboxTask[] = [
   },
   {
     id: 'sb-3',
-    key: 'NEX-103',
-    title: 'Zero-lag optimistic client state sync with Supabase RLS',
+    key: 'PROJ-103',
+    title: 'Quarterly financial review & team budget allocation',
     column: 'progress',
     priority: 'normal',
-    tag: 'Core',
+    tag: 'Finance',
     points: 3,
   },
   {
     id: 'sb-4',
-    key: 'NEX-104',
-    title: 'Unified cross-platform Android Capacitor & Windows Electron wrapper',
+    key: 'PROJ-104',
+    title: 'Security compliance & data privacy audit sign-off',
     column: 'done',
     priority: 'high',
-    tag: 'Platform',
+    tag: 'Legal',
     points: 5,
   },
 ];
@@ -66,6 +66,7 @@ const COLUMNS = [
 export function HeroLiveSandbox() {
   const [tasks, setTasks] = useState<SandboxTask[]>(INITIAL_TASKS);
   const [activeColumn, setActiveColumn] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
 
   function moveTask(taskId: string, targetCol: 'todo' | 'progress' | 'done') {
     setTasks((prev) =>
@@ -87,168 +88,265 @@ export function HeroLiveSandbox() {
   }
 
   return (
-    <div className="relative mx-auto mt-8 w-full max-w-5xl rounded-3xl border border-white/20 bg-[var(--surface-primary)] p-5 shadow-[var(--shadow-lg)] backdrop-blur-3xl sm:p-7">
+    <div className="sandbox-card-shell">
       {/* Top Specular Rim Lighting */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 1,
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+          pointerEvents: 'none',
+        }}
+      />
 
       {/* Sandbox Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-[#ef4444] shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
-            <span className="h-3 w-3 rounded-full bg-[#f59e0b] shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-            <span className="h-3 w-3 rounded-full bg-[#10b981] shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+      <div className="sandbox-topbar">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="sandbox-dots">
+            <span className="sandbox-dot sandbox-dot--red" />
+            <span className="sandbox-dot sandbox-dot--yellow" />
+            <span className="sandbox-dot sandbox-dot--green" />
           </div>
-          <span className="text-xs font-mono font-medium text-[var(--text-muted)]">
+          <span className="sandbox-app-name">
             nexora-workspace-live-preview.app
           </span>
+
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(15, 23, 42, 0.06)', padding: 3, borderRadius: 8, marginLeft: 8 }}>
+            <button
+              onClick={() => setViewMode('board')}
+              style={{
+                background: viewMode === 'board' ? '#ffffff' : 'transparent',
+                color: viewMode === 'board' ? '#0f172a' : '#64748b',
+                boxShadow: viewMode === 'board' ? '0 1px 4px rgba(15, 23, 42, 0.1)' : 'none',
+                border: 'none',
+                borderRadius: 6,
+                padding: '4px 10px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Board View
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              style={{
+                background: viewMode === 'list' ? '#ffffff' : 'transparent',
+                color: viewMode === 'list' ? '#0f172a' : '#64748b',
+                boxShadow: viewMode === 'list' ? '0 1px 4px rgba(15, 23, 42, 0.1)' : 'none',
+                border: 'none',
+                borderRadius: 6,
+                padding: '4px 10px',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              List View
+            </button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1 text-xs font-semibold text-[var(--aurora-aqua)] shadow-[0_0_12px_rgba(6,182,212,0.25)]">
+        <div className="sandbox-indicator-pill">
           <TouchAppRoundedIcon sx={{ fontSize: 16 }} />
           <span>Interactive Live Sandbox • Click or Drag to Move Cards</span>
         </div>
       </div>
 
-      {/* 3-Column Interactive Kanban Board */}
-      <div className="grid grid-cols-1 gap-4 pt-6 md:grid-cols-3">
-        {COLUMNS.map((col) => {
-          const colTasks = tasks.filter((t) => t.column === col.id);
-          const isTarget = activeColumn === col.id;
+      {/* Conditional View: 3-Column Kanban Board OR Crisp List View */}
+      {viewMode === 'board' ? (
+        <div className="sandbox-columns-grid">
+          {COLUMNS.map((col) => {
+            const colTasks = tasks.filter((t) => t.column === col.id);
+            const isTarget = activeColumn === col.id;
 
-          return (
-            <div
-              key={col.id}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setActiveColumn(col.id);
-              }}
-              onDragLeave={() => setActiveColumn(null)}
-              onDrop={(e) => {
-                e.preventDefault();
-                const taskId = e.dataTransfer.getData('text/plain');
-                if (taskId) {
-                  moveTask(taskId, col.id);
-                }
-                setActiveColumn(null);
-              }}
-              className={`flex flex-col rounded-2xl border p-4 transition-all duration-300 ${
-                isTarget
-                  ? 'border-white/40 bg-white/10 shadow-[0_0_30px_rgba(139,92,246,0.35)] scale-[1.01]'
-                  : 'border-white/10 bg-[var(--surface-elevated)]/60 shadow-[var(--shadow-sm)]'
-              }`}
-            >
-              {/* Column Header */}
-              <div className="flex items-center justify-between pb-3 mb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
+            return (
+              <div
+                key={col.id}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setActiveColumn(col.id);
+                }}
+                onDragLeave={() => setActiveColumn(null)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const taskId = e.dataTransfer.getData('text/plain');
+                  if (taskId) {
+                    moveTask(taskId, col.id);
+                  }
+                  setActiveColumn(null);
+                }}
+                className={`sandbox-col-box ${isTarget ? 'sandbox-col-box--dragover' : ''}`}
+              >
+                {/* Column Header */}
+                <div className="sandbox-col-header">
+                  <div className="sandbox-col-title-wrap">
+                    <span
+                      className="sandbox-col-beacon"
+                      style={{
+                        backgroundColor: col.color,
+                        boxShadow: `0 0 10px ${col.glow}`,
+                      }}
+                    />
+                    <span>{col.label}</span>
+                  </div>
                   <span
-                    className="h-2.5 w-2.5 rounded-full"
+                    className="sandbox-col-badge"
                     style={{
-                      backgroundColor: col.color,
-                      boxShadow: `0 0 10px ${col.glow}`,
+                      backgroundColor: `color-mix(in srgb, ${col.color} 20%, transparent)`,
+                      color: col.color,
                     }}
-                  />
-                  <span className="text-sm font-semibold text-[var(--text-main)]">
-                    {col.label}
+                  >
+                    {colTasks.length}
                   </span>
                 </div>
-                <span
-                  className="rounded-full px-2 py-0.5 text-xs font-mono font-bold"
-                  style={{
-                    backgroundColor: `color-mix(in srgb, ${col.color} 20%, transparent)`,
-                    color: col.color,
-                  }}
-                >
-                  {colTasks.length}
+
+                {/* Column Tasks */}
+                <div className="sandbox-task-list">
+                  <AnimatePresence mode="popLayout">
+                    {colTasks.map((task) => (
+                      <motion.div
+                        key={task.id}
+                        layout
+                        layoutId={task.id}
+                        transition={SPRING_DRAG}
+                        draggable
+                        onDragStart={(e) => {
+                          (e as any).dataTransfer.setData('text/plain', task.id);
+                        }}
+                        onClick={() => cycleTask(task.id)}
+                        whileHover={{ y: -3, scale: 1.02 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="sandbox-task-card"
+                      >
+                        <div className="sandbox-task-header">
+                          <span className="sandbox-task-key">
+                            {task.key}
+                          </span>
+                          <span
+                            className="sandbox-priority-pill"
+                            style={{
+                              backgroundColor:
+                                task.priority === 'urgent'
+                                  ? 'rgba(244, 63, 94, 0.2)'
+                                  : task.priority === 'high'
+                                  ? 'rgba(245, 158, 11, 0.2)'
+                                  : 'rgba(6, 182, 212, 0.2)',
+                              color:
+                                task.priority === 'urgent'
+                                  ? 'var(--aurora-rose)'
+                                  : task.priority === 'high'
+                                  ? 'var(--aurora-amber)'
+                                  : 'var(--aurora-aqua)',
+                              border: '1px solid currentColor',
+                            }}
+                          >
+                            {task.priority}
+                          </span>
+                        </div>
+
+                        <div className="sandbox-task-title">
+                          {task.title}
+                        </div>
+
+                        <div className="sandbox-task-footer">
+                          <span className="sandbox-tag-pill">
+                            {task.tag}
+                          </span>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              fontFamily: 'var(--font-mono)',
+                              color: 'var(--aurora-aqua)',
+                            }}
+                          >
+                            <SparklesIcon sx={{ fontSize: 13 }} />
+                            {task.points} pts
+                          </span>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+
+                  {colTasks.length === 0 && (
+                    <div className="sandbox-empty-drop">
+                      Drop items here
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '16px 20px', minHeight: 280 }}>
+          {tasks.map((task) => (
+            <motion.div
+              key={task.id}
+              onClick={() => cycleTask(task.id)}
+              whileHover={{ scale: 1.01, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+              whileTap={{ scale: 0.99 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                background: 'rgba(255, 255, 255, 0.78)',
+                borderRadius: 12,
+                border: '1px solid rgba(255, 255, 255, 0.9)',
+                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.05)',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--aurora-iris)' }}>
+                  {task.key}
+                </span>
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+                  {task.title}
                 </span>
               </div>
-
-              {/* Column Tasks */}
-              <div className="flex flex-col gap-3 min-h-[160px]">
-                <AnimatePresence mode="popLayout">
-                  {colTasks.map((task) => (
-                    <motion.div
-                      key={task.id}
-                      layout
-                      layoutId={task.id}
-                      transition={SPRING_DRAG}
-                      draggable
-                      onDragStart={(e) => {
-                        (e as any).dataTransfer.setData('text/plain', task.id);
-                      }}
-                      onClick={() => cycleTask(task.id)}
-                      whileHover={{ y: -3, scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="group cursor-pointer select-none rounded-xl border border-white/15 bg-[var(--surface-elevated)] p-4 shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all hover:border-white/30 hover:shadow-[var(--shadow-md)]"
-                    >
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <span className="text-xs font-mono font-bold text-[var(--aurora-iris)]">
-                          {task.key}
-                        </span>
-                        <span
-                          className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
-                          style={{
-                            backgroundColor:
-                              task.priority === 'urgent'
-                                ? 'rgba(244, 63, 94, 0.2)'
-                                : task.priority === 'high'
-                                ? 'rgba(245, 158, 11, 0.2)'
-                                : 'rgba(6, 182, 212, 0.2)',
-                            color:
-                              task.priority === 'urgent'
-                                ? 'var(--aurora-rose)'
-                                : task.priority === 'high'
-                                ? 'var(--aurora-amber)'
-                                : 'var(--aurora-aqua)',
-                            border: '1px solid currentColor',
-                          }}
-                        >
-                          {task.priority}
-                        </span>
-                      </div>
-
-                      <p className="text-sm font-medium text-[var(--text-main)] group-hover:text-white line-clamp-2">
-                        {task.title}
-                      </p>
-
-                      <div className="mt-3 flex items-center justify-between text-xs text-[var(--text-muted)]">
-                        <span className="rounded-md bg-white/5 px-2 py-0.5 font-medium">
-                          {task.tag}
-                        </span>
-                        <span className="flex items-center gap-1 font-mono text-[11px] text-[var(--text-subtle)] group-hover:text-[var(--aurora-aqua)] transition-colors">
-                          <SparklesIcon sx={{ fontSize: 13 }} />
-                          {task.points} pts
-                        </span>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-
-                {colTasks.length === 0 && (
-                  <div className="flex flex-1 items-center justify-center rounded-xl border border-dashed border-white/15 py-8 text-xs text-[var(--text-subtle)]">
-                    Drop items here
-                  </div>
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <span style={{
+                  padding: '3px 8px',
+                  borderRadius: 9999,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  textTransform: 'capitalize',
+                  background: task.column === 'done' ? 'rgba(5, 150, 105, 0.15)' : task.column === 'progress' ? 'rgba(217, 119, 6, 0.15)' : 'rgba(79, 70, 229, 0.15)',
+                  color: task.column === 'done' ? '#059669' : task.column === 'progress' ? '#d97706' : '#4f46e5',
+                }}>
+                  {task.column === 'done' ? 'Done' : task.column === 'progress' ? 'In Progress' : 'To Do'}
+                </span>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{task.tag}</span>
               </div>
-            </div>
-          );
-        })}
-      </div>
+            </motion.div>
+          ))}
+        </div>
+      )}
 
       {/* Sandbox Footer Bar */}
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-white/10 text-xs text-[var(--text-muted)]">
-        <div className="flex items-center gap-2">
+      <div className="sandbox-bottom-bar">
+        <div className="sandbox-hotkey-hint">
           <KeyboardRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-amber)' }} />
           <span>Press ⌘K for Command Palette anytime</span>
         </div>
-        <div className="flex items-center gap-4">
-          <span className="flex items-center gap-1.5 text-[var(--aurora-jade)]">
+        <div className="sandbox-trust-pills">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--aurora-jade)' }}>
             <CheckCircleRoundedIcon sx={{ fontSize: 14 }} />
-            Zero-lag optimistic sync
+            Instant multi-user sync
           </span>
-          <span className="flex items-center gap-1.5 text-[var(--aurora-aqua)]">
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--aurora-aqua)' }}>
             <CheckCircleRoundedIcon sx={{ fontSize: 14 }} />
-            100% RLS Protected
+            Bank-grade data security
           </span>
         </div>
       </div>

@@ -1,52 +1,53 @@
-/* styles/prismatic-aurora.css — Prismatic Aurora Design Tokens & Anti-Flat Dimension */
+/* styles/prismatic-aurora.css — Executive Luminous Platinum & Royal Sapphire Design Tokens */
 :root {
-  /* Luminous Slate Canvas (Neither pitch black #000 nor blinding white #fff) */
-  --canvas-bg: #181d2e;
-  --canvas-surface: #1e243a;
-  --canvas-gradient: radial-gradient(circle at 12% 18%, rgba(139, 92, 246, 0.22) 0%, transparent 45%),
-                     radial-gradient(circle at 88% 82%, rgba(6, 182, 212, 0.18) 0%, transparent 50%),
-                     radial-gradient(circle at 50% 50%, rgba(244, 63, 94, 0.12) 0%, transparent 55%),
-                     #181d2e;
+  /* Executive Luminous Platinum Canvas (STRICTLY non-dark, strictly non-pure-white, luxury tech atmosphere) */
+  --canvas-bg: #dbe4f2;
+  --canvas-surface: rgba(255, 255, 255, 0.72);
+  --canvas-gradient: radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.22) 0%, transparent 55%),
+                     radial-gradient(circle at 85% 15%, rgba(79, 70, 229, 0.20) 0%, transparent 50%),
+                     radial-gradient(circle at 50% 85%, rgba(2, 132, 199, 0.18) 0%, transparent 55%),
+                     radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.16) 0%, transparent 50%),
+                     linear-gradient(135deg, #dbe4f3 0%, #e2eaf6 50%, #d4e0f1 100%);
 
-  /* Layered Glass Surfaces */
-  --surface-primary: rgba(30, 37, 62, 0.76);
-  --surface-elevated: rgba(42, 51, 84, 0.84);
-  --surface-hover: rgba(54, 65, 106, 0.92);
-  --surface-modal: rgba(28, 34, 58, 0.96);
-  --surface-glass: rgba(255, 255, 255, 0.05);
+  /* Crystalline Frosted 3D Quartz Surfaces (Executive, Refractive, Luminous) */
+  --surface-primary: rgba(255, 255, 255, 0.76);
+  --surface-elevated: rgba(255, 255, 255, 0.88);
+  --surface-hover: rgba(255, 255, 255, 0.96);
+  --surface-modal: rgba(255, 255, 255, 0.94);
+  --surface-glass: rgba(255, 255, 255, 0.60);
 
-  /* Specular Rim Lighting & Anti-Flat Bevels */
-  --border-rim: 1px solid rgba(255, 255, 255, 0.14);
-  --border-rim-highlight: inset 0 1px 0 0 rgba(255, 255, 255, 0.24);
-  --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+  /* 3D Specular Rims & Precision Bevels */
+  --border-rim: 1px solid rgba(255, 255, 255, 0.85);
+  --border-rim-highlight: inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 0 rgba(15, 23, 42, 0.05);
+  --border-subtle: 1px solid rgba(255, 255, 255, 0.65);
 
-  /* Multi-Stop Chromatic Aurora Accents */
-  --aurora-iris: #8b5cf6;
-  --aurora-aqua: #06b6d4;
-  --aurora-amber: #f59e0b;
-  --aurora-rose: #f43f5e;
-  --aurora-jade: #10b981;
+  /* Executive Semantic Accents */
+  --aurora-iris: #4f46e5;
+  --aurora-aqua: #0284c7;
+  --aurora-amber: #d97706;
+  --aurora-rose: #dc2626;
+  --aurora-jade: #059669;
 
-  /* Text & Typography Contrast */
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  /* Typography (High-Contrast Obsidian Midnight Slate, 100% WCAG AAA readability) */
+  --text-main: #0f172a;
+  --text-muted: #334155;
   --text-subtle: #64748b;
 
-  /* Elevation Shadows Blended with Ambient Penumbras */
-  --shadow-sm: 0 2px 8px -1px rgba(10, 13, 24, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
-  --shadow-md: 0 10px 24px -4px rgba(10, 13, 24, 0.6), 0 0 16px -2px rgba(139, 92, 246, 0.18), inset 0 1px 0 0 rgba(255, 255, 255, 0.22);
-  --shadow-lg: 0 20px 40px -8px rgba(8, 10, 20, 0.75), 0 0 32px -4px rgba(6, 182, 212, 0.22), inset 0 1px 0 0 rgba(255, 255, 255, 0.26);
-  --shadow-lifted: 0 24px 48px -6px rgba(10, 14, 26, 0.85), 0 0 32px rgba(139, 92, 246, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.32);
+  /* 3D Elevation Shadows with Subtle Sapphire Penumbras */
+  --shadow-sm: 0 2px 8px -1px rgba(15, 23, 42, 0.08), 0 0 12px rgba(37, 99, 235, 0.06), inset 0 1px 0 0 #ffffff;
+  --shadow-md: 0 10px 25px -3px rgba(15, 23, 42, 0.09), 0 0 20px rgba(37, 99, 235, 0.10), inset 0 1.5px 0 0 #ffffff;
+  --shadow-lg: 0 20px 40px -6px rgba(15, 23, 42, 0.12), 0 0 28px rgba(79, 70, 229, 0.14), inset 0 1.5px 0 0 #ffffff;
+  --shadow-lifted: 0 24px 48px -6px rgba(15, 23, 42, 0.16), 0 0 32px rgba(37, 99, 235, 0.22), inset 0 1.5px 0 0 #ffffff;
 
-  /* Glow Halos */
-  --glow-iris: 0 0 24px rgba(139, 92, 246, 0.35);
-  --glow-aqua: 0 0 24px rgba(6, 182, 212, 0.35);
-  --glow-amber: 0 0 24px rgba(245, 158, 11, 0.35);
-  --glow-rose: 0 0 24px rgba(244, 63, 94, 0.35);
-  --glow-jade: 0 0 24px rgba(16, 185, 129, 0.35);
+  /* Subtle Executive Glow Halos */
+  --glow-iris: 0 0 20px rgba(79, 70, 229, 0.25);
+  --glow-aqua: 0 0 20px rgba(2, 132, 199, 0.25);
+  --glow-amber: 0 0 20px rgba(217, 119, 6, 0.25);
+  --glow-rose: 0 0 20px rgba(220, 38, 38, 0.25);
+  --glow-jade: 0 0 20px rgba(5, 150, 105, 0.25);
 }
 
-/* Global Anti-Flat Prismatic Defaults */
+/* Global 3D Immersive Body Canvas */
 body {
   background: var(--canvas-gradient) !important;
   background-color: var(--canvas-bg) !important;
@@ -56,36 +57,35 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* Tactile Glass Panel Utility */
+/* Tactile 3D Glass Panel Utility */
 .prismatic-panel {
   background: var(--surface-elevated);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: var(--border-rim);
-  box-shadow: var(--shadow-md);
-  border-radius: 1rem;
+  box-shadow: var(--shadow-md), var(--border-rim-highlight);
+  border-radius: 1.25rem;
 }
 
 .prismatic-card {
   background: var(--surface-primary);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: var(--shadow-sm);
-  border-radius: 0.875rem;
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: var(--border-rim);
+  box-shadow: var(--shadow-sm), var(--border-rim-highlight);
+  border-radius: 1rem;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .prismatic-card:hover {
   background: var(--surface-hover);
-  box-shadow: var(--shadow-lifted);
-  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: var(--shadow-lifted), var(--border-rim-highlight);
   transform: translateY(-2px);
 }
 
-/* Prismatic Gradient Text */
+/* Executive Gradient Text */
 .text-prismatic {
-  background: linear-gradient(135deg, #c084fc 0%, #38bdf8 50%, #f472b6 100%);
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #4f46e5 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

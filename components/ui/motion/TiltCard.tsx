@@ -57,17 +57,17 @@ export function TiltCard({
         transformStyle: 'preserve-3d',
       }}
       whileTap={{ scale: 0.98 }}
-      className={`relative overflow-hidden rounded-2xl border border-white/15 bg-[var(--surface-elevated)] p-6 shadow-[var(--shadow-md)] backdrop-blur-2xl transition-shadow hover:shadow-[var(--shadow-lifted)] ${className}`}
+      className={`tilt-card-container ${className}`}
       {...(props as any)}
     >
       {/* Specular Glare Layer */}
       <motion.div
-        className="pointer-events-none absolute -inset-full opacity-0 hover:opacity-100 transition-opacity duration-300"
+        className="tilt-card-glare"
         style={{
           background: `radial-gradient(circle 280px at ${glareX} ${glareY}, ${glowColor}, transparent 70%)`,
         }}
       />
-      <div className="relative z-10">{children}</div>
+      <div className="tilt-card-content">{children}</div>
     </motion.div>
   );
 }

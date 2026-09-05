@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light';
+type Theme = 'prismatic' | 'dark' | 'light';
 
 interface ThemeContextType {
   theme: Theme;
@@ -13,20 +13,13 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark');
-  const [mounted, setMounted] = useState(false);
+  const [theme, setThemeState] = useState<Theme>('prismatic');
 
   useEffect(() => {
-    // Check saved theme or default to dark for premium aesthetic
-    const saved = localStorage.getItem('nexora_theme') as Theme | null;
-    if (saved === 'dark' || saved === 'light') {
-      setThemeState(saved);
-      document.documentElement.setAttribute('data-theme', saved);
-    } else {
-      setThemeState('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    }
-    setMounted(true);
+    // Always initialize and enforce the Prismatic Aurora theme
+    setThemeState('prismatic');
+    document.documentElement.setAttribute('data-theme', 'prismatic');
+    localStorage.setItem('nexora_theme', 'prismatic');
   }, []);
 
   const setTheme = (newTheme: Theme) => {
@@ -36,8 +29,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   };
 
   const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
+    // Toggle stays within the luminous Prismatic Aurora gamut
+    setTheme('prismatic');
   };
 
   return (
@@ -51,7 +44,7 @@ export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
     return {
-      theme: 'dark' as Theme,
+      theme: 'prismatic' as Theme,
       toggleTheme: () => {},
       setTheme: () => {},
     };

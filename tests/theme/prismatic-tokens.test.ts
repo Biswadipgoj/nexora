@@ -8,12 +8,12 @@ describe('Prismatic Aurora Design Tokens', () => {
     expect(fs.existsSync(cssPath)).toBe(true);
     const content = fs.readFileSync(cssPath, 'utf-8');
 
-    expect(content).toContain('--canvas-bg: #181d2e');
-    expect(content).toContain('--aurora-iris: #8b5cf6');
-    expect(content).toContain('--aurora-aqua: #06b6d4');
-    expect(content).toContain('--aurora-amber: #f59e0b');
-    expect(content).toContain('--aurora-rose: #f43f5e');
-    expect(content).toContain('--aurora-jade: #10b981');
+    expect(content).toContain('--canvas-bg: #dbe4f2');
+    expect(content).toContain('--aurora-iris: #4f46e5');
+    expect(content).toContain('--aurora-aqua: #0284c7');
+    expect(content).toContain('--aurora-amber: #d97706');
+    expect(content).toContain('--aurora-rose: #dc2626');
+    expect(content).toContain('--aurora-jade: #059669');
     expect(content).toContain('--border-rim-highlight');
     expect(content).toContain('--shadow-lifted');
   });

@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import { TASK_CATEGORIES } from '@/lib/constants/categories';
 import type { WorkItemData } from './KanbanBoard';
 
 export interface QuickCreateModalProps {
@@ -34,11 +35,7 @@ export function QuickCreateModal({
     { id: 'status-in-progress', name: 'In Progress' },
     { id: 'status-done', name: 'Done' },
   ],
-  availableTypes = [
-    { id: 'type-task', name: 'Task' },
-    { id: 'type-bug', name: 'Bug' },
-    { id: 'type-feature', name: 'Feature' },
-  ],
+  availableTypes = TASK_CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
   onSuccess,
   onItemCreated,
 }: QuickCreateModalProps) {
@@ -181,6 +178,37 @@ export function QuickCreateModal({
             />
           </div>
 
+          {/* Category / Work Type Selector */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <label className="field-label" style={{ marginBottom: 0 }}>Category / Work Type</label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--color-text-tertiary)', fontWeight: 500 }}>
+                {TASK_CATEGORIES.find((c) => c.id === typeId)?.description || 'Select work category'}
+              </span>
+            </div>
+            <div className="category-pill-grid">
+              {TASK_CATEGORIES.map((cat) => {
+                const isSelected = typeId === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setTypeId(cat.id)}
+                    className={`category-pill-btn ${isSelected ? 'category-pill-btn--selected' : ''}`}
+                    style={{
+                      borderColor: isSelected ? cat.color : undefined,
+                      backgroundColor: isSelected ? cat.bgColor : undefined,
+                      color: isSelected ? cat.color : undefined,
+                    }}
+                  >
+                    <span className="category-pill-icon">{cat.icon}</span>
+                    <span className="category-pill-name">{cat.shortName}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Properties Grid */}
           <div className="properties-row">
             {/* Status */}
@@ -296,6 +324,56 @@ export function QuickCreateModal({
           display: grid;
           grid-template-columns: 1fr 1fr 1fr;
           gap: 12px;
+        }
+
+        .category-pill-grid {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 6px;
+        }
+
+        .category-pill-btn {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 6px 8px;
+          border-radius: 8px;
+          border: 1.5px solid var(--color-border);
+          background: var(--color-bg-subtle);
+          color: var(--color-text-secondary);
+          font-size: 0.75rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all var(--transition-fast);
+          text-align: left;
+        }
+
+        .category-pill-btn:hover {
+          background: var(--color-surface-hover);
+          color: var(--color-text-primary);
+          border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .category-pill-btn--selected {
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+          font-weight: 700;
+        }
+
+        .category-pill-icon {
+          font-size: 0.95rem;
+          line-height: 1;
+        }
+
+        .category-pill-name {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        @media (max-width: 600px) {
+          .category-pill-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
         }
 
         .prop-field {

@@ -43,7 +43,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#090D16',
+  themeColor: '#6372ec',
 };
 
 export default function RootLayout({
@@ -54,7 +54,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="prismatic"
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning

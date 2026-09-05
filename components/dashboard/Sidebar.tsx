@@ -12,6 +12,7 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import { Logo } from '@/components/ui/Logo';
+import { CreatorBadge } from '@/components/ui/CreatorBadge';
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
@@ -48,40 +49,54 @@ export function Sidebar({
 
   return (
     <aside className="dash-sidebar">
-      {/* Brand Header */}
+      {/* Brand & Workspace Switcher Header */}
       <div className="sidebar-brand-box">
-        <Logo size="sm" animated withText />
-        <div style={{ paddingLeft: 34, fontSize: '0.7rem', color: 'var(--color-text-tertiary)', marginTop: -4, fontWeight: 500 }}>
-          {primaryWorkspace.name}
+        <div className="sidebar-brand-header">
+          <Logo size="sm" animated withText />
+        </div>
+        <div className="sidebar-workspace-pill">
+          <div className="workspace-pill-avatar">
+            {primaryWorkspace.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="workspace-pill-meta">
+            <span className="workspace-pill-name">{primaryWorkspace.name}</span>
+            <span className="workspace-pill-status">
+              <span className="workspace-pill-dot" />
+              <span>Synced & Ready</span>
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Navigation Links */}
       <nav className="sidebar-nav">
-        <div className="nav-group-title">MAIN MENU</div>
+        <div className="nav-group-title">WORKSPACE</div>
         <button
           onClick={() => setActiveTab('overview')}
           className={`nav-item-btn ${activeTab === 'overview' ? 'nav-item-btn--active' : ''}`}
         >
-          <div className="nav-icon-container"><DashboardRoundedIcon sx={{ fontSize: 18 }} /></div>
-          <span className="nav-label">Overview</span>
+          <div className="nav-icon-container"><DashboardRoundedIcon sx={{ fontSize: 17 }} /></div>
+          <span className="nav-label">Overview Board</span>
+          {activeTab === 'overview' && <div className="nav-active-bar" />}
         </button>
 
         <button
           onClick={() => setActiveTab('inbox')}
           className={`nav-item-btn ${activeTab === 'inbox' ? 'nav-item-btn--active' : ''}`}
         >
-          <div className="nav-icon-container"><InboxRoundedIcon sx={{ fontSize: 18 }} /></div>
+          <div className="nav-icon-container"><InboxRoundedIcon sx={{ fontSize: 17 }} /></div>
           <span className="nav-label">Inbox</span>
           {inboxCount > 0 && <span className="nav-badge-pill">{inboxCount}</span>}
+          {activeTab === 'inbox' && <div className="nav-active-bar" />}
         </button>
 
         <button
           onClick={() => setActiveTab('tasks')}
           className={`nav-item-btn ${activeTab === 'tasks' ? 'nav-item-btn--active' : ''}`}
         >
-          <div className="nav-icon-container"><AssignmentTurnedInRoundedIcon sx={{ fontSize: 18 }} /></div>
+          <div className="nav-icon-container"><AssignmentTurnedInRoundedIcon sx={{ fontSize: 17 }} /></div>
           <span className="nav-label">My Tasks</span>
+          {activeTab === 'tasks' && <div className="nav-active-bar" />}
         </button>
 
         <div className="nav-divider" />
@@ -100,41 +115,60 @@ export function Sidebar({
         </div>
 
         {/* Global Action Shortcuts */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <button className="btn-primary" onClick={onQuickCreate} style={{ width: '100%', justifyContent: 'center' }}>
-            <AddRoundedIcon sx={{ fontSize: 16 }} />
-            New Issue
-            <kbd className="shortcut-kbd">C</kbd>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 0 4px' }}>
+          <button
+            className="btn-primary-gradient"
+            onClick={onQuickCreate}
+            style={{ width: '100%', justifyContent: 'center', borderRadius: 12, padding: '10px 16px' }}
+          >
+            <AddRoundedIcon sx={{ fontSize: 18 }} />
+            <span>New Task</span>
+            <span
+              style={{
+                background: 'rgba(255, 255, 255, 0.22)',
+                color: '#FFFFFF',
+                fontSize: '0.6875rem',
+                fontWeight: 800,
+                padding: '2px 6px',
+                borderRadius: 5,
+                marginLeft: 6,
+                border: '1px solid rgba(255, 255, 255, 0.3)',
+              }}
+            >
+              C
+            </span>
           </button>
           <div
             className="share-shortcut-card"
             onClick={onShareProject}
             style={{
               padding: '10px 12px',
-              borderRadius: 10,
-              background: 'var(--color-surface)',
-              border: '1px solid var(--color-border)',
+              borderRadius: 12,
+              background: 'rgba(255, 255, 255, 0.7)',
+              border: '1px solid rgba(255, 255, 255, 0.95)',
+              boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
               cursor: 'pointer',
-              transition: 'all 150ms ease',
+              transition: 'all 180ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 6,
-                  background: 'var(--color-primary-tonal, rgba(99,102,241,0.12))',
+                  width: 30,
+                  height: 30,
+                  borderRadius: 8,
+                  background: 'rgba(37, 99, 235, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  color: '#2563eb',
                 }}
               >
-                <ShareRoundedIcon sx={{ fontSize: 15, color: 'var(--color-primary)' }} />
+                <ShareRoundedIcon sx={{ fontSize: 16 }} />
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>Share Project</div>
-                <div style={{ fontSize: '0.65rem', color: 'var(--color-text-tertiary)' }}>Invite collaborators</div>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>Share Project</div>
+                <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>Invite collaborators</div>
               </div>
             </div>
           </div>
@@ -143,6 +177,10 @@ export function Sidebar({
 
       {/* User Profile Footer, Theme Toggle & Sign Out */}
       <div className="sidebar-footer">
+        <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
+          <CreatorBadge size="sm" />
+        </div>
+
         <div className="profile-chip" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
             <div style={{

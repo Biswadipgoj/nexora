@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useRef } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'motion/react';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import AvatarGroup from '@mui/material/AvatarGroup';
@@ -12,6 +12,8 @@ import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
+import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
+import { getCategoryByIdOrName } from '@/lib/constants/categories';
 
 export interface WorkItemCardProps {
   id: string;
@@ -35,12 +37,12 @@ export interface WorkItemCardProps {
   availableStatuses?: Array<{ id: string; name: string }>;
 }
 
-const PRIORITY_DATA: Record<number, { label: string; class: string }> = {
-  4: { label: 'Urgent', class: 'badge-priority--urgent' },
-  3: { label: 'High', class: 'badge-priority--high' },
-  2: { label: 'Medium', class: 'badge-priority--medium' },
-  1: { label: 'Low', class: 'badge-priority--low' },
-  0: { label: 'None', class: 'badge-priority--low' },
+const PRIORITY_DATA: Record<number, { label: string; class: string; glow: string; color: string }> = {
+  4: { label: 'Urgent', class: 'badge-priority--urgent', glow: 'rgba(244, 63, 94, 0.4)', color: '#f43f5e' },
+  3: { label: 'High', class: 'badge-priority--high', glow: 'rgba(245, 158, 11, 0.4)', color: '#f59e0b' },
+  2: { label: 'Medium', class: 'badge-priority--medium', glow: 'rgba(234, 179, 8, 0.4)', color: '#eab308' },
+  1: { label: 'Low', class: 'badge-priority--low', glow: 'rgba(6, 182, 212, 0.4)', color: '#06b6d4' },
+  0: { label: 'None', class: 'badge-priority--low', glow: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8' },
 };
 
 export function WorkItemCard({
@@ -59,10 +61,35 @@ export function WorkItemCard({
   onStatusChange,
   availableStatuses = [],
 }: WorkItemCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [copied, setCopied] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+
+  // 3D Tilt interactive motion values
+  const x = useMotionValue(0.5);
+  const y = useMotionValue(0.5);
+  const rotateX = useSpring(useTransform(y, [0, 1], [7, -7]), { stiffness: 450, damping: 25 });
+  const rotateY = useSpring(useTransform(x, [0, 1], [-7, 7]), { stiffness: 450, damping: 25 });
+  const glareX = useTransform(x, [0, 1], ['0%', '100%']);
+  const glareY = useTransform(y, [0, 1], ['0%', '100%']);
+
   const p = PRIORITY_DATA[priority] ?? PRIORITY_DATA[0];
   const isDone = statusId.toLowerCase().includes('done');
+  const category = getCategoryByIdOrName(typeName);
+
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    x.set((e.clientX - rect.left) / rect.width);
+    y.set((e.clientY - rect.top) / rect.height);
+  }
+
+  function handleMouseLeave() {
+    x.set(0.5);
+    y.set(0.5);
+    setIsHovered(false);
+  }
 
   const handleCopyKey = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -85,13 +112,18 @@ export function WorkItemCard({
 
   return (
     <motion.div
-      whileHover={{
-        y: -3,
-        scale: 1.015,
-        transition: { type: 'spring', stiffness: 450, damping: 25 },
+      ref={cardRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        perspective: 1000,
+        rotateX,
+        rotateY,
+        transformStyle: 'preserve-3d',
       }}
       whileTap={{ scale: 0.97 }}
-      className="card-container glass-card"
+      className={`card-container glass-card ${isHovered ? 'card-container--hovered' : ''}`}
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -103,6 +135,15 @@ export function WorkItemCard({
       }}
       aria-label={`${projectKey}-${sequence}: ${title}`}
     >
+      {/* Dynamic 3D Specular Glare Layer */}
+      <motion.div
+        className="card-glare"
+        style={{
+          opacity: isHovered ? 1 : 0,
+          background: `radial-gradient(circle 220px at ${glareX} ${glareY}, ${p.glow}, transparent 75%)`,
+        }}
+      />
+
       {/* Top Header: Checkbox + Key + Copy + Priority */}
       <div className="card-header">
         <div className="card-header__left">
@@ -132,8 +173,14 @@ export function WorkItemCard({
         </div>
 
         {/* Priority Badge */}
-        <span className={`badge-priority ${p.class}`}>
-          <span className="priority-dot" />
+        <span
+          className={`badge-priority ${p.class}`}
+          style={{
+            boxShadow: isHovered ? `0 0 10px ${p.glow}` : 'none',
+            transition: 'box-shadow 0.2s ease',
+          }}
+        >
+          <span className="priority-dot" style={{ backgroundColor: p.color }} />
           {p.label}
         </span>
       </div>
@@ -162,7 +209,18 @@ export function WorkItemCard({
       {/* Footer Metadata: Type badge, Due date, Assignees */}
       <div className="card-footer">
         <div className="card-footer__left">
-          <span className="card-type-chip">{typeName}</span>
+          <span
+            className="card-category-badge"
+            style={{
+              color: category.color,
+              backgroundColor: category.bgColor,
+              borderColor: category.borderColor,
+            }}
+            title={`${category.name}: ${category.description}`}
+          >
+            <span className="card-category-icon">{category.icon}</span>
+            <span className="card-category-text">{category.shortName}</span>
+          </span>
 
           {storyPoints !== undefined && (
             <span className="card-points">{storyPoints} pts</span>
@@ -261,9 +319,35 @@ export function WorkItemCard({
           cursor: pointer;
           position: relative;
           user-select: none;
+          border-radius: 14px;
+          background: rgba(255, 255, 255, 0.65);
+          border: 1px solid rgba(255, 255, 255, 0.85);
+          box-shadow: 0 4px 14px -1px rgba(20, 15, 60, 0.12), inset 0 1px 0 0 #ffffff;
+          backdrop-filter: blur(24px) saturate(220%) brightness(106%);
+          -webkit-backdrop-filter: blur(24px) saturate(220%) brightness(106%);
+          overflow: hidden;
+          transition: border-color 0.2s ease, box-shadow 0.25s ease, background 0.2s ease;
+        }
+
+        .card-container--hovered {
+          border-color: #ffffff;
+          background: rgba(255, 255, 255, 0.88);
+          box-shadow: 0 16px 36px -4px rgba(20, 15, 60, 0.2), 0 0 24px rgba(109, 40, 217, 0.25), inset 0 1.5px 0 0 #ffffff;
+        }
+
+        .card-glare {
+          pointer-events: none;
+          position: absolute;
+          inset: -60%;
+          border-radius: 50%;
+          transition: opacity 0.25s ease;
+          mix-blend-mode: overlay;
+          z-index: 1;
         }
 
         .card-header {
+          position: relative;
+          z-index: 2;
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -280,8 +364,8 @@ export function WorkItemCard({
           width: 16px;
           height: 16px;
           border-radius: 4px;
-          border: 1.5px solid var(--color-border-strong);
-          background: transparent;
+          border: 1.5px solid rgba(20, 15, 60, 0.25);
+          background: rgba(255, 255, 255, 0.6);
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -312,14 +396,14 @@ export function WorkItemCard({
         }
 
         .card-key-btn:hover {
-          background: var(--color-surface-hover);
+          background: rgba(255, 255, 255, 0.6);
         }
 
         .card-key {
           font-family: var(--font-mono);
           font-size: 0.6875rem;
-          font-weight: 600;
-          color: var(--color-text-secondary);
+          font-weight: 800;
+          color: var(--aurora-iris);
         }
 
         .copied-hint {
@@ -329,28 +413,34 @@ export function WorkItemCard({
         }
 
         .priority-dot {
-          width: 5px;
-          height: 5px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
-          background: currentColor;
+          display: inline-block;
+          box-shadow: 0 0 6px currentColor;
         }
 
         .card-epic {
+          position: relative;
+          z-index: 2;
           margin-bottom: 6px;
         }
 
         .card-epic-tag {
           font-size: 0.6875rem;
-          font-weight: 600;
-          padding: 1.5px 6px;
-          border-radius: 4px;
+          font-weight: 700;
+          padding: 2px 8px;
+          border-radius: 6px;
           border: 1px solid transparent;
+          letter-spacing: 0.02em;
         }
 
         .card-title {
+          position: relative;
+          z-index: 2;
           font-size: 0.875rem;
-          font-weight: 500;
-          color: var(--color-text-primary);
+          font-weight: 700;
+          color: var(--text-main);
           line-height: 1.4;
           margin-bottom: 12px;
           word-break: break-word;
@@ -358,15 +448,17 @@ export function WorkItemCard({
 
         .card-title--done {
           text-decoration: line-through;
-          color: var(--color-text-tertiary);
+          color: var(--text-subtle);
         }
 
         .card-footer {
+          position: relative;
+          z-index: 2;
           display: flex;
           align-items: center;
           justify-content: space-between;
           padding-top: 8px;
-          border-top: 1px solid var(--color-border-subtle);
+          border-top: 1px solid rgba(20, 15, 60, 0.08);
         }
 
         .card-footer__left {
@@ -376,25 +468,48 @@ export function WorkItemCard({
           font-size: 0.6875rem;
         }
 
-        .card-type-chip {
-          background: var(--color-surface-hover);
-          color: var(--color-text-secondary);
-          border: 1px solid var(--color-border);
-          padding: 1px 6px;
-          border-radius: 4px;
-          font-weight: 500;
+        .card-category-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 2px 7px;
+          border-radius: 6px;
+          border: 1px solid transparent;
+          font-weight: 700;
+          font-size: 0.6875rem;
+          letter-spacing: 0.01em;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          transition: transform 0.15s ease;
+        }
+
+        .card-category-badge:hover {
+          transform: translateY(-1px);
+        }
+
+        .card-category-icon {
+          font-size: 0.75rem;
+          line-height: 1;
+        }
+
+        .card-category-text {
+          white-space: nowrap;
         }
 
         .card-points {
           font-family: var(--font-mono);
-          color: var(--color-text-tertiary);
-          font-weight: 600;
+          color: #0284c7;
+          font-weight: 800;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
         }
 
         .card-due {
-          color: var(--color-text-tertiary);
+          color: var(--text-muted);
           display: flex;
           align-items: center;
+          font-size: 0.6875rem;
+          font-weight: 600;
         }
 
         .card-footer__right {

@@ -9,6 +9,7 @@ import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
 import SendRoundedIcon from '@mui/icons-material/SendRounded';
+import { TASK_CATEGORIES, getCategoryByIdOrName } from '@/lib/constants/categories';
 import type { WorkItemData } from './KanbanBoard';
 
 export interface WorkItemDetailDrawerProps {
@@ -44,6 +45,7 @@ export function WorkItemDetailDrawer({
 }: WorkItemDetailDrawerProps) {
   const [title, setTitle] = useState(item?.title || '');
   const [statusId, setStatusId] = useState(item?.status_id || 'status-todo');
+  const [typeId, setTypeId] = useState(item?.type_id || 'type-task');
   const [priority, setPriority] = useState(item?.priority ?? 1);
   const [dueDate, setDueDate] = useState(item?.due_date || '');
   const [description, setDescription] = useState(
@@ -66,6 +68,7 @@ export function WorkItemDetailDrawer({
     if (item) {
       setTitle(item.title || '');
       setStatusId(item.status_id || 'status-todo');
+      setTypeId(item.type_id || 'type-task');
       setPriority(item.priority ?? 1);
       setDueDate(item.due_date || '');
       setDescription(
@@ -75,6 +78,8 @@ export function WorkItemDetailDrawer({
       );
     }
   }, [item]);
+
+  const activeCategory = getCategoryByIdOrName(typeId);
 
   if (!item) return null;
 
@@ -159,6 +164,17 @@ export function WorkItemDetailDrawer({
         <div className="drawer-topbar">
           <div className="drawer-topbar__key">
             <span>{projectKey}-{item.sequence || 1}</span>
+            <span
+              className="drawer-category-chip"
+              style={{
+                color: activeCategory.color,
+                backgroundColor: activeCategory.bgColor,
+                borderColor: activeCategory.borderColor,
+              }}
+            >
+              <span>{activeCategory.icon}</span>
+              <span>{activeCategory.shortName}</span>
+            </span>
           </div>
 
           <div className="drawer-topbar__actions">
@@ -198,6 +214,24 @@ export function WorkItemDetailDrawer({
 
           {/* Quick Properties Bar */}
           <div className="drawer-props-grid">
+            <div className="prop-row">
+              <span className="prop-label">Category</span>
+              <select
+                className="prop-select"
+                value={typeId}
+                onChange={(e) => {
+                  setTypeId(e.target.value);
+                  handleUpdate({ type_id: e.target.value });
+                }}
+              >
+                {TASK_CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.icon} {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <div className="prop-row">
               <span className="prop-label">Status</span>
               <select
@@ -367,13 +401,31 @@ export function WorkItemDetailDrawer({
         }
 
         .drawer-topbar__key {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           font-family: var(--font-mono);
           font-size: 0.8125rem;
           font-weight: 700;
           color: var(--color-primary);
+        }
+
+        .drawer-topbar__key > span:first-child {
           background: rgba(99, 102, 241, 0.12);
           padding: 2px 8px;
           border-radius: 6px;
+        }
+
+        .drawer-category-chip {
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          padding: 2px 8px;
+          border-radius: 6px;
+          font-family: var(--font-sans);
+          font-size: 0.75rem;
+          font-weight: 700;
+          border: 1px solid transparent;
         }
 
         .drawer-topbar__actions {

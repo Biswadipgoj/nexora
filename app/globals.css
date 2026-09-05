@@ -6,6 +6,7 @@
 /* ============ Fonts & Prismatic Aurora Design System ============ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import '../styles/prismatic-aurora.css';
+@import '../styles/prismatic-components.css';
 
 /* ============ Reset ============ */
 *,
@@ -16,6 +17,33 @@
   padding: 0;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Accessibility Skip Link (Off-screen until keyboard focused) */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 99999;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: var(--surface-elevated);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 16px;
+  outline: 2px solid var(--aurora-aqua);
+}
+
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
@@ -24,104 +52,51 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ============ PRISMATIC AURORA SYSTEM ============ */
+/* ============ PRISMATIC AURORA SYSTEM (Executive Luminous Platinum & Royal Sapphire) ============ */
 
 :root,
 [data-theme="dark"],
-[data-theme="light"] {
-  /* Non-Dark, Non-White Canvas */
-  --color-bg: #181d2e;
-  --color-bg-subtle: #1e243a;
-  --color-bg-alt: #242c44;
+[data-theme="light"],
+[data-theme="prismatic"] {
+  /* Executive Luminous Canvas (STRICTLY Non-Dark, Non-White, Luxury Tech Atmosphere) */
+  --color-bg: var(--canvas-bg);
+  --color-bg-subtle: rgba(255, 255, 255, 0.72);
+  --color-bg-alt: rgba(255, 255, 255, 0.85);
   --color-bg-mesh: var(--canvas-gradient);
   
-  /* Surfaces & Glass */
+  /* Crystalline 3D Frosted Quartz Surfaces */
   --color-surface: var(--surface-primary);
   --color-surface-hover: var(--surface-hover);
-  --color-surface-active: rgba(62, 75, 120, 0.95);
+  --color-surface-active: var(--surface-hover);
   --color-surface-elevated: var(--surface-elevated);
   --color-surface-overlay: var(--surface-modal);
   --glass-bg: var(--surface-primary);
-  --glass-border: rgba(255, 255, 255, 0.14);
-  --glass-hover: rgba(255, 255, 255, 0.22);
-  --color-surface: #111726;
-  --color-surface-hover: #172033;
-  --color-surface-active: #1D2840;
-  --color-surface-elevated: #161E30;
-  --color-surface-overlay: rgba(17, 23, 38, 0.88);
-  --glass-bg: rgba(17, 23, 38, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-hover: rgba(255, 255, 255, 0.12);
+  --glass-border: rgba(255, 255, 255, 0.85);
+  --glass-hover: rgba(255, 255, 255, 0.95);
 
-  /* Borders */
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-subtle: rgba(255, 255, 255, 0.05);
-  --color-border-strong: rgba(255, 255, 255, 0.16);
-  --color-border-accent: rgba(99, 102, 241, 0.4);
+  /* Borders & Specular Accents */
+  --color-border: rgba(255, 255, 255, 0.8);
+  --color-border-subtle: rgba(15, 23, 42, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.95);
+  --color-border-accent: rgba(37, 99, 235, 0.45);
 
-  /* Typography */
-  --color-text-primary: #F8FAFC;
-  --color-text-secondary: #94A3B8;
-  --color-text-tertiary: #64748B;
-  --color-text-inverse: #090D16;
-
-  /* Brand Accents */
-  --color-primary: #6366F1;
-  --color-primary-hover: #4F46E5;
-  --color-primary-gradient: linear-gradient(135deg, #6366F1 0%, #8B5CF6 50%, #EC4899 100%);
-  --color-primary-glow: 0 0 20px rgba(99, 102, 241, 0.35);
-
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 0 1px var(--color-border);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px var(--color-border);
-  --shadow-glow: 0 0 24px -4px rgba(99, 102, 241, 0.3);
-}
-
-/* --- LIGHT THEME --- */
-[data-theme="light"] {
-  /* Canvas & Foundations */
-  --color-bg: #F8FAFC;
-  --color-bg-subtle: #F1F5F9;
-  --color-bg-alt: #E2E8F0;
-  --color-bg-mesh: radial-gradient(at 15% 15%, rgba(99, 102, 241, 0.10) 0px, transparent 50%),
-                   radial-gradient(at 85% 20%, rgba(236, 72, 153, 0.08) 0px, transparent 45%),
-                   radial-gradient(at 50% 85%, rgba(14, 165, 233, 0.10) 0px, transparent 55%),
-                   #F8FAFC;
-
-  /* Surfaces & Glass */
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #F8FAFC;
-  --color-surface-active: #EEF2FF;
-  --color-surface-elevated: #FFFFFF;
-  --color-surface-overlay: rgba(255, 255, 255, 0.92);
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(99, 102, 241, 0.14);
-  --glass-hover: rgba(99, 102, 241, 0.22);
-
-  /* Borders */
-  --color-border: #E2E8F0;
-  --color-border-subtle: #F1F5F9;
-  --color-border-strong: #CBD5E1;
-  --color-border-accent: rgba(99, 102, 241, 0.25);
-
-  /* Typography */
+  /* Typography (High Contrast Midnight Obsidian Slate, NEVER blinding white) */
   --color-text-primary: #0F172A;
-  --color-text-secondary: #475467;
-  --color-text-tertiary: #94A3B8;
+  --color-text-secondary: #334155;
+  --color-text-tertiary: #64748B;
   --color-text-inverse: #FFFFFF;
 
-  /* Brand Accents */
-  --color-primary: #4F46E5;
-  --color-primary-hover: #4338CA;
-  --color-primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
-  --color-primary-glow: 0 4px 16px rgba(79, 70, 229, 0.25);
+  /* Executive Brand Chromatics */
+  --color-primary: #2563EB;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-gradient: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%);
+  --color-primary-glow: 0 0 24px rgba(37, 99, 235, 0.35);
 
-  /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.05);
-  --shadow-md: 0 4px 12px -2px rgba(16, 24, 40, 0.08), 0 0 0 1px var(--color-border);
-  --shadow-lg: 0 14px 28px -4px rgba(99, 102, 241, 0.12), 0 0 0 1px var(--color-border);
-  --shadow-glow: 0 4px 20px rgba(99, 102, 241, 0.2);
+  /* 3D Shadows with Subtle Sapphire Ambient Penumbras */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-glow: 0 0 28px -4px rgba(37, 99, 235, 0.35);
 }
 
 /* --- COMMON TOKENS --- */

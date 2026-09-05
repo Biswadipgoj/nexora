@@ -59,7 +59,7 @@ async function createWindow() {
     minWidth: 980,
     minHeight: 640,
     title: 'NEXORA',
-    backgroundColor: '#181d2e',
+    backgroundColor: '#6372ec',
     show: false,
     autoHideMenuBar: true,
     webPreferences: {

@@ -58,29 +58,32 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'n1',
     type: 'comment',
-    title: 'New comment on task',
-    description: 'Sarah Chen: "Payment intent webhooks tested on testnet. Looks ready for staging deploy!"',
+    title: 'New comment on Customer Onboarding Flow',
+    description: 'Maya Patel: "Final checkout assets and copy look fantastic. Ready for staging review!"',
     timestamp: '12m ago',
     isRead: false,
-    author: { name: 'Sarah Chen', avatar: '' },
+    author: { name: 'Maya Patel', avatar: '' },
+    targetKey: 'APP-102',
   },
   {
     id: 'n2',
     type: 'assign',
-    title: 'Assigned to new work item',
-    description: 'You were assigned to: "Performance benchmarking & Cloudflare R2 bucket integration"',
+    title: 'Assigned to Sprint Roadmap Planning',
+    description: 'Alex Morgan assigned you as lead for: "Quarterly budget allocation & team resource plan"',
     timestamp: '1h ago',
     isRead: false,
     author: { name: 'Alex Morgan', avatar: '' },
+    targetKey: 'APP-104',
   },
   {
     id: 'n3',
     type: 'milestone',
     title: 'Sprint 1 Milestone Reached',
-    description: '75% of sprint story points completed! 4 days remaining in active cycle.',
-    timestamp: '5h ago',
+    description: '80% of sprint deliverables completed on schedule! 3 days remaining in current cycle.',
+    timestamp: '4h ago',
     isRead: true,
-    author: { name: 'System', avatar: '' },
+    author: { name: 'Workspace', avatar: '' },
+    targetKey: 'APP-91',
   },
 ];
 
@@ -172,6 +175,7 @@ export function DashboardClientView({
           projectName={activeProject.name}
           projectKey={activeProject.key}
           inboxCount={inboxCount}
+          activeTab={activeTab}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onQuickCreate={() => setIsQuickCreateOpen(true)}
           onOpenInbox={() => setActiveTab('inbox')}

@@ -44,11 +44,12 @@ export const DEMO_STATUSES = [
   { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
 ];
 
-export const DEMO_TYPES = [
-  { id: 'type-task', name: 'Task' },
-  { id: 'type-feature', name: 'Feature' },
-  { id: 'type-bug', name: 'Bug' },
-];
+import { TASK_CATEGORIES } from '@/lib/constants/categories';
+
+export const DEMO_TYPES = TASK_CATEGORIES.map((cat) => ({
+  id: cat.id,
+  name: cat.name,
+}));
 
 export interface WorkItemComment {
   id: string;
@@ -138,7 +139,7 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     title: 'Profile photo upload & cropping',
     priority: 2, // Medium
     status_id: DEMO_STATUSES[1].id, // In Progress
-    type_id: DEMO_TYPES[0].id, // Task
+    type_id: 'type-ui', // UI / UX Design
     due_date: '2026-09-08',
     start_date: '2026-09-03',
     position: 1,
@@ -178,7 +179,7 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     title: 'Biometric authentication on Android',
     priority: 3, // High
     status_id: DEMO_STATUSES[0].id, // To Do
-    type_id: DEMO_TYPES[1].id, // Feature
+    type_id: 'type-security', // Security & Auth
     due_date: '2026-09-18',
     start_date: '2026-09-10',
     position: 0,
@@ -210,7 +211,7 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     title: 'Push notification deep linking',
     priority: 2, // Medium
     status_id: DEMO_STATUSES[0].id, // To Do
-    type_id: DEMO_TYPES[0].id, // Task
+    type_id: 'type-backend', // Backend & API
     due_date: '2026-09-15',
     start_date: '2026-09-08',
     position: 1,
@@ -242,7 +243,7 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     title: 'Fix login redirect loop on expired refresh token',
     priority: 4, // Urgent
     status_id: DEMO_STATUSES[2].id, // Done
-    type_id: DEMO_TYPES[2].id, // Bug
+    type_id: 'type-bug', // Bug Fix
     due_date: '2026-09-04',
     start_date: '2026-09-02',
     position: 0,
@@ -282,7 +283,7 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     title: 'Luminous light theme color token alignment',
     priority: 1, // Low
     status_id: DEMO_STATUSES[2].id, // Done
-    type_id: DEMO_TYPES[0].id, // Task
+    type_id: 'type-ui', // UI / UX Design
     due_date: '2026-09-03',
     start_date: '2026-08-30',
     position: 1,

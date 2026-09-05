@@ -26,7 +26,7 @@ export function DemoWorkspaceButton({ className = '' }: { className?: string }) 
       type="button"
       onClick={handleLaunchDemo}
       disabled={loading}
-      className={`inline-flex items-center gap-2 rounded-full border border-white/15 bg-[var(--surface-elevated)] px-6 py-3.5 text-sm font-semibold text-[var(--text-main)] shadow-[var(--shadow-sm)] backdrop-blur-xl transition-all hover:border-white/30 hover:bg-[var(--surface-hover)] active:scale-95 cursor-pointer disabled:opacity-75 ${className}`}
+      className={`btn-demo-launcher ${className}`}
     >
       {loading ? (
         <CircularProgress size={18} sx={{ color: 'var(--aurora-amber)' }} />
