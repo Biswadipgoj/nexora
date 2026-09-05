@@ -221,11 +221,11 @@ create policy work_items_select on work_items
           and m.user_id = auth.uid()
           and m.role = 'guest'
       )
-      -- Guests only see projects they are explicitly a member of
+      -- Guests only see work items they are explicitly assigned to (strict access control)
       or exists (
-        select 1 from project_members p
-        where p.project_id = work_items.project_id
-          and p.user_id = auth.uid()
+        select 1 from work_item_assignees a
+        where a.work_item_id = work_items.id
+          and a.user_id = auth.uid()
       )
     )
   );

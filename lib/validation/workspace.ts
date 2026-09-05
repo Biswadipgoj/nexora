@@ -60,6 +60,11 @@ export const workItemSchemas = {
     estimate: z.number().positive().optional(),
     sprint_id: z.string().uuid().optional(),
     assignee_ids: z.array(z.string().uuid()).optional(),
+    assignees: z.array(z.object({
+      name: z.string(),
+      avatar: z.string().optional(),
+      role: z.string().optional(),
+    })).optional(),
     label_ids: z.array(z.string().uuid()).optional(),
   }),
 
@@ -76,6 +81,13 @@ export const workItemSchemas = {
     sprint_id: z.string().uuid().optional().nullable(),
     parent_id: z.string().uuid().optional().nullable(),
     team_id: z.string().uuid().optional().nullable(),
+    assignee_ids: z.array(z.string().uuid()).optional().nullable(),
+    assignees: z.array(z.object({
+      name: z.string(),
+      avatar: z.string().optional(),
+      role: z.string().optional(),
+    })).optional().nullable(),
+    comments: z.array(z.any()).optional().nullable(),
   }),
 };
 

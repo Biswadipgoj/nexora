@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   ROLE_HIERARCHY,
-  hasRequiredRole,
   resolveEffectiveRole,
   isActionPermitted,
   assertWorkspaceMatch,

@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { workItemSchemas } from '@/lib/validation/workspace';
 import { workItemQueries } from '@/lib/db/work-items';
-import { logger } from '@/lib/logger';
+import {
+  getDemoWorkItem,
+  updateDemoWorkItem,
+  softDeleteDemoWorkItem,
+} from '@/lib/demo/demo-store';
 
 /**
  * Single Work Item API — Get, Update, Soft Delete.
@@ -16,6 +20,16 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
+
+  if (isDemo) {
+    const item = getDemoWorkItem(id);
+    if (!item) {
+      return NextResponse.json({ error: 'Work item not found' }, { status: 404 });
+    }
+    return NextResponse.json({ item });
+  }
+
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -41,16 +55,26 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createServerClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
 
   try {
     const json = await request.json();
     const validated = workItemSchemas.update.parse(json);
+
+    if (isDemo) {
+      const updated = updateDemoWorkItem(id, validated);
+      if (!updated) {
+        return NextResponse.json({ error: 'Work item not found' }, { status: 404 });
+      }
+      return NextResponse.json({ item: updated });
+    }
+
+    const supabase = await createServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const updated = await workItemQueries.update(supabase, id, validated);
 
@@ -76,6 +100,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
+
+  if (isDemo) {
+    softDeleteDemoWorkItem(id);
+    return NextResponse.json({
+      success: true,
+      message: 'Work item deleted (soft delete, undo available)',
+      undoAvailableUntil: new Date(Date.now() + 10000).toISOString(),
+    });
+  }
+
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 

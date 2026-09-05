@@ -11,12 +11,41 @@ import { checkRateLimit, RATE_LIMITS, rateLimitHeaders } from '@/lib/security/ra
 import { logger } from '@/lib/logger';
 
 const AUTH_ROUTES = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
-const PUBLIC_ROUTES = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/callback', '/api/health', '/'];
+const PUBLIC_ROUTES = ['/auth/login', '/auth/signup', '/auth/forgot-password', '/auth/callback', '/api/health', '/api/auth/demo', '/'];
 
 export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
   const requestId = crypto.randomUUID();
+
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
+
+  // Handle explicit logout query in demo mode
+  if (isDemo && pathname.startsWith('/auth/login') && request.nextUrl.searchParams.get('logout') === 'true') {
+    const response = NextResponse.next({ request });
+    response.cookies.set({
+      name: 'nexora_demo_session',
+      value: '',
+      path: '/',
+      maxAge: 0,
+    });
+    return response;
+  }
+
+  // If in demo mode and hitting auth routes, redirect to dashboard
+  if (isDemo && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/dashboard';
+    return NextResponse.redirect(url);
+  }
+
+  // If in demo mode and accessing protected routes, allow through
+  if (isDemo) {
+    const response = NextResponse.next({ request });
+    response.headers.set('X-Request-ID', requestId);
+    response.headers.set('X-Nexora-Mode', 'demo');
+    return response;
+  }
 
   let supabaseResponse = NextResponse.next({ request });
 
@@ -98,7 +127,7 @@ export async function updateSession(request: NextRequest) {
 
   // === Protected routes — redirect to login if not authenticated ===
   const isPublicRoute = PUBLIC_ROUTES.some((route) =>
-    pathname === route || pathname.startsWith(route)
+    route === '/' ? pathname === '/' : pathname === route || pathname.startsWith(`${route}/`)
   );
 
   if (!user && !isPublicRoute) {

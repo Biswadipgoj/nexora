@@ -7,11 +7,13 @@
 import { createServerClient as createSSRServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/lib/db/types';
+import { DEMO_USER } from '@/lib/demo/demo-store';
 
 export async function createServerClient() {
   const cookieStore = await cookies();
+  const isDemo = cookieStore.get('nexora_demo_session')?.value === 'true';
 
-  return createSSRServerClient<Database>(
+  const client = createSSRServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -32,6 +34,13 @@ export async function createServerClient() {
       },
     }
   );
+
+  if (isDemo) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    client.auth.getUser = (async () => ({ data: { user: DEMO_USER as any }, error: null })) as any;
+  }
+
+  return client;
 }
 
 import { createClient } from '@supabase/supabase-js';

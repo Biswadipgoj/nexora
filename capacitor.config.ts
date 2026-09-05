@@ -20,8 +20,20 @@ const config: CapacitorConfig = {
     // url: 'http://10.0.2.2:3000',
   },
   android: {
-    backgroundColor: '#FAFBFC',
+    backgroundColor: '#F8FAFC',
     allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: process.env.NODE_ENV !== 'production',
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 800,
+      launchAutoHide: true,
+      backgroundColor: '#F8FAFC',
+      androidSplashResourceName: 'splash',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false,
+    },
   },
 };
 

@@ -9,7 +9,13 @@
  * Use this on user-provided text fields (names, descriptions, etc.).
  */
 export function stripHtml(input: string): string {
-  return input.replace(/<[^>]*>/g, '');
+  let previous = '';
+  let current = input;
+  while (previous !== current) {
+    previous = current;
+    current = current.replace(/<[^>]*>/g, '');
+  }
+  return current;
 }
 
 /**
@@ -44,24 +50,28 @@ export function sanitizeSlug(input: string): string {
  * §13.10: Never redirect to external URLs from auth flows.
  */
 export function sanitizeRedirectUrl(url: string, allowedPaths: string[] = ['/dashboard', '/onboarding']): string {
-  // Must be a relative path (starts with /)
-  if (!url.startsWith('/')) return '/dashboard';
+  try {
+    // Must be a relative path (starts with /)
+    if (!url.startsWith('/')) return '/dashboard';
 
-  // Must not contain protocol-relative URLs (//)
-  if (url.startsWith('//')) return '/dashboard';
+    // Must not contain protocol-relative URLs (//)
+    if (url.startsWith('//')) return '/dashboard';
 
-  // Must not contain encoded characters that could bypass checks
-  const decoded = decodeURIComponent(url);
-  if (decoded.includes('//') || decoded.includes('\\')) return '/dashboard';
+    // Must not contain encoded characters that could bypass checks
+    const decoded = decodeURIComponent(url);
+    if (decoded.includes('//') || decoded.includes('\\')) return '/dashboard';
 
-  // Extract the pathname (before query params)
-  const pathname = url.split('?')[0] ?? url;
+    // Extract the pathname (before query params) from decoded url
+    const pathname = decoded.split('?')[0] ?? decoded;
 
-  // Check against allowlist of path prefixes
-  const isAllowed = allowedPaths.some((allowed) => pathname.startsWith(allowed));
-  if (!isAllowed) return '/dashboard';
+    // Check against allowlist of path prefixes
+    const isAllowed = allowedPaths.some((allowed) => pathname.startsWith(allowed));
+    if (!isAllowed) return '/dashboard';
 
-  return url;
+    return url;
+  } catch (e) {
+    return '/dashboard';
+  }
 }
 
 /**

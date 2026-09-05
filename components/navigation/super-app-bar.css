@@ -1,0 +1,196 @@
+/**
+ * NEXORA Super App Bottom Navigation Dock
+ * 120fps GPU accelerated, glassmorphic, mobile-first design
+ */
+
+.super-app-dock-container {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  pointer-events: none;
+  padding: 0 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+  justify-content: center;
+  align-items: flex-end;
+}
+
+@media (max-width: 768px) {
+  .super-app-dock-container {
+    display: flex;
+  }
+}
+
+.super-app-dock {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 440px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    0 16px 36px -6px rgba(79, 70, 229, 0.22),
+    0 4px 16px -2px rgba(15, 23, 42, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  border-radius: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  position: relative;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
+}
+
+.super-dock-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  color: #64748B;
+  text-decoration: none;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  z-index: 2;
+  transition: color 150ms ease;
+  min-width: 58px;
+}
+
+.super-dock-item:focus {
+  outline: none;
+}
+
+.super-dock-item--active {
+  color: #4F46E5;
+}
+
+.super-dock-active-glow {
+  position: absolute;
+  inset: 2px 4px;
+  background: linear-gradient(135deg, rgba(238, 242, 255, 0.95), rgba(245, 243, 255, 0.9));
+  border: 1px solid rgba(199, 210, 254, 0.7);
+  border-radius: 20px;
+  z-index: -1;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+}
+
+.super-dock-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+}
+
+.super-dock-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-top: 2px;
+  line-height: 1;
+}
+
+.super-dock-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: #EF4444;
+  color: #FFFFFF;
+  font-size: 0.6rem;
+  font-weight: 800;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 1.5px solid #FFFFFF;
+}
+
+.super-dock-badge--ping::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 999px;
+  background: #EF4444;
+  opacity: 0.6;
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  z-index: -1;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+/* Center Raised Action FAB */
+.super-dock-center-slot {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: -24px;
+  z-index: 5;
+}
+
+.super-action-fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.super-action-fab-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366F1, #EC4899, #0EA5E9, #8B5CF6);
+  background-size: 300% 300%;
+  animation: fab-gradient-spin 4s ease infinite;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.45);
+}
+
+@keyframes fab-gradient-spin {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.super-action-fab-core {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}

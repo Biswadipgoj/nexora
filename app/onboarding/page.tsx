@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Logo } from '@/components/ui/Logo';
 
 /**
  * Onboarding — Create first workspace.
@@ -118,21 +119,21 @@ export default function OnboardingPage() {
   return (
     <div className="onboarding">
       <div className="onboarding__container">
-        <div className="onboarding__logo">
-          <Image 
-            src="/logo.jpg" 
-            alt="NEXORA Logo" 
-            width={40} 
-            height={40} 
-            className="onboarding__logo-img" 
-            priority
-          />
+        <div className="onboarding__logo" style={{ display: 'flex', justifyContent: 'center', marginBottom: '2rem' }}>
+          <Logo size="xl" animated withText />
         </div>
 
         {step === 'creating' && !error ? (
           <div className="onboarding__creating">
             <div className="onboarding__spinner" aria-label="Setting up your workspace">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="url(#spinnerGrad)" strokeWidth="2.5">
+                <defs>
+                  <linearGradient id="spinnerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#4F46E5" />
+                    <stop offset="50%" stopColor="#7C3AED" />
+                    <stop offset="100%" stopColor="#EC4899" />
+                  </linearGradient>
+                </defs>
                 <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-5.07l-2.83 2.83M9.76 14.24l-2.83 2.83m11.14 0l-2.83-2.83M9.76 9.76L6.93 6.93" strokeLinecap="round"/>
               </svg>
             </div>
@@ -141,7 +142,9 @@ export default function OnboardingPage() {
           </div>
         ) : (
           <>
-            <h1 className="onboarding__title">Welcome to NEXORA</h1>
+            <h1 className="onboarding__title">
+              Welcome to <span className="onboarding__brand-grad">NEXORA</span>
+            </h1>
             <p className="onboarding__subtitle">
               Let&apos;s create your first workspace. You can always add more later.
             </p>
@@ -165,7 +168,7 @@ export default function OnboardingPage() {
                   type="text"
                   value={workspaceName}
                   onChange={(e) => setWorkspaceName(e.target.value)}
-                  placeholder="My Team, Acme Corp, Personal Projects..."
+                  placeholder="e.g., Acme Studio, Core Team, Personal"
                   required
                   autoFocus
                   maxLength={100}
@@ -184,7 +187,7 @@ export default function OnboardingPage() {
                 disabled={loading || !workspaceName.trim()}
                 className="auth-form__submit"
               >
-                Create workspace
+                Create workspace →
               </button>
             </form>
           </>
@@ -197,76 +200,189 @@ export default function OnboardingPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--color-bg);
-          padding: var(--space-6);
+          background: radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.18) 0px, transparent 45%),
+                      radial-gradient(at 90% 15%, rgba(236, 72, 153, 0.15) 0px, transparent 45%),
+                      radial-gradient(at 50% 92%, rgba(14, 165, 233, 0.16) 0px, transparent 50%),
+                      radial-gradient(at 85% 85%, rgba(168, 85, 247, 0.12) 0px, transparent 45%),
+                      #F8FAFC;
+          padding: 24px;
         }
 
         .onboarding__container {
           width: 100%;
-          max-width: 440px;
+          max-width: 480px;
           text-align: center;
+          background: rgba(255, 255, 255, 0.94);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
+          border: 1px solid rgba(99, 102, 241, 0.2);
+          border-radius: 20px;
+          padding: 44px 36px;
+          box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.18),
+                      0 0 0 1px rgba(255, 255, 255, 0.9) inset;
         }
 
         .onboarding__logo {
           display: flex;
           justify-content: center;
-          margin-bottom: var(--space-8);
+          margin-bottom: 24px;
+        }
+
+        .onboarding__logo-ring {
+          padding: 3px;
+          border-radius: 14px;
+          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+          display: inline-flex;
         }
 
         .onboarding__logo-img {
-          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-          border-radius: 10px;
+          border-radius: 11px;
           object-fit: cover;
+          display: block;
+          background: #FFFFFF;
         }
 
         .onboarding__title {
-          font-size: var(--font-size-xl);
-          font-weight: var(--font-weight-bold);
-          color: var(--color-text-primary);
-          margin-bottom: var(--space-2);
+          font-family: var(--font-display, inherit);
+          font-size: 1.625rem;
+          font-weight: 700;
+          color: #0F172A;
+          letter-spacing: -0.02em;
+          margin-bottom: 8px;
+        }
+
+        .onboarding__brand-grad {
+          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          font-weight: 800;
         }
 
         .onboarding__subtitle {
-          color: var(--color-text-secondary);
-          margin-bottom: var(--space-8);
+          color: #475467;
+          font-size: 0.9375rem;
+          margin-bottom: 28px;
+          line-height: 1.5;
         }
 
         .onboarding__form {
           display: flex;
           flex-direction: column;
-          gap: var(--space-5);
+          gap: 22px;
           text-align: left;
         }
 
+        .auth-form__field {
+          display: flex;
+          flex-direction: column;
+          gap: 7px;
+          width: 100%;
+        }
+
+        .auth-form__label {
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #1E293B;
+        }
+
+        .auth-form__input {
+          width: 100%;
+          padding: 12px 16px;
+          border: 1px solid #CBD5E1;
+          border-radius: 10px;
+          font-size: 0.9375rem;
+          color: #0F172A;
+          background: #FFFFFF;
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          box-sizing: border-box;
+        }
+
+        .auth-form__input:focus {
+          outline: none;
+          border-color: #6366F1;
+          box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.2);
+        }
+
+        .auth-form__submit {
+          width: 100%;
+          padding: 12px 20px;
+          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+          color: #FFFFFF;
+          border: none;
+          border-radius: 10px;
+          font-size: 0.9375rem;
+          font-weight: 600;
+          cursor: pointer;
+          box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          margin-top: 6px;
+        }
+
+        .auth-form__submit:hover:not(:disabled) {
+          background: linear-gradient(135deg, #4338CA 0%, #6D28D9 100%);
+          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+          transform: translateY(-1px);
+        }
+
+        .auth-form__submit:active:not(:disabled) {
+          transform: translateY(0);
+        }
+
+        .auth-form__submit:disabled {
+          background: #E2E8F0;
+          color: #94A3B8;
+          box-shadow: none;
+          cursor: not-allowed;
+          opacity: 0.7;
+        }
+
+        .auth-form__error {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 12px 16px;
+          background: #FEF2F2;
+          border: 1px solid #FECACA;
+          border-radius: 10px;
+          color: #DC2626;
+          font-size: 0.875rem;
+          margin-bottom: 16px;
+        }
+
         .onboarding__slug {
-          font-size: var(--font-size-xs);
-          color: var(--color-text-tertiary);
-          margin-top: var(--space-1);
+          display: block;
+          font-size: 0.75rem;
+          color: #64748B;
+          margin-top: 6px;
         }
 
         .onboarding__slug strong {
-          color: var(--color-text-secondary);
+          color: #4F46E5;
+          font-weight: 600;
         }
 
         .onboarding__creating {
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: var(--space-4);
+          gap: 16px;
+          padding: 24px 0;
         }
 
         .onboarding__creating h2 {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          color: var(--color-text-primary);
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: #0F172A;
         }
 
         .onboarding__creating p {
-          color: var(--color-text-secondary);
+          color: #64748B;
+          font-size: 0.875rem;
         }
 
         .onboarding__spinner {
-          animation: spin 1.5s linear infinite;
+          animation: spin 1s linear infinite;
         }
 
         @keyframes spin {

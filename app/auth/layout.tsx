@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
+import { Logo } from '@/components/ui/Logo';
 
 export const metadata: Metadata = {
   title: 'Sign In — NEXORA',
-  description: 'Sign in to your NEXORA workspace. Enterprise-grade work management.',
+  description: 'Sign in to your NEXORA workspace.',
 };
 
 export default function AuthLayout({
@@ -12,258 +13,405 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="auth-layout">
-      <div className="auth-layout__brand">
-        <div className="auth-layout__brand-bg" />
-        <div className="auth-layout__brand-content">
-          <div className="auth-layout__logo animate-slide-in">
-            <Image 
-              src="/logo.jpg" 
-              alt="NEXORA Logo" 
-              width={52} 
-              height={52} 
-              className="auth-layout__logo-img" 
-              priority
-            />
-            <span className="auth-layout__logo-text">NEXORA</span>
+    <div className="auth-root">
+      {/* Product Showcase Panel (Desktop) */}
+      <div className="auth-showcase">
+        <div className="auth-showcase__content">
+          <div className="auth-brand-badge" style={{ display: 'flex', justifyContent: 'center' }}>
+            <Logo size="lg" animated withText />
           </div>
-          <h1 className="auth-layout__tagline animate-slide-in stagger-1">
-            Enterprise-grade<br />
-            <span className="auth-layout__tagline-accent">work management.</span>
-          </h1>
-          <p className="auth-layout__description animate-slide-in stagger-2">
-            The power of Jira without the complexity.
-            One unified engine for professional work and personal productivity.
-          </p>
-          <div className="auth-layout__features animate-slide-in stagger-3">
-            <div className="auth-layout__feature">
-              <div className="auth-layout__feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                </svg>
+
+          <div className="auth-hero-copy">
+            <h1 className="auth-hero-title">
+              Plan, track, and ship <span className="auth-title-gradient">together</span>.
+            </h1>
+            <p className="auth-hero-desc">
+              A clean board for teams to organize tasks and see progress at a glance.
+            </p>
+          </div>
+
+          {/* Real Live Board Preview */}
+          <div className="auth-board-preview">
+            <div className="auth-preview-header">
+              <div className="auth-preview-project">
+                <span className="auth-preview-dot" />
+                <span className="auth-preview-name">Mobile App</span>
+                <span className="auth-preview-tag">APP</span>
               </div>
-              <div>
-                <strong>SOC 2 Type II</strong>
-                <span>Audited security controls</span>
-              </div>
-            </div>
-            <div className="auth-layout__feature">
-              <div className="auth-layout__feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0110 0v4"/>
-                </svg>
-              </div>
-              <div>
-                <strong>End-to-end encryption</strong>
-                <span>AES-256 at rest, TLS 1.3 in transit</span>
+              <div className="auth-preview-badges">
+                <span className="auth-preview-pill auth-preview-pill--active">Active sprint</span>
+                <span className="auth-preview-pill">3 members</span>
               </div>
             </div>
-            <div className="auth-layout__feature">
-              <div className="auth-layout__feature-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <path d="M12 6v6l4 2"/>
-                </svg>
+
+            <div className="auth-preview-columns">
+              <div className="auth-preview-col">
+                <div className="auth-preview-col-title">
+                  <span className="auth-col-dot auth-col-dot--progress" />
+                  <span>In Progress</span>
+                  <span className="auth-col-num">2</span>
+                </div>
+                <div className="auth-preview-card">
+                  <div className="auth-card-top">
+                    <span className="auth-card-key">APP-104</span>
+                    <span className="auth-card-priority auth-card-priority--high">High</span>
+                  </div>
+                  <p className="auth-card-title">Stripe checkout integration</p>
+                  <span className="auth-card-due">Due Friday</span>
+                </div>
+                <div className="auth-preview-card">
+                  <div className="auth-card-top">
+                    <span className="auth-card-key">APP-98</span>
+                    <span className="auth-card-priority auth-card-priority--medium">Medium</span>
+                  </div>
+                  <p className="auth-card-title">Profile photo upload</p>
+                  <span className="auth-card-due">Due tomorrow</span>
+                </div>
               </div>
-              <div>
-                <strong>99.9% uptime SLA</strong>
-                <span>Multi-region, auto-failover</span>
+
+              <div className="auth-preview-col">
+                <div className="auth-preview-col-title">
+                  <span className="auth-col-dot auth-col-dot--done" />
+                  <span>Done</span>
+                  <span className="auth-col-num">3</span>
+                </div>
+                <div className="auth-preview-card">
+                  <div className="auth-card-top">
+                    <span className="auth-card-key">APP-91</span>
+                    <span className="auth-card-priority auth-card-priority--urgent">Urgent</span>
+                  </div>
+                  <p className="auth-card-title">Fix login redirect loop</p>
+                  <span className="auth-card-status">Completed</span>
+                </div>
               </div>
+            </div>
+
+            <div className="auth-preview-shortcuts">
+              <span>Press <kbd>C</kbd> to add task</span>
+              <span>Press <kbd>⌘K</kbd> to search</span>
             </div>
           </div>
-          <div className="auth-layout__trust animate-slide-in stagger-4">
-            <span className="auth-layout__trust-label">Trusted by teams at</span>
-            <div className="auth-layout__trust-logos">
-              <span>Enterprise</span>
-              <span>•</span>
-              <span>Startup</span>
-              <span>•</span>
-              <span>Agency</span>
-            </div>
+
+          <div className="auth-showcase__footer">
+            <span className="auth-version-note">
+              ✨ Click <strong>Try via Mock Login</strong> to open this exact live board
+            </span>
           </div>
         </div>
       </div>
-      <div className="auth-layout__form-container">
-        <div className="auth-layout__form-wrapper animate-slide-in">
+
+      {/* Form Container */}
+      <div className="auth-form-pane">
+        <div className="auth-form-card">
           {children}
         </div>
       </div>
+
       <style>{`
-        .auth-layout {
+        .auth-root {
           display: flex;
           min-height: 100vh;
-          background: var(--color-bg);
+          background: radial-gradient(at 8% 12%, rgba(99, 102, 241, 0.16) 0px, transparent 45%),
+                      radial-gradient(at 92% 16%, rgba(236, 72, 153, 0.14) 0px, transparent 45%),
+                      radial-gradient(at 50% 90%, rgba(14, 165, 233, 0.14) 0px, transparent 50%),
+                      #F8FAFC;
         }
 
-        .auth-layout__brand {
+        /* Showcase Panel */
+        .auth-showcase {
           display: none;
-          position: relative;
-          flex: 1;
-          background: #080A18;
-          overflow: hidden;
+          flex: 1.2;
+          background: rgba(255, 255, 255, 0.65);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border-right: 1px solid rgba(99, 102, 241, 0.15);
         }
 
-        .auth-layout__brand-bg {
-          position: absolute;
-          inset: 0;
-          background-image:
-            radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.08), transparent 50%),
-            radial-gradient(ellipse at 80% 20%, rgba(99, 102, 241, 0.06), transparent 50%);
-          z-index: 0;
-        }
-
-        .auth-layout__brand-content {
-          position: relative;
-          z-index: 1;
+        .auth-showcase__content {
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          padding: var(--space-16) var(--space-12);
+          justify-content: space-between;
+          padding: 50px 56px;
           height: 100%;
-          max-width: 600px;
-          margin: 0 auto;
+          max-width: 620px;
         }
 
-        .auth-layout__logo {
+        .auth-brand-badge {
           display: flex;
           align-items: center;
-          gap: var(--space-3);
-          margin-bottom: var(--space-12);
+          gap: 12px;
         }
 
-        .auth-layout__logo-img {
-          border-radius: 12px;
+        .auth-logo-ring {
+          padding: 2.5px;
+          border-radius: 10px;
+          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+          box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+          display: inline-flex;
+        }
+
+        .auth-logo-img {
+          border-radius: 8px;
           object-fit: cover;
+          display: block;
+          background: #FFFFFF;
         }
 
-        .auth-layout__logo-text {
-          font-size: var(--font-size-lg);
-          font-weight: 700;
-          color: rgba(255, 255, 255, 0.9);
-          letter-spacing: 0.12em;
-        }
-
-        .auth-layout__tagline {
-          font-size: 2.75rem;
+        .auth-brand-name {
+          font-family: var(--font-display);
+          font-size: 1.125rem;
           font-weight: 800;
-          color: white;
-          line-height: 1.15;
-          margin-bottom: var(--space-6);
-          letter-spacing: -0.03em;
+          letter-spacing: -0.01em;
+          color: #0F172A;
         }
 
-        .auth-layout__tagline-accent {
-          background: linear-gradient(135deg, #3B82F6, #818CF8);
+        .auth-hero-copy {
+          margin: 32px 0 24px;
+        }
+
+        .auth-hero-title {
+          font-family: var(--font-display);
+          font-size: 2.125rem;
+          font-weight: 700;
+          line-height: 1.25;
+          letter-spacing: -0.02em;
+          color: #0F172A;
+          margin-bottom: 12px;
+        }
+
+        .auth-title-gradient {
+          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          background-clip: text;
+          font-weight: 800;
         }
 
-        .auth-layout__description {
-          font-size: var(--font-size-base);
-          color: rgba(255, 255, 255, 0.55);
-          line-height: 1.7;
-          margin-bottom: var(--space-10);
-          max-width: 440px;
+        .auth-hero-desc {
+          font-size: 0.9375rem;
+          color: #475467;
+          line-height: 1.6;
         }
 
-        .auth-layout__features {
+        /* Board Preview Mockup */
+        .auth-board-preview {
+          background: #FFFFFF;
+          border: 1px solid rgba(99, 102, 241, 0.18);
+          border-radius: 16px;
+          padding: 20px;
+          box-shadow: 0 16px 32px -8px rgba(99, 102, 241, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
           display: flex;
           flex-direction: column;
-          gap: var(--space-4);
-          margin-bottom: var(--space-10);
+          gap: 16px;
         }
 
-        .auth-layout__feature {
+        .auth-preview-header {
           display: flex;
           align-items: center;
-          gap: var(--space-4);
-          color: white;
+          justify-content: space-between;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #F1F5F9;
         }
 
-        .auth-layout__feature-icon {
-          width: 40px;
-          height: 40px;
+        .auth-preview-project {
           display: flex;
           align-items: center;
-          justify-content: center;
-          background: rgba(59, 130, 246, 0.1);
-          border: 1px solid rgba(59, 130, 246, 0.15);
-          border-radius: var(--radius-md);
-          flex-shrink: 0;
-          color: #60A5FA;
+          gap: 8px;
         }
 
-        .auth-layout__feature strong {
-          display: block;
-          font-weight: 600;
-          font-size: var(--font-size-sm);
-          color: rgba(255, 255, 255, 0.9);
-          margin-bottom: 1px;
+        .auth-preview-dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background: #10B981;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
         }
 
-        .auth-layout__feature span {
-          font-size: var(--font-size-xs);
-          color: rgba(255, 255, 255, 0.4);
+        .auth-preview-name {
+          font-weight: 700;
+          font-size: 0.875rem;
+          color: #0F172A;
         }
 
-        .auth-layout__trust {
-          border-top: 1px solid rgba(255, 255, 255, 0.06);
-          padding-top: var(--space-6);
+        .auth-preview-tag {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 700;
+          background: #EEF2FF;
+          color: #4F46E5;
+          padding: 1.5px 6px;
+          border-radius: 4px;
         }
 
-        .auth-layout__trust-label {
-          font-size: var(--font-size-xs);
-          color: rgba(255, 255, 255, 0.3);
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          font-weight: 600;
-          display: block;
-          margin-bottom: var(--space-3);
-        }
-
-        .auth-layout__trust-logos {
+        .auth-preview-badges {
           display: flex;
-          gap: var(--space-3);
-          color: rgba(255, 255, 255, 0.2);
-          font-size: var(--font-size-sm);
+          gap: 6px;
+        }
+
+        .auth-preview-pill {
+          font-size: 0.6875rem;
+          padding: 2px 8px;
+          border-radius: 9999px;
+          background: #F1F5F9;
+          color: #64748B;
           font-weight: 500;
-          letter-spacing: 0.05em;
         }
 
-        .auth-layout__form-container {
+        .auth-preview-pill--active {
+          background: #ECFDF5;
+          color: #059669;
+          font-weight: 600;
+        }
+
+        .auth-preview-columns {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+        }
+
+        .auth-preview-col {
+          background: #F8FAFC;
+          border-radius: 10px;
+          padding: 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          border: 1px solid #F1F5F9;
+        }
+
+        .auth-preview-col-title {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.75rem;
+          font-weight: 700;
+          color: #1E293B;
+        }
+
+        .auth-col-dot {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+        }
+
+        .auth-col-dot--progress { background: #8B5CF6; }
+        .auth-col-dot--done { background: #10B981; }
+
+        .auth-col-num {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          color: #64748B;
+          margin-left: auto;
+        }
+
+        .auth-preview-card {
+          background: #FFFFFF;
+          border: 1px solid #E2E8F0;
+          border-radius: 8px;
+          padding: 10px 12px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+
+        .auth-card-top {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .auth-card-key {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          color: #64748B;
+        }
+
+        .auth-card-priority {
+          font-size: 0.625rem;
+          font-weight: 600;
+          padding: 1px 6px;
+          border-radius: 4px;
+        }
+
+        .auth-card-priority--high {
+          background: #FFF7ED;
+          color: #EA580C;
+        }
+
+        .auth-card-priority--medium {
+          background: #FFFBEB;
+          color: #D97706;
+        }
+
+        .auth-card-priority--urgent {
+          background: #FEF2F2;
+          color: #DC2626;
+        }
+
+        .auth-card-title {
+          font-size: 0.8125rem;
+          font-weight: 600;
+          color: #0F172A;
+          line-height: 1.35;
+          margin: 2px 0 0;
+        }
+
+        .auth-card-due,
+        .auth-card-status {
+          font-size: 0.6875rem;
+          color: #94A3B8;
+        }
+
+        .auth-card-status {
+          color: #10B981;
+          font-weight: 600;
+        }
+
+        .auth-preview-shortcuts {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+          padding-top: 8px;
+          border-top: 1px solid #F1F5F9;
+          font-size: 0.6875rem;
+          color: #64748B;
+        }
+
+        .auth-preview-shortcuts kbd {
+          background: #F1F5F9;
+          border: 1px solid #E2E8F0;
+          border-radius: 4px;
+          padding: 1px 5px;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
+          color: #334155;
+        }
+
+        .auth-showcase__footer {
+          margin-top: 24px;
+        }
+
+        .auth-version-note {
+          font-size: 0.75rem;
+          color: #64748B;
+        }
+
+        /* Form Side */
+        .auth-form-pane {
           flex: 1;
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: var(--space-6);
-          background: var(--color-bg);
+          padding: 40px 24px;
         }
 
-        .auth-layout__form-wrapper {
+        .auth-form-card {
           width: 100%;
-          max-width: 440px;
+          max-width: 420px;
         }
-
-        /* Enterprise animations — subtle, professional */
-        @keyframes slide-in {
-          0% { opacity: 0; transform: translateY(16px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-slide-in {
-          opacity: 0;
-          animation: slide-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .stagger-1 { animation-delay: 100ms; }
-        .stagger-2 { animation-delay: 200ms; }
-        .stagger-3 { animation-delay: 300ms; }
-        .stagger-4 { animation-delay: 400ms; }
 
         @media (min-width: 1024px) {
-          .auth-layout__brand {
+          .auth-showcase {
             display: block;
           }
         }

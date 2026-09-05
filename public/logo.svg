@@ -1,0 +1,34 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#4F46E5" />
+      <stop offset="50%" stopColor="#8B5CF6" />
+      <stop offset="100%" stopColor="#EC4899" />
+    </linearGradient>
+    <linearGradient id="glassHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stopColor="rgba(255,255,255,0.4)" />
+      <stop offset="100%" stopColor="rgba(255,255,255,0.0)" />
+    </linearGradient>
+    <linearGradient id="stemLeft" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stopColor="#22D3EE" />
+      <stop offset="100%" stopColor="#3B82F6" />
+    </linearGradient>
+    <linearGradient id="crossGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#D946EF" />
+      <stop offset="100%" stopColor="#F43F5E" />
+    </linearGradient>
+    <linearGradient id="stemRight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stopColor="#FBBF24" />
+      <stop offset="100%" stopColor="#F97316" />
+    </linearGradient>
+  </defs>
+  
+  <circle cx="50" cy="50" r="48" fill="url(#primaryGradient)" />
+  
+  <g>
+    <path d="M30 30 C 30 25, 42 25, 42 30 V 70 C 42 75, 30 75, 30 70 Z" fill="url(#stemLeft)" />
+    <path d="M36 30 L 70 70 L 60 76 L 26 36 Z" fill="url(#crossGrad)" opacity="0.95" />
+    <path d="M58 30 C 58 25, 70 25, 70 30 V 70 C 70 75, 58 75, 58 70 Z" fill="url(#stemRight)" />
+    <circle cx="50" cy="50" r="48" fill="url(#glassHighlight)" style="mix-blend-mode: overlay" />
+  </g>
+</svg>

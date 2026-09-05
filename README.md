@@ -2,7 +2,7 @@
 
 > **Work. Plan. Build. Live.**  
 > A unified work-and-life management platform.  
-> Jira's power without Jira's unnecessary complexity.
+> Nexora's power without unnecessary complexity.
 
 ---
 

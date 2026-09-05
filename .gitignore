@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# electron distribution & binaries
+/dist-electron
+dist-electron/
+*.exe
+*.zip
+
+# agency / local agents
+.agency-agents/
+.agents/
+.cursor/
+scratch.js

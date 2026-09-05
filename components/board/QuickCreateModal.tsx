@@ -1,6 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CircularProgress from '@mui/material/CircularProgress';
+import Avatar from '@mui/material/Avatar';
+import type { WorkItemData } from './KanbanBoard';
+
+export type WorkItemPayload = WorkItemData;
 
 export interface QuickCreateModalProps {
   isOpen: boolean;
@@ -9,8 +23,23 @@ export interface QuickCreateModalProps {
   projectId: string;
   statuses: Array<{ id: string; name: string }>;
   types: Array<{ id: string; name: string }>;
-  onCreated: (newItem: any) => void;
+  defaultStatusId?: string;
+  onCreated: (newItem: WorkItemData) => void;
 }
+
+const PRIORITIES = [
+  { value: 0, label: 'None', color: '#64748B' },
+  { value: 1, label: 'Low', color: '#2563EB' },
+  { value: 2, label: 'Medium', color: '#D97706' },
+  { value: 3, label: 'High', color: '#EA580C' },
+  { value: 4, label: 'Urgent', color: '#DC2626' },
+];
+
+const ASSIGNEE_OPTIONS = [
+  { name: 'Alex Morgan', avatar: '', role: 'Tech Lead' },
+  { name: 'Sarah Chen', avatar: '', role: 'Product Designer' },
+  { name: 'Biswadip Paul', avatar: 'https://github.com/Biswadipgoj.png', role: 'Founder & Lead' },
+];
 
 export function QuickCreateModal({
   isOpen,
@@ -19,31 +48,20 @@ export function QuickCreateModal({
   projectId,
   statuses,
   types,
+  defaultStatusId,
   onCreated,
 }: QuickCreateModalProps) {
   const [title, setTitle] = useState('');
-  const [statusId, setStatusId] = useState(statuses[0]?.id ?? '');
-  const [typeId, setTypeId] = useState(types[0]?.id ?? '');
+  const [selectedStatusId, setSelectedStatusId] = useState<string>('');
+  const [selectedTypeId, setSelectedTypeId] = useState<string>('');
   const [priority, setPriority] = useState<number>(0);
   const [dueDate, setDueDate] = useState('');
+  const [assigneeNames, setAssigneeNames] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (statuses.length > 0 && !statusId) setStatusId(statuses[0].id);
-    if (types.length > 0 && !typeId) setTypeId(types[0].id);
-  }, [statuses, types, statusId, typeId]);
-
-  // Handle escape key
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  const statusId = selectedStatusId || defaultStatusId || statuses[0]?.id || '';
+  const typeId = selectedTypeId || types[0]?.id || '';
 
   if (!isOpen) return null;
 
@@ -66,268 +84,280 @@ export function QuickCreateModal({
           title: title.trim(),
           priority,
           due_date: dueDate || undefined,
+          assignees: assigneeNames.length > 0 ? assigneeNames.map(name => ASSIGNEE_OPTIONS.find((a) => a.name === name)).filter(Boolean) : undefined,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to create work item');
+        throw new Error(data.error || 'Could not create work item. Please try again.');
       }
 
       setTitle('');
       setDueDate('');
       setPriority(0);
+      setAssigneeNames([]);
+      setSelectedStatusId('');
+      setSelectedTypeId('');
       onCreated(data.workItem);
       onClose();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Error creating work item');
+      setError(err instanceof Error ? err.message : 'Could not create work item. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="quick-modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="quick-create-title">
-      <div className="quick-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="quick-modal-header">
-          <h3 id="quick-create-title">Create Work Item</h3>
-          <button type="button" className="quick-modal-close" onClick={onClose} aria-label="Close modal">
-            ✕
-          </button>
-        </div>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #E5E7EB',
+            borderRadius: 3,
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
+            p: 1,
+          },
+        },
+      }}
+    >
+      <form onSubmit={handleSubmit}>
+        <DialogTitle
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            fontFamily: 'var(--font-display)',
+            fontSize: '1.125rem',
+            fontWeight: 700,
+            color: '#0F172A',
+            pb: 1,
+          }}
+        >
+          New work item
+          <IconButton
+            onClick={onClose}
+            size="small"
+            sx={{
+              color: '#64748B',
+              '&:hover': { color: '#0F172A', backgroundColor: '#F1F5F9' },
+            }}
+          >
+            <CloseRoundedIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </DialogTitle>
 
-        {error && (
-          <div className="quick-modal-error" role="alert">
-            {error}
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
+          {error && (
+            <div
+              style={{
+                padding: '10px 14px',
+                borderRadius: 8,
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
+                color: '#B91C1C',
+                fontSize: '0.8125rem',
+              }}
+            >
+              {error}
+            </div>
+          )}
+
+          <TextField
+            autoFocus
+            label="What needs to be done?"
+            placeholder="e.g., Update customer invoice generation logic"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            fullWidth
+            variant="outlined"
+            slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '& fieldset': { borderColor: '#E5E7EB' },
+                '&:hover fieldset': { borderColor: '#CBD5E1' },
+                '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
+              },
+            }}
+          />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <TextField
+              select
+              label="Type"
+              value={typeId}
+              onChange={(e) => setSelectedTypeId(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '& fieldset': { borderColor: '#E5E7EB' },
+                },
+              }}
+            >
+              {types.map((t) => (
+                <MenuItem key={t.id} value={t.id} sx={{ color: '#0F172A' }}>
+                  {t.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              label="Status"
+              value={statusId}
+              onChange={(e) => setSelectedStatusId(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '& fieldset': { borderColor: '#E5E7EB' },
+                },
+              }}
+            >
+              {statuses.map((s) => (
+                <MenuItem key={s.id} value={s.id} sx={{ color: '#0F172A' }}>
+                  {s.name}
+                </MenuItem>
+              ))}
+            </TextField>
           </div>
-        )}
 
-        <form onSubmit={handleSubmit} className="quick-modal-form">
-          <div className="quick-modal-field">
-            <label htmlFor="qc-title">Title</label>
-            <input
-              id="qc-title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="What needs to be done?"
-              required
-              autoFocus
-              maxLength={500}
-              className="quick-modal-input"
+          <div>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.75rem',
+                fontWeight: 600,
+                color: '#475467',
+                marginBottom: 8,
+              }}
+            >
+              Priority
+            </label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              {PRIORITIES.map((p) => {
+                const isSelected = priority === p.value;
+                return (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => setPriority(p.value)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
+                      padding: '5px 12px',
+                      borderRadius: 999,
+                      fontSize: '0.75rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                      border: isSelected ? `1.5px solid ${p.color}` : '1px solid #E5E7EB',
+                      backgroundColor: isSelected ? '#FFFFFF' : '#F8FAFC',
+                      color: isSelected ? p.color : '#64748B',
+                      boxShadow: isSelected ? '0 1px 2px rgba(16, 24, 40, 0.05)' : 'none',
+                      transition: 'all 120ms ease',
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        backgroundColor: p.color,
+                      }}
+                    />
+                    {p.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+            <TextField
+              select
+              label="Assignees"
+              value={assigneeNames}
+              onChange={(e) => setAssigneeNames(e.target.value as unknown as string[])}
+              fullWidth
+              slotProps={{ 
+                select: { 
+                  multiple: true,
+                  renderValue: (selected) => (selected as string[]).join(', ') || 'Unassigned'
+                },
+                inputLabel: { sx: { color: '#64748B' } } 
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '& fieldset': { borderColor: '#E5E7EB' },
+                },
+              }}
+            >
+              {ASSIGNEE_OPTIONS.map((a) => (
+                <MenuItem key={a.name} value={a.name}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <Avatar src={a.avatar} sx={{ width: 20, height: 20 }} />
+                    <span style={{ fontSize: '0.85rem', color: '#0F172A' }}>{a.name}</span>
+                  </div>
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              type="date"
+              label="Due date"
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+              fullWidth
+              slotProps={{ inputLabel: { shrink: true, sx: { color: '#64748B' } } }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 2,
+                  '& fieldset': { borderColor: '#E5E7EB' },
+                },
+              }}
             />
           </div>
+        </DialogContent>
 
-          <div className="quick-modal-grid">
-            <div className="quick-modal-field">
-              <label htmlFor="qc-type">Type</label>
-              <select
-                id="qc-type"
-                value={typeId}
-                onChange={(e) => setTypeId(e.target.value)}
-                className="quick-modal-select"
-              >
-                {types.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="quick-modal-field">
-              <label htmlFor="qc-status">Status</label>
-              <select
-                id="qc-status"
-                value={statusId}
-                onChange={(e) => setStatusId(e.target.value)}
-                className="quick-modal-select"
-              >
-                {statuses.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="quick-modal-grid">
-            <div className="quick-modal-field">
-              <label htmlFor="qc-priority">Priority</label>
-              <select
-                id="qc-priority"
-                value={priority}
-                onChange={(e) => setPriority(parseInt(e.target.value, 10))}
-                className="quick-modal-select"
-              >
-                <option value={0}>None</option>
-                <option value={1}>Low</option>
-                <option value={2}>Medium</option>
-                <option value={3}>High</option>
-                <option value={4}>Urgent</option>
-              </select>
-            </div>
-
-            <div className="quick-modal-field">
-              <label htmlFor="qc-due">Due date</label>
-              <input
-                id="qc-due"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="quick-modal-input"
-              />
-            </div>
-          </div>
-
-          <div className="quick-modal-actions">
-            <button type="button" className="quick-modal-btn-cancel" onClick={onClose}>
+        <DialogActions sx={{ p: 2.5, pt: 1, justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+            Press <kbd className="kbd-shortcut">Enter</kbd> to submit
+          </span>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Button
+              onClick={onClose}
+              sx={{
+                color: '#475467',
+                '&:hover': { color: '#0F172A', backgroundColor: '#F1F5F9' },
+              }}
+            >
               Cancel
-            </button>
-            <button type="submit" disabled={loading || !title.trim()} className="quick-modal-btn-submit">
-              {loading ? 'Creating...' : 'Create Item'}
-            </button>
+            </Button>
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={loading || !title.trim()}
+              sx={{
+                px: 2.5,
+              }}
+            >
+              {loading ? <CircularProgress size={16} color="inherit" /> : 'Create item'}
+            </Button>
           </div>
-        </form>
-      </div>
-
-      <style>{`
-        .quick-modal-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.5);
-          backdrop-filter: blur(2px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: var(--z-modal);
-          padding: var(--space-4);
-        }
-
-        .quick-modal-content {
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-xl);
-          width: 100%;
-          max-width: 500px;
-          padding: var(--space-6);
-          box-shadow: var(--shadow-lg);
-        }
-
-        .quick-modal-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: var(--space-4);
-        }
-
-        .quick-modal-header h3 {
-          font-size: var(--font-size-lg);
-          font-weight: var(--font-weight-semibold);
-          color: var(--color-text-primary);
-        }
-
-        .quick-modal-close {
-          font-size: var(--font-size-base);
-          color: var(--color-text-tertiary);
-          padding: var(--space-1) var(--space-2);
-          border-radius: var(--radius-sm);
-        }
-
-        .quick-modal-close:hover {
-          color: var(--color-text-primary);
-          background: var(--color-surface-hover);
-        }
-
-        .quick-modal-error {
-          background: var(--color-danger-subtle);
-          color: var(--color-danger-text);
-          padding: var(--space-2) var(--space-3);
-          border-radius: var(--radius-md);
-          font-size: var(--font-size-xs);
-          margin-bottom: var(--space-3);
-        }
-
-        .quick-modal-form {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-4);
-        }
-
-        .quick-modal-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: var(--space-3);
-        }
-
-        .quick-modal-field {
-          display: flex;
-          flex-direction: column;
-          gap: var(--space-1);
-        }
-
-        .quick-modal-field label {
-          font-size: var(--font-size-xs);
-          font-weight: var(--font-weight-medium);
-          color: var(--color-text-secondary);
-        }
-
-        .quick-modal-input,
-        .quick-modal-select {
-          padding: var(--space-2) var(--space-3);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          background: var(--color-surface);
-          color: var(--color-text-primary);
-          font-size: var(--font-size-sm);
-          transition: border-color var(--transition-fast);
-        }
-
-        .quick-modal-input:focus,
-        .quick-modal-select:focus {
-          outline: none;
-          border-color: var(--color-accent);
-          box-shadow: var(--shadow-focus);
-        }
-
-        .quick-modal-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: var(--space-2);
-          margin-top: var(--space-2);
-        }
-
-        .quick-modal-btn-cancel {
-          padding: var(--space-2) var(--space-4);
-          color: var(--color-text-secondary);
-          border-radius: var(--radius-md);
-          font-size: var(--font-size-sm);
-          font-weight: var(--font-weight-medium);
-        }
-
-        .quick-modal-btn-cancel:hover {
-          background: var(--color-surface-hover);
-        }
-
-        .quick-modal-btn-submit {
-          padding: var(--space-2) var(--space-4);
-          background: var(--color-accent);
-          color: var(--color-text-on-primary);
-          border-radius: var(--radius-md);
-          font-size: var(--font-size-sm);
-          font-weight: var(--font-weight-semibold);
-          transition: background var(--transition-fast);
-        }
-
-        .quick-modal-btn-submit:hover:not(:disabled) {
-          background: var(--color-accent-hover);
-        }
-
-        .quick-modal-btn-submit:disabled {
-          opacity: 0.6;
-        }
-      `}</style>
-    </div>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 }

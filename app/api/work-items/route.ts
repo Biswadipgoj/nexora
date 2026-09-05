@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { workItemSchemas } from '@/lib/validation/workspace';
 import { workItemQueries } from '@/lib/db/work-items';
+import { getDemoWorkItems, createDemoWorkItem } from '@/lib/demo/demo-store';
 import { logger } from '@/lib/logger';
 
 /**
@@ -12,10 +13,11 @@ import { logger } from '@/lib/logger';
  */
 
 export async function GET(request: NextRequest) {
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user && !isDemo) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -28,6 +30,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'projectId is required' }, { status: 400 });
   }
 
+  if (isDemo) {
+    const items = getDemoWorkItems(projectId, statusId);
+    return NextResponse.json({ items });
+  }
+
   try {
     const items = await workItemQueries.listForBoard(supabase, projectId, {
       limit,
@@ -37,22 +44,41 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ items });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to fetch work items';
-    logger.error('Failed to fetch work items', { error: message, user_id: user.id });
+    logger.error('Failed to fetch work items', { error: message, user_id: user?.id });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (!user && !isDemo) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
     const json = await request.json();
     const validated = workItemSchemas.create.parse(json);
+
+    if (isDemo) {
+      const workItem = createDemoWorkItem({
+        workspace_id: validated.workspace_id,
+        project_id: validated.project_id,
+        type_id: validated.type_id,
+        status_id: validated.status_id,
+        title: validated.title,
+        priority: validated.priority,
+        due_date: validated.due_date,
+        assignees: validated.assignees,
+      });
+      return NextResponse.json({ workItem }, { status: 201 });
+    }
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
     const workItem = await workItemQueries.create(supabase, {
       workspace_id: validated.workspace_id,

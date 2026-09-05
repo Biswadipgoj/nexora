@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { projectSchemas } from '@/lib/validation/workspace';
+import { DEMO_PROJECT } from '@/lib/demo/demo-store';
 import { logger } from '@/lib/logger';
 
 /**
@@ -10,6 +11,11 @@ import { logger } from '@/lib/logger';
  */
 
 export async function GET(request: NextRequest) {
+  const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
+  if (isDemo) {
+    return NextResponse.json({ projects: [DEMO_PROJECT] });
+  }
+
   const supabase = await createServerClient();
   const { data: { user } } = await supabase.auth.getUser();
 

@@ -2,6 +2,9 @@
   "name": "nexora",
   "version": "0.1.0",
   "private": true,
+  "main": "electron/main.js",
+  "author": "NEXORA Team",
+  "description": "NEXORA — Agile Project Management Super App",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,16 +13,48 @@
     "test": "vitest run",
     "test:security": "vitest run tests/security",
     "android:sync": "cap sync android",
-    "android:open": "cap open android"
+    "android:open": "cap open android",
+    "desktop": "electron .",
+    "desktop:build": "node scripts/package-windows.js",
+    "desktop:package": "node scripts/package-windows.js"
+  },
+  "build": {
+    "appId": "com.nexora.app",
+    "productName": "NEXORA",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*"
+    ],
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "asar": false,
+    "win": {
+      "target": [
+        "portable",
+        "dir"
+      ]
+    }
   },
   "dependencies": {
     "@capacitor/android": "^8.5.1",
     "@capacitor/core": "^8.5.1",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.4.0",
+    "@mui/material": "^9.4.0",
     "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.114.0",
+    "clsx": "^2.1.1",
+    "motion": "^13.2.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "tailwind-merge": "^3.6.0",
     "zod": "^4.5.4"
   },
   "devDependencies": {
@@ -27,6 +62,8 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "electron": "^44.2.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "supabase": "^2.116.0",
