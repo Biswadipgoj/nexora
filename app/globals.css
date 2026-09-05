@@ -3,8 +3,9 @@
  * Principles: Precision, Glassmorphism, Micro-Interactions, High Density, Fast Motion.
  */
 
-/* ============ Fonts ============ */
+/* ============ Fonts & Prismatic Aurora Design System ============ */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import '../styles/prismatic-aurora.css';
 
 /* ============ Reset ============ */
 *,
@@ -23,21 +24,26 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ============ DUAL-THEME DESIGN SYSTEM ============ */
+/* ============ PRISMATIC AURORA SYSTEM ============ */
 
-/* --- DARK THEME (Default & Signature) --- */
 :root,
-[data-theme="dark"] {
-  /* Canvas & Foundations */
-  --color-bg: #090D16;
-  --color-bg-subtle: #0E1322;
-  --color-bg-alt: #131A2D;
-  --color-bg-mesh: radial-gradient(at 15% 15%, rgba(99, 102, 241, 0.18) 0px, transparent 50%),
-                   radial-gradient(at 85% 20%, rgba(236, 72, 153, 0.14) 0px, transparent 45%),
-                   radial-gradient(at 50% 85%, rgba(14, 165, 233, 0.15) 0px, transparent 55%),
-                   #090D16;
+[data-theme="dark"],
+[data-theme="light"] {
+  /* Non-Dark, Non-White Canvas */
+  --color-bg: #181d2e;
+  --color-bg-subtle: #1e243a;
+  --color-bg-alt: #242c44;
+  --color-bg-mesh: var(--canvas-gradient);
   
   /* Surfaces & Glass */
+  --color-surface: var(--surface-primary);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: rgba(62, 75, 120, 0.95);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-surface-overlay: var(--surface-modal);
+  --glass-bg: var(--surface-primary);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-hover: rgba(255, 255, 255, 0.22);
   --color-surface: #111726;
   --color-surface-hover: #172033;
   --color-surface-active: #1D2840;
