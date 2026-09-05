@@ -56,6 +56,7 @@ NEXORA is engineered to run the **exact same codebase** across three distinct ta
 | **Sync Android Assets** | `npm run android:sync` | Syncs web assets and Capacitor plugins into `android/` |
 | **Open Android Studio** | `npm run android:open` | Launches the native Android Studio project |
 | **Build Android Debug APK** | `cd android && .\gradlew.bat assembleDebug` | Compiles standalone `app-debug.apk` |
+| **Cloud Android APK Build** | GitHub Actions (1-click) | 100% free cloud compilation without Android Studio |
 | **Windows App (Live Dev)** | `npm run desktop` | Launches Electron window pointing to dev server |
 | **Package Windows EXE** | `npm run desktop:package` | Builds standalone `NEXORA.exe` in `dist-electron/` |
 
@@ -65,8 +66,9 @@ NEXORA is engineered to run the **exact same codebase** across three distinct ta
 
 For in-depth step-by-step instructions, troubleshooting, and configuration details for each subsystem:
 
+- ☁️ **Zero-Install Cloud Android Build (No Android Studio):** Read [docs/CLOUD_ANDROID_BUILD_GUIDE.md](./docs/CLOUD_ANDROID_BUILD_GUIDE.md)
 - 🪟 **Windows Desktop App (.exe):** Read [docs/WINDOWS_EXE_GUIDE.md](./docs/WINDOWS_EXE_GUIDE.md)
-- 📱 **Native Android Super-App:** Read [docs/ANDROID_SETUP_GUIDE.md](./docs/ANDROID_SETUP_GUIDE.md)
+- 📱 **Native Android Super-App (Studio & Native):** Read [docs/ANDROID_SETUP_GUIDE.md](./docs/ANDROID_SETUP_GUIDE.md)
 - 🗄️ **Supabase Database, Auth & RLS:** Read [docs/SUPABASE_SETUP_GUIDE.md](./docs/SUPABASE_SETUP_GUIDE.md)
 
 ---

@@ -3,6 +3,11 @@
 > **Fluid 120fps Native Experience with Zero Code Duplication**  
 > Powered by Capacitor 8.x, Android Studio, Hardware Acceleration, and Material Maximalism UI.
 
+> [!TIP]
+> **Don't want to install Android Studio?**  
+> You can build the complete Android APK in the cloud for free using GitHub Actions without installing Android Studio or SDKs on your computer!  
+> 👉 Read the [**Zero-Install Cloud Build Guide (docs/CLOUD_ANDROID_BUILD_GUIDE.md)**](./CLOUD_ANDROID_BUILD_GUIDE.md).
+
 ---
 
 ## 1. Overview & Architecture

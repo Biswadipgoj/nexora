@@ -59,8 +59,18 @@ npm run desktop:package
 
 ---
 
-## 📱 Native Android Super-App
+## 📱 Android Super-App (Two Build Paths)
 
+### ☁️ Path 1: 100% Free Cloud Build (No Android Studio Needed)
+No need to install Android Studio or SDKs on your PC. Build directly in the cloud:
+1. Go to your repo on GitHub: [**Actions Tab**](https://github.com/Biswadipgoj/nexora/actions).
+2. Select **"Build Android APK (Cloud)"** → click **Run workflow**.
+3. Download the compiled `app-debug.apk` directly to your phone or PC in ~3 minutes!
+4. *(Optional)* Test it live in your browser using [**Appetize.io**](https://appetize.io/upload).
+
+👉 **Cloud Guide:** [docs/CLOUD_ANDROID_BUILD_GUIDE.md](./docs/CLOUD_ANDROID_BUILD_GUIDE.md)
+
+### 💻 Path 2: Local Android Studio Build
 Sync web assets and open in Android Studio:
 ```powershell
 npm run build
@@ -68,14 +78,14 @@ npm run android:sync
 npm run android:open
 ```
 
-Build a standalone debug APK without Android Studio:
+Or build a standalone debug APK from terminal:
 ```powershell
 cd android
 .\gradlew.bat assembleDebug
 ```
 - **APK Location:** `android/app/build/outputs/apk/debug/app-debug.apk`
 
-👉 **Complete Guide:** [docs/ANDROID_SETUP_GUIDE.md](./docs/ANDROID_SETUP_GUIDE.md)
+👉 **Android Studio Guide:** [docs/ANDROID_SETUP_GUIDE.md](./docs/ANDROID_SETUP_GUIDE.md)
 
 ---
 
@@ -95,6 +105,7 @@ NEXORA includes three forward-only SQL migrations in `supabase/migrations/`:
 ## 📚 Documentation Reference
 
 - 📖 **Master Setup Handbook:** [SETUP_GUIDE.md](./SETUP_GUIDE.md)
+- ☁️ **Cloud Android Build Guide (No Studio):** [docs/CLOUD_ANDROID_BUILD_GUIDE.md](./docs/CLOUD_ANDROID_BUILD_GUIDE.md)
 - 🪟 **Windows Desktop Guide:** [docs/WINDOWS_EXE_GUIDE.md](./docs/WINDOWS_EXE_GUIDE.md)
-- 📱 **Android Super-App Guide:** [docs/ANDROID_SETUP_GUIDE.md](./docs/ANDROID_SETUP_GUIDE.md)
+- 📱 **Android Super-App (Studio) Guide:** [docs/ANDROID_SETUP_GUIDE.md](./docs/ANDROID_SETUP_GUIDE.md)
 - 🗄️ **Supabase & Security Guide:** [docs/SUPABASE_SETUP_GUIDE.md](./docs/SUPABASE_SETUP_GUIDE.md)
