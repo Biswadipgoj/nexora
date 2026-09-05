@@ -52,13 +52,7 @@ export default function LoginPage() {
       }
 
       setLoadingText('Launching workspace...');
-      router.refresh();
-      router.replace('/dashboard');
-
-      // Safety fallback to guarantee navigation occurs smoothly
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 750);
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       setLoading(false);
       setLoadingText('Sign in');

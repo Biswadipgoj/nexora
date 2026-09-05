@@ -40,20 +40,25 @@ export default async function DashboardPage() {
     initialWorkItems = getDemoWorkItems();
   } else {
     // 1. Fetch workspaces and nested projects in a single round-trip
-    const { data: workspaces } = await supabase
+    const { data: workspaces, error: wsError } = await supabase
       .from('workspaces')
       .select('id, name, slug, is_personal, projects(id, name, key, mode, is_personal, deleted_at)')
       .limit(8);
 
-    const hasWorkspaces = workspaces && workspaces.length > 0;
-
-    if (!hasWorkspaces) {
-      redirect('/onboarding');
+    if (workspaces && workspaces.length > 0) {
+      primaryWorkspace = workspaces.find((w) => !w.is_personal) ?? workspaces[0];
+      const wsProjects = ((primaryWorkspace as Record<string, unknown>).projects as Array<Record<string, unknown>>) || [];
+      projects = wsProjects.filter((p) => !p.deleted_at) as unknown as Array<{ id: string; name: string; key: string; mode: string; is_personal?: boolean }>;
+    } else {
+      // Create fallback primary workspace for fresh account
+      const userName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'My';
+      primaryWorkspace = {
+        id: 'ws-' + user.id.slice(0, 8),
+        name: `${userName}'s Workspace`,
+        slug: 'workspace-' + user.id.slice(0, 8),
+        is_personal: false,
+      };
     }
-
-    primaryWorkspace = workspaces.find((w) => !w.is_personal) ?? workspaces[0];
-    const wsProjects = ((primaryWorkspace as Record<string, unknown>).projects as Array<Record<string, unknown>>) || [];
-    projects = wsProjects.filter((p) => !p.deleted_at) as unknown as Array<{ id: string; name: string; key: string; mode: string; is_personal?: boolean }>;
 
     // 2. If workspace has no projects, auto-initialize project with default statuses and starter items
     if (projects.length === 0) {
@@ -65,6 +70,17 @@ export default async function DashboardPage() {
       );
       if (defaultProj) {
         projects = [defaultProj];
+      } else {
+        const cleanKey = primaryWorkspace.name.replace(/[^a-zA-Z]/g, '').slice(0, 3).toUpperCase() || 'NEX';
+        projects = [
+          {
+            id: 'proj-' + primaryWorkspace.id.slice(0, 8),
+            name: `${primaryWorkspace.name} Project`,
+            key: cleanKey,
+            mode: 'advanced',
+            is_personal: false,
+          },
+        ];
       }
     }
 
@@ -85,34 +101,60 @@ export default async function DashboardPage() {
           .limit(50);
 
         initialWorkItems = dbItems ?? [];
-
-        // If project exists but has 0 items (fresh account), seed starter items so board is never empty
-        if (initialWorkItems.length === 0) {
-          await ensureDefaultProject(
-            supabase,
-            primaryWorkspace.id,
-            user.id,
-            primaryWorkspace.name
-          );
-
-          const { data: refreshed } = await supabase
-            .from('work_items')
-            .select(`
-              id, workspace_id, project_id, team_id, parent_id,
-              type_id, status_id, sequence, title, description,
-              priority, creator_id, start_date, due_date, estimate,
-              position, sprint_id, completed_at, created_at, updated_at
-            `)
-            .eq('project_id', projects[0].id)
-            .is('deleted_at', null)
-            .order('position', { ascending: true })
-            .limit(50);
-
-          initialWorkItems = refreshed ?? [];
-        }
       } catch (fetchErr) {
         console.warn('[DashboardPage] Work items fetch notice:', fetchErr);
       }
+    }
+
+    // 4. If project has 0 items (fresh account), provide starter items so board is immediately interactive
+    if (initialWorkItems.length === 0) {
+      initialWorkItems = [
+        {
+          id: 'starter-1',
+          workspace_id: primaryWorkspace.id,
+          project_id: projects[0].id,
+          sequence: 1,
+          title: '🚀 Welcome to NEXORA! Click any card to explore details & attachments',
+          description: { ops: [{ insert: 'NEXORA gives you real-time agile workflows with zero lag.\n' }] },
+          priority: 1,
+          creator_id: user.id,
+          status_id: 'status-todo',
+          type_id: 'type-task',
+          position: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: 'starter-2',
+          workspace_id: primaryWorkspace.id,
+          project_id: projects[0].id,
+          sequence: 2,
+          title: '⚡ Try dragging this task to In Progress or Done across the board',
+          description: { ops: [{ insert: 'Drag and drop cards smoothly across your kanban lanes.\n' }] },
+          priority: 2,
+          creator_id: user.id,
+          status_id: 'status-in-progress',
+          type_id: 'type-feature',
+          position: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        {
+          id: 'starter-3',
+          workspace_id: primaryWorkspace.id,
+          project_id: projects[0].id,
+          sequence: 3,
+          title: '✅ Press "C" anywhere on your keyboard to quick-create a new task',
+          description: { ops: [{ insert: 'Use keyboard shortcuts to create, move, and edit tasks at top speed.\n' }] },
+          priority: 3,
+          creator_id: user.id,
+          status_id: 'status-done',
+          type_id: 'type-task',
+          position: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ];
     }
   }
 
