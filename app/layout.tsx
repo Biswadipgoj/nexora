@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter, Outfit, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { NexoraMuiTheme } from '@/components/theme/NexoraMuiTheme';
+import { ThemeProvider } from '@/components/theme/ThemeProvider';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -37,11 +38,12 @@ export const metadata: Metadata = {
   },
 };
 
+
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
-  themeColor: '#FFFFFF',
+  themeColor: '#090D16',
 };
 
 export default function RootLayout({
@@ -52,18 +54,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="light"
+      data-theme="dark"
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
     >
       <body>
-        <NexoraMuiTheme>
-          <a href="#main-content" className="skip-link">
-            Skip to main content
-          </a>
-          <div id="main-content">{children}</div>
-        </NexoraMuiTheme>
+        <ThemeProvider>
+          <NexoraMuiTheme>
+            <a href="#main-content" className="skip-link">
+              Skip to main content
+            </a>
+            <div id="main-content">{children}</div>
+          </NexoraMuiTheme>
+        </ThemeProvider>
       </body>
     </html>
   );

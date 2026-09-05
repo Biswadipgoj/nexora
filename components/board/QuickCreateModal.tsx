@@ -1,79 +1,97 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import CircularProgress from '@mui/material/CircularProgress';
-import Avatar from '@mui/material/Avatar';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import type { WorkItemData } from './KanbanBoard';
-
-export type WorkItemPayload = WorkItemData;
 
 export interface QuickCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   workspaceId: string;
   projectId: string;
-  statuses: Array<{ id: string; name: string }>;
-  types: Array<{ id: string; name: string }>;
-  defaultStatusId?: string;
-  onCreated: (newItem: WorkItemData) => void;
+  initialStatusId?: string;
+  availableStatuses?: Array<{ id: string; name: string }>;
+  availableTypes?: Array<{ id: string; name: string }>;
+  onSuccess?: (newItem: WorkItemData) => void;
+  onItemCreated?: (newItem: WorkItemData) => void;
 }
-
-const PRIORITIES = [
-  { value: 0, label: 'None', color: '#64748B' },
-  { value: 1, label: 'Low', color: '#2563EB' },
-  { value: 2, label: 'Medium', color: '#D97706' },
-  { value: 3, label: 'High', color: '#EA580C' },
-  { value: 4, label: 'Urgent', color: '#DC2626' },
-];
-
-const ASSIGNEE_OPTIONS = [
-  { name: 'Alex Morgan', avatar: '', role: 'Tech Lead' },
-  { name: 'Sarah Chen', avatar: '', role: 'Product Designer' },
-  { name: 'Biswadip Paul', avatar: 'https://github.com/Biswadipgoj.png', role: 'Founder & Lead' },
-];
 
 export function QuickCreateModal({
   isOpen,
   onClose,
   workspaceId,
   projectId,
-  statuses,
-  types,
-  defaultStatusId,
-  onCreated,
+  initialStatusId = 'status-todo',
+  availableStatuses = [
+    { id: 'status-todo', name: 'To Do' },
+    { id: 'status-in-progress', name: 'In Progress' },
+    { id: 'status-done', name: 'Done' },
+  ],
+  availableTypes = [
+    { id: 'type-task', name: 'Task' },
+    { id: 'type-bug', name: 'Bug' },
+    { id: 'type-feature', name: 'Feature' },
+  ],
+  onSuccess,
+  onItemCreated,
 }: QuickCreateModalProps) {
   const [title, setTitle] = useState('');
-  const [selectedStatusId, setSelectedStatusId] = useState<string>('');
-  const [selectedTypeId, setSelectedTypeId] = useState<string>('');
-  const [priority, setPriority] = useState<number>(0);
+  const [description, setDescription] = useState('');
+  const [statusId, setStatusId] = useState(initialStatusId);
+  const [typeId, setTypeId] = useState(availableTypes[0]?.id || 'type-task');
+  const [priority, setPriority] = useState<number>(1);
   const [dueDate, setDueDate] = useState('');
-  const [assigneeNames, setAssigneeNames] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
-  const statusId = selectedStatusId || defaultStatusId || statuses[0]?.id || '';
-  const typeId = selectedTypeId || types[0]?.id || '';
+  useEffect(() => {
+    if (isOpen) {
+      setTitle('');
+      setDescription('');
+      setStatusId(initialStatusId || availableStatuses[0]?.id || 'status-todo');
+      setPriority(1);
+      setDueDate('');
+      setTimeout(() => titleInputRef.current?.focus(), 50);
+    }
+  }, [isOpen, initialStatusId, availableStatuses]);
 
-  if (!isOpen) return null;
-
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !statusId || !typeId) return;
+    if (!title.trim() || submitting) return;
 
-    setLoading(true);
-    setError(null);
+    setSubmitting(true);
 
+    const optimisticItem: WorkItemData = {
+      id: 'wi-' + Date.now(),
+      workspace_id: workspaceId,
+      project_id: projectId,
+      type_id: typeId,
+      status_id: statusId,
+      title: title.trim(),
+      description: description ? { ops: [{ insert: description + '\n' }] } : null,
+      priority,
+      due_date: dueDate || null,
+      sequence: Math.floor(Math.random() * 900) + 10,
+      position: 0,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    // Instant optimistic response
+    if (onSuccess) onSuccess(optimisticItem);
+    if (onItemCreated) onItemCreated(optimisticItem);
+    onClose();
+
+    // Persist to server
     try {
-      const res = await fetch('/api/work-items', {
+      await fetch('/api/work-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,31 +100,15 @@ export function QuickCreateModal({
           type_id: typeId,
           status_id: statusId,
           title: title.trim(),
+          description: description ? { ops: [{ insert: description + '\n' }] } : null,
           priority,
-          due_date: dueDate || undefined,
-          assignees: assigneeNames.length > 0 ? assigneeNames.map(name => ASSIGNEE_OPTIONS.find((a) => a.name === name)).filter(Boolean) : undefined,
+          due_date: dueDate || null,
         }),
       });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Could not create work item. Please try again.');
-      }
-
-      setTitle('');
-      setDueDate('');
-      setPriority(0);
-      setAssigneeNames([]);
-      setSelectedStatusId('');
-      setSelectedTypeId('');
-      onCreated(data.workItem);
-      onClose();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Could not create work item. Please try again.');
-    } finally {
-      setLoading(false);
+    } catch {} finally {
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <Dialog
@@ -117,11 +119,11 @@ export function QuickCreateModal({
       slotProps={{
         paper: {
           sx: {
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #E5E7EB',
+            backgroundColor: 'var(--color-surface)',
+            color: 'var(--color-text-primary)',
+            border: '1px solid var(--color-border)',
             borderRadius: 3,
-            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)',
-            p: 1,
+            boxShadow: '0 24px 48px rgba(0, 0, 0, 0.4)',
           },
         },
       }}
@@ -132,232 +134,203 @@ export function QuickCreateModal({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            fontFamily: 'var(--font-display)',
+            pb: 1,
+            pt: 2.5,
+            px: 3,
             fontSize: '1.125rem',
             fontWeight: 700,
-            color: '#0F172A',
-            pb: 1,
           }}
         >
-          New work item
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <AddRoundedIcon sx={{ fontSize: 20, color: 'var(--color-primary)' }} />
+            <span>Create New Task</span>
+          </div>
           <IconButton
-            onClick={onClose}
             size="small"
-            sx={{
-              color: '#64748B',
-              '&:hover': { color: '#0F172A', backgroundColor: '#F1F5F9' },
-            }}
+            onClick={onClose}
+            sx={{ color: 'var(--color-text-tertiary)', '&:hover': { color: 'var(--color-text-primary)' } }}
           >
             <CloseRoundedIcon sx={{ fontSize: 18 }} />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: 1 }}>
-          {error && (
-            <div
-              style={{
-                padding: '10px 14px',
-                borderRadius: 8,
-                background: '#FEF2F2',
-                border: '1px solid #FECACA',
-                color: '#B91C1C',
-                fontSize: '0.8125rem',
-              }}
-            >
-              {error}
-            </div>
-          )}
-
-          <TextField
-            autoFocus
-            label="What needs to be done?"
-            placeholder="e.g., Update customer invoice generation logic"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-            fullWidth
-            variant="outlined"
-            slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: 2,
-                '& fieldset': { borderColor: '#E5E7EB' },
-                '&:hover fieldset': { borderColor: '#CBD5E1' },
-                '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
-              },
-            }}
-          />
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <TextField
-              select
-              label="Type"
-              value={typeId}
-              onChange={(e) => setSelectedTypeId(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '& fieldset': { borderColor: '#E5E7EB' },
-                },
-              }}
-            >
-              {types.map((t) => (
-                <MenuItem key={t.id} value={t.id} sx={{ color: '#0F172A' }}>
-                  {t.name}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              select
-              label="Status"
-              value={statusId}
-              onChange={(e) => setSelectedStatusId(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { sx: { color: '#64748B' } } }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '& fieldset': { borderColor: '#E5E7EB' },
-                },
-              }}
-            >
-              {statuses.map((s) => (
-                <MenuItem key={s.id} value={s.id} sx={{ color: '#0F172A' }}>
-                  {s.name}
-                </MenuItem>
-              ))}
-            </TextField>
-          </div>
-
+        <DialogContent sx={{ px: 3, py: 1.5, display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {/* Title */}
           <div>
-            <label
-              style={{
-                display: 'block',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                color: '#475467',
-                marginBottom: 8,
-              }}
-            >
-              Priority
-            </label>
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              {PRIORITIES.map((p) => {
-                const isSelected = priority === p.value;
-                return (
-                  <button
-                    key={p.value}
-                    type="button"
-                    onClick={() => setPriority(p.value)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      padding: '5px 12px',
-                      borderRadius: 999,
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      border: isSelected ? `1.5px solid ${p.color}` : '1px solid #E5E7EB',
-                      backgroundColor: isSelected ? '#FFFFFF' : '#F8FAFC',
-                      color: isSelected ? p.color : '#64748B',
-                      boxShadow: isSelected ? '0 1px 2px rgba(16, 24, 40, 0.05)' : 'none',
-                      transition: 'all 120ms ease',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: '50%',
-                        backgroundColor: p.color,
-                      }}
-                    />
-                    {p.label}
-                  </button>
-                );
-              })}
-            </div>
+            <label className="field-label">Issue Title</label>
+            <input
+              ref={titleInputRef}
+              type="text"
+              required
+              placeholder="What needs to be done?"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="field-input field-input--title"
+            />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <TextField
-              select
-              label="Assignees"
-              value={assigneeNames}
-              onChange={(e) => setAssigneeNames(e.target.value as unknown as string[])}
-              fullWidth
-              slotProps={{ 
-                select: { 
-                  multiple: true,
-                  renderValue: (selected) => (selected as string[]).join(', ') || 'Unassigned'
-                },
-                inputLabel: { sx: { color: '#64748B' } } 
-              }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '& fieldset': { borderColor: '#E5E7EB' },
-                },
-              }}
-            >
-              {ASSIGNEE_OPTIONS.map((a) => (
-                <MenuItem key={a.name} value={a.name}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <Avatar src={a.avatar} sx={{ width: 20, height: 20 }} />
-                    <span style={{ fontSize: '0.85rem', color: '#0F172A' }}>{a.name}</span>
-                  </div>
-                </MenuItem>
-              ))}
-            </TextField>
-
-            <TextField
-              type="date"
-              label="Due date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true, sx: { color: '#64748B' } } }}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderRadius: 2,
-                  '& fieldset': { borderColor: '#E5E7EB' },
-                },
-              }}
+          {/* Description */}
+          <div>
+            <label className="field-label">Description (optional)</label>
+            <textarea
+              placeholder="Add additional context, acceptance criteria, or details..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              className="field-textarea"
             />
+          </div>
+
+          {/* Properties Grid */}
+          <div className="properties-row">
+            {/* Status */}
+            <div className="prop-field">
+              <label className="field-label">Status</label>
+              <select
+                value={statusId}
+                onChange={(e) => setStatusId(e.target.value)}
+                className="field-select"
+              >
+                {availableStatuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Priority */}
+            <div className="prop-field">
+              <label className="field-label">Priority</label>
+              <select
+                value={priority}
+                onChange={(e) => setPriority(parseInt(e.target.value, 10))}
+                className="field-select"
+              >
+                <option value={4}>🔴 Urgent</option>
+                <option value={3}>🟠 High</option>
+                <option value={2}>🟡 Medium</option>
+                <option value={1}>🔵 Low</option>
+                <option value={0}>⚪ None</option>
+              </select>
+            </div>
+
+            {/* Due Date */}
+            <div className="prop-field">
+              <label className="field-label">Due Date</label>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="field-input"
+              />
+            </div>
           </div>
         </DialogContent>
 
-        <DialogActions sx={{ p: 2.5, pt: 1, justifyContent: 'space-between' }}>
-          <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
-            Press <kbd className="kbd-shortcut">Enter</kbd> to submit
+        <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between', borderTop: '1px solid var(--color-border)' }}>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-tertiary)' }}>
+            Press <kbd className="kbd-shortcut">↵ Enter</kbd> to submit
           </span>
-          <div style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
             <Button
               onClick={onClose}
-              sx={{
-                color: '#475467',
-                '&:hover': { color: '#0F172A', backgroundColor: '#F1F5F9' },
-              }}
+              sx={{ color: 'var(--color-text-secondary)', textTransform: 'none', fontWeight: 600 }}
             >
               Cancel
             </Button>
-            <Button
+            <button
               type="submit"
-              variant="contained"
-              disabled={loading || !title.trim()}
-              sx={{
-                px: 2.5,
-              }}
+              disabled={!title.trim() || submitting}
+              className="modal-submit-btn"
             >
-              {loading ? <CircularProgress size={16} color="inherit" /> : 'Create item'}
-            </Button>
+              Create Task
+            </button>
           </div>
         </DialogActions>
       </form>
+
+      <style jsx>{`
+        .field-label {
+          display: block;
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: var(--color-text-secondary);
+          margin-bottom: 6px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+        }
+
+        .field-input,
+        .field-textarea,
+        .field-select {
+          width: 100%;
+          background: var(--color-bg-subtle);
+          border: 1px solid var(--color-border);
+          color: var(--color-text-primary);
+          padding: 8px 12px;
+          border-radius: 8px;
+          font-size: 0.875rem;
+          font-family: inherit;
+          outline: none;
+          transition: all var(--transition-fast);
+        }
+
+        .field-input:focus,
+        .field-textarea:focus,
+        .field-select:focus {
+          border-color: var(--color-primary);
+          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .field-input--title {
+          font-size: 1rem;
+          font-weight: 600;
+        }
+
+        .field-textarea {
+          resize: vertical;
+        }
+
+        .properties-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 12px;
+        }
+
+        .prop-field {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .modal-submit-btn {
+          background: var(--color-primary-gradient);
+          color: #FFFFFF;
+          border: none;
+          border-radius: 8px;
+          padding: 8px 18px;
+          font-size: 0.875rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all var(--transition-smooth);
+        }
+
+        .modal-submit-btn:hover:not(:disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .modal-submit-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        @media (max-width: 520px) {
+          .properties-row {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
     </Dialog>
   );
 }

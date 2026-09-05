@@ -2,17 +2,16 @@
 
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import Chip from '@mui/material/Chip';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import AvatarGroup from '@mui/material/AvatarGroup';
 import Avatar from '@mui/material/Avatar';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import CheckRoundedIcon from '@mui/icons-material/CheckRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
-
-import Image from 'next/image';
+import ContentCopyRoundedIcon from '@mui/icons-material/ContentCopyRounded';
 
 export interface WorkItemCardProps {
   id: string;
@@ -36,12 +35,12 @@ export interface WorkItemCardProps {
   availableStatuses?: Array<{ id: string; name: string }>;
 }
 
-const PRIORITY_META: Record<number, { label: string; color: string; bg: string; dot: string }> = {
-  4: { label: 'Urgent', color: '#DC2626', bg: '#FEF2F2', dot: '#DC2626' },
-  3: { label: 'High', color: '#EA580C', bg: '#FFF7ED', dot: '#EA580C' },
-  2: { label: 'Medium', color: '#D97706', bg: '#FFFBEB', dot: '#D97706' },
-  1: { label: 'Low', color: '#2563EB', bg: '#EFF6FF', dot: '#2563EB' },
-  0: { label: 'None', color: '#64748B', bg: '#F8FAFC', dot: '#94A3B8' },
+const PRIORITY_DATA: Record<number, { label: string; class: string }> = {
+  4: { label: 'Urgent', class: 'badge-priority--urgent' },
+  3: { label: 'High', class: 'badge-priority--high' },
+  2: { label: 'Medium', class: 'badge-priority--medium' },
+  1: { label: 'Low', class: 'badge-priority--low' },
+  0: { label: 'None', class: 'badge-priority--low' },
 };
 
 export function WorkItemCard({
@@ -61,30 +60,37 @@ export function WorkItemCard({
   availableStatuses = [],
 }: WorkItemCardProps) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const p = PRIORITY_META[priority] ?? PRIORITY_META[0];
+  const [copied, setCopied] = useState(false);
+  const p = PRIORITY_DATA[priority] ?? PRIORITY_DATA[0];
+  const isDone = statusId.toLowerCase().includes('done');
 
-  const handleOpenMenu = (e: React.MouseEvent<HTMLElement>) => {
+  const handleCopyKey = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setAnchorEl(e.currentTarget);
+    navigator.clipboard.writeText(`${projectKey}-${sequence}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
   };
 
-  const handleSelectStatus = (newStatusId: string, e: React.MouseEvent) => {
+  const handleToggleDone = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setAnchorEl(null);
-    onStatusChange?.(newStatusId);
+    if (!onStatusChange || availableStatuses.length === 0) return;
+    if (isDone) {
+      const todo = availableStatuses.find((s) => s.name.toLowerCase().includes('to do') || s.id.includes('todo'));
+      if (todo) onStatusChange(todo.id);
+    } else {
+      const done = availableStatuses.find((s) => s.name.toLowerCase().includes('done'));
+      if (done) onStatusChange(done.id);
+    }
   };
 
   return (
     <motion.div
       whileHover={{
-        y: -3,
-        scale: 1.01,
-        boxShadow: '0 12px 24px -6px rgba(79, 70, 229, 0.15), 0 4px 8px -2px rgba(0, 0, 0, 0.05)',
-        borderColor: '#C7D2FE',
-        transition: { duration: 0.16 },
+        y: -2,
+        transition: { duration: 0.15 },
       }}
       whileTap={{ scale: 0.98 }}
-      className="work-item-card"
+      className="card-container glass-card"
       onClick={onClick}
       role="button"
       tabIndex={0}
@@ -94,31 +100,48 @@ export function WorkItemCard({
           onClick?.();
         }
       }}
-      aria-label={`${projectKey}-${sequence}: ${title}, priority ${p.label}`}
+      aria-label={`${projectKey}-${sequence}: ${title}`}
     >
-      <div className="work-item-card__header">
-        <span className="work-item-card__key">
-          {projectKey}-{sequence}
-        </span>
-
-        <Tooltip title={`Priority: ${p.label}`} arrow>
-          <span
-            className="work-item-card__priority-pill"
-            style={{ color: p.color, backgroundColor: p.bg }}
+      {/* Top Header: Checkbox + Key + Copy + Priority */}
+      <div className="card-header">
+        <div className="card-header__left">
+          {/* 1-Click Status Checkbox */}
+          <button
+            className={`card-checkbox ${isDone ? 'card-checkbox--done' : ''}`}
+            onClick={handleToggleDone}
+            title={isDone ? 'Mark as Incomplete' : 'Mark as Done'}
+            aria-label="Toggle completed"
           >
-            <span
-              className="work-item-card__priority-dot"
-              style={{ backgroundColor: p.dot }}
-            />
-            {p.label}
-          </span>
-        </Tooltip>
+            {isDone && <CheckRoundedIcon sx={{ fontSize: 12, color: '#FFFFFF' }} />}
+          </button>
+
+          {/* Issue Key */}
+          <button
+            className="card-key-btn"
+            onClick={handleCopyKey}
+            title={copied ? 'Copied!' : 'Copy issue ID'}
+          >
+            <span className="card-key">{projectKey}-{sequence}</span>
+            {copied ? (
+              <span className="copied-hint">Copied!</span>
+            ) : (
+              <ContentCopyRoundedIcon sx={{ fontSize: 11, opacity: 0.5 }} className="copy-icon" />
+            )}
+          </button>
+        </div>
+
+        {/* Priority Badge */}
+        <span className={`badge-priority ${p.class}`}>
+          <span className="priority-dot" />
+          {p.label}
+        </span>
       </div>
 
+      {/* Epic Tag if available */}
       {epicName && (
-        <div className="work-item-card__epic-row">
+        <div className="card-epic">
           <span
-            className="work-item-card__epic-tag"
+            className="card-epic-tag"
             style={{
               color: epicColor,
               backgroundColor: `${epicColor}15`,
@@ -130,47 +153,38 @@ export function WorkItemCard({
         </div>
       )}
 
-      <div className="work-item-card__title">{title}</div>
+      {/* Title */}
+      <div className={`card-title ${isDone ? 'card-title--done' : ''}`}>
+        {title}
+      </div>
 
-      <div className="work-item-card__footer">
-        <div className="work-item-card__meta-left">
-          <Chip
-            label={typeName}
-            size="small"
-            sx={{
-              height: 20,
-              fontSize: '0.6875rem',
-              fontWeight: 500,
-              backgroundColor: '#F1F5F9',
-              color: '#475569',
-              border: '1px solid #E2E8F0',
-            }}
-          />
+      {/* Footer Metadata: Type badge, Due date, Assignees */}
+      <div className="card-footer">
+        <div className="card-footer__left">
+          <span className="card-type-chip">{typeName}</span>
 
           {storyPoints !== undefined && (
-            <span className="work-item-card__points">
-              {storyPoints} pts
-            </span>
+            <span className="card-points">{storyPoints} pts</span>
           )}
 
           {dueDate && (
-            <span className="work-item-card__due">
-              <CalendarTodayRoundedIcon sx={{ fontSize: 11, mr: 0.4, opacity: 0.7 }} />
+            <span className="card-due">
+              <CalendarTodayRoundedIcon sx={{ fontSize: 11, mr: 0.3, opacity: 0.7 }} />
               {dueDate}
             </span>
           )}
         </div>
 
-        <div className="work-item-card__meta-right">
+        <div className="card-footer__right">
           {assignees && assignees.length > 0 && (
             <AvatarGroup
               max={3}
               sx={{
                 '& .MuiAvatar-root': {
-                  width: 24,
-                  height: 24,
-                  fontSize: '0.7rem',
-                  border: '1.5px solid #FFFFFF',
+                  width: 22,
+                  height: 22,
+                  fontSize: '0.65rem',
+                  border: '1.5px solid var(--color-surface)',
                 },
               }}
             >
@@ -178,7 +192,7 @@ export function WorkItemCard({
                 <Tooltip key={`${a.name}-${idx}`} title={`Assignee: ${a.name}`} arrow>
                   <Avatar
                     src={a.avatar}
-                    sx={{ bgcolor: '#6366F1', color: '#fff', fontWeight: 'bold' }}
+                    sx={{ bgcolor: 'var(--color-primary)', color: '#fff', fontWeight: 'bold' }}
                     alt={a.name}
                   >
                     {!a.avatar ? a.name.charAt(0) : ''}
@@ -188,210 +202,204 @@ export function WorkItemCard({
             </AvatarGroup>
           )}
 
+          {/* Quick Status Move Menu */}
           {availableStatuses.length > 0 && (
-            <div className="work-item-card__action">
-            <Tooltip title="Move status" arrow>
-              <IconButton
-                size="small"
-                onClick={handleOpenMenu}
-                sx={{
-                  width: 24,
-                  height: 24,
-                  color: '#94A3B8',
-                  backgroundColor: 'transparent',
-                  border: '1px solid transparent',
-                  '&:hover': {
-                    backgroundColor: '#F1F5F9',
-                    color: '#0F172A',
-                    borderColor: '#E2E8F0',
-                  },
-                }}
-                aria-label="Change status"
-              >
-                <ArrowForwardRoundedIcon sx={{ fontSize: 13 }} />
-              </IconButton>
-            </Tooltip>
+            <>
+              <Tooltip title="Move status" arrow>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAnchorEl(e.currentTarget);
+                  }}
+                  sx={{
+                    width: 22,
+                    height: 22,
+                    color: 'var(--color-text-tertiary)',
+                    '&:hover': {
+                      backgroundColor: 'var(--color-surface-hover)',
+                      color: 'var(--color-text-primary)',
+                    },
+                  }}
+                  aria-label="Change status"
+                >
+                  <ArrowForwardRoundedIcon sx={{ fontSize: 12 }} />
+                </IconButton>
+              </Tooltip>
 
-            <Menu
-              anchorEl={anchorEl}
-              open={Boolean(anchorEl)}
-              onClose={() => setAnchorEl(null)}
-              onClick={(e) => e.stopPropagation()}
-              slotProps={{
-                paper: {
-                  sx: {
-                    backgroundColor: '#FFFFFF',
-                    border: '1px solid #E5E7EB',
-                    borderRadius: 2,
-                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04)',
-                    minWidth: 150,
-                    py: 0.5,
-                  },
-                },
-              }}
-            >
-              {availableStatuses
-                .filter((s) => s.id !== statusId)
-                .map((s) => (
-                  <MenuItem
-                    key={s.id}
-                    onClick={(e) => handleSelectStatus(s.id, e)}
-                    sx={{
-                      fontSize: '0.8125rem',
-                      fontWeight: 500,
-                      color: '#0F172A',
-                      py: 0.8,
-                      px: 1.5,
-                      '&:hover': {
-                        backgroundColor: '#F8FAFC',
-                        color: '#2563EB',
-                      },
-                    }}
-                  >
-                    <ArrowForwardRoundedIcon sx={{ fontSize: 13, mr: 1, opacity: 0.6 }} />
-                    {s.name}
-                  </MenuItem>
-                ))}
-            </Menu>
-          </div>
-        )}
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {availableStatuses
+                  .filter((s) => s.id !== statusId)
+                  .map((s) => (
+                    <MenuItem
+                      key={s.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setAnchorEl(null);
+                        onStatusChange?.(s.id);
+                      }}
+                      sx={{ fontSize: '0.8125rem' }}
+                    >
+                      Move to <strong style={{ marginLeft: 4 }}>{s.name}</strong>
+                    </MenuItem>
+                  ))}
+              </Menu>
+            </>
+          )}
         </div>
       </div>
 
-      <style>{`
-        .work-item-card {
-          position: relative;
-          background: #FFFFFF;
-          border: 1px solid rgba(99, 102, 241, 0.14);
-          border-radius: 12px;
-          padding: 14px 16px;
+      <style jsx>{`
+        .card-container {
+          padding: 12px 14px;
           cursor: pointer;
-          outline: none;
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          box-shadow: 0 2px 8px rgba(99, 102, 241, 0.05);
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+          user-select: none;
         }
 
-        .work-item-card:hover {
-          border-color: #818CF8;
-          box-shadow: 0 8px 20px -4px rgba(99, 102, 241, 0.15);
-        }
-
-        .work-item-card:focus-visible {
-          border-color: #6366F1;
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
-        }
-
-        .work-item-card__header {
+        .card-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
+          margin-bottom: 8px;
         }
 
-        .work-item-card__key {
-          font-family: var(--font-mono);
-          font-size: 0.75rem;
-          font-weight: 700;
-          color: #4F46E5;
-          background: #EEF2FF;
-          border: 1px solid #C7D2FE;
-          padding: 2px 8px;
-          border-radius: 6px;
-          letter-spacing: 0.01em;
-        }
-
-        .work-item-card__priority-pill {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          padding: 1px 6px;
-          border-radius: var(--radius-full);
-          font-size: 0.6875rem;
-          font-weight: 600;
-        }
-
-        .work-item-card__priority-dot {
-          width: 5px;
-          height: 5px;
-          border-radius: 50%;
-          flex-shrink: 0;
-        }
-
-        .work-item-card__title {
-          font-size: 0.875rem;
-          font-weight: 500;
-          color: #0F172A;
-          line-height: 1.4;
-          word-break: break-word;
-        }
-
-        .work-item-card__footer {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding-top: 4px;
-          margin-top: 2px;
-        }
-
-        .work-item-card__meta-left {
+        .card-header__left {
           display: flex;
           align-items: center;
           gap: 6px;
         }
 
-        .work-item-card__due {
-          display: inline-flex;
-          align-items: center;
-          font-size: 0.6875rem;
-          font-family: var(--font-mono);
-          color: #64748B;
-          background: #F8FAFC;
-          padding: 1px 6px;
-          border-radius: var(--radius-xs);
-          border: 1px solid #E2E8F0;
-        }
-
-        .work-item-card__epic-row {
-          display: flex;
-          align-items: center;
-        }
-
-        .work-item-card__epic-tag {
-          font-size: 0.6875rem;
-          font-weight: 700;
-          padding: 1.5px 7px;
-          border-radius: 6px;
-          border: 1px solid;
-          letter-spacing: 0.01em;
-        }
-
-        .work-item-card__points {
-          font-size: 0.6875rem;
-          font-weight: 700;
-          color: #4F46E5;
-          background: #EEF2FF;
-          padding: 1px 6px;
-          border-radius: 9999px;
-          border: 1px solid #C7D2FE;
-        }
-
-        .work-item-card__meta-right {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .work-item-card__avatar {
-          width: 22px;
-          height: 22px;
-          border-radius: 50%;
-          border: 1.5px solid #6366F1;
+        .card-checkbox {
+          width: 16px;
+          height: 16px;
+          border-radius: 4px;
+          border: 1.5px solid var(--color-border-strong);
+          background: transparent;
+          cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          overflow: hidden;
+          padding: 0;
+          transition: all var(--transition-fast);
+        }
+
+        .card-checkbox:hover {
+          border-color: var(--color-primary);
+        }
+
+        .card-checkbox--done {
+          background: var(--color-done);
+          border-color: var(--color-done);
+        }
+
+        .card-key-btn {
+          background: transparent;
+          border: none;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          cursor: pointer;
+          padding: 2px 4px;
+          border-radius: 4px;
+          transition: all var(--transition-fast);
+        }
+
+        .card-key-btn:hover {
+          background: var(--color-surface-hover);
+        }
+
+        .card-key {
+          font-family: var(--font-mono);
+          font-size: 0.6875rem;
+          font-weight: 600;
+          color: var(--color-text-secondary);
+        }
+
+        .copied-hint {
+          font-size: 0.625rem;
+          color: var(--color-done);
+          font-weight: 700;
+        }
+
+        .priority-dot {
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: currentColor;
+        }
+
+        .card-epic {
+          margin-bottom: 6px;
+        }
+
+        .card-epic-tag {
+          font-size: 0.6875rem;
+          font-weight: 600;
+          padding: 1.5px 6px;
+          border-radius: 4px;
+          border: 1px solid transparent;
+        }
+
+        .card-title {
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--color-text-primary);
+          line-height: 1.4;
+          margin-bottom: 12px;
+          word-break: break-word;
+        }
+
+        .card-title--done {
+          text-decoration: line-through;
+          color: var(--color-text-tertiary);
+        }
+
+        .card-footer {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding-top: 8px;
+          border-top: 1px solid var(--color-border-subtle);
+        }
+
+        .card-footer__left {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.6875rem;
+        }
+
+        .card-type-chip {
+          background: var(--color-surface-hover);
+          color: var(--color-text-secondary);
+          border: 1px solid var(--color-border);
+          padding: 1px 6px;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+
+        .card-points {
+          font-family: var(--font-mono);
+          color: var(--color-text-tertiary);
+          font-weight: 600;
+        }
+
+        .card-due {
+          color: var(--color-text-tertiary);
+          display: flex;
+          align-items: center;
+        }
+
+        .card-footer__right {
+          display: flex;
+          align-items: center;
+          gap: 4px;
         }
       `}</style>
     </motion.div>

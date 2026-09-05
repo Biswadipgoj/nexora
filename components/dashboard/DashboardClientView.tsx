@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { WorkItemDetailDrawer } from '@/components/board/WorkItemDetailDrawer';
 import { QuickCreateModal } from '@/components/board/QuickCreateModal';
 import { ShareProjectModal } from '@/components/board/ShareProjectModal';
+import { CommandPalette } from '@/components/navigation/CommandPalette';
+import { DashboardTopBar } from './DashboardTopBar';
 import type { WorkItemData } from '@/components/board/KanbanBoard';
 
 import { AnimatedBackground } from './AnimatedBackground';
@@ -56,34 +58,23 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 'n1',
     type: 'comment',
-    title: 'New comment on APP-104',
+    title: 'New comment on task',
     description: 'Sarah Chen: "Payment intent webhooks tested on testnet. Looks ready for staging deploy!"',
     timestamp: '12m ago',
     isRead: false,
     author: { name: 'Sarah Chen', avatar: '' },
-    targetKey: 'APP-104',
   },
   {
     id: 'n2',
     type: 'assign',
-    title: 'Assigned to APP-98',
-    description: 'You were assigned to: "Profile photo upload & Cloudflare R2 bucket integration"',
+    title: 'Assigned to new work item',
+    description: 'You were assigned to: "Performance benchmarking & Cloudflare R2 bucket integration"',
     timestamp: '1h ago',
     isRead: false,
     author: { name: 'Alex Morgan', avatar: '' },
-    targetKey: 'APP-98',
   },
   {
     id: 'n3',
-    type: 'invite',
-    title: 'New collaborator joined',
-    description: 'Biswadip Paul joined Acme Mobile via project short link /s/app',
-    timestamp: '3h ago',
-    isRead: false,
-    author: { name: 'Biswadip Paul', avatar: '' },
-  },
-  {
-    id: 'n4',
     type: 'milestone',
     title: 'Sprint 1 Milestone Reached',
     description: '75% of sprint story points completed! 4 days remaining in active cycle.',
@@ -91,18 +82,6 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     isRead: true,
     author: { name: 'System', avatar: '' },
   },
-];
-
-const DEFAULT_STATUSES = [
-  { id: 'status-todo', name: 'To Do' },
-  { id: 'status-in-progress', name: 'In Progress' },
-  { id: 'status-done', name: 'Done' },
-];
-
-const DEFAULT_TYPES = [
-  { id: 'type-task', name: 'Task' },
-  { id: 'type-feature', name: 'Feature' },
-  { id: 'type-bug', name: 'Bug' },
 ];
 
 export function DashboardClientView({
@@ -124,37 +103,57 @@ export function DashboardClientView({
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  const activeProject = projects[0] || {
+    id: 'proj-' + primaryWorkspace.id.slice(0, 8),
+    name: `${primaryWorkspace.name} Project`,
+    key: 'PRJ',
+    mode: 'advanced',
+  };
 
   const inboxCount = notifications.filter((n) => !n.isRead).length;
 
+  // Global Shortcut for Command Palette (Ctrl+K / Cmd+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleMarkRead = (id: string) => {
-    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
 
   const handleMarkAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
   };
 
   const handleToggleTaskStatus = (id: string, currentStatusId: string) => {
-    setWorkItems(prev => prev.map(w => {
-      if (w.id === id) {
-        return {
-          ...w,
-          status_id: currentStatusId === 'status-done' ? 'status-in-progress' : 'status-done'
-        };
-      }
-      return w;
-    }));
+    setWorkItems((prev) =>
+      prev.map((w) => {
+        if (w.id === id) {
+          return {
+            ...w,
+            status_id: currentStatusId === 'status-done' ? 'status-in-progress' : 'status-done',
+          };
+        }
+        return w;
+      })
+    );
   };
-
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   return (
     <div className="dash-root">
       <AnimatedBackground />
 
-      {/* 80% Materialism: Material Navigation Drawer */}
-      <Sidebar 
+      {/* Modern Sidebar Navigation */}
+      <Sidebar
         user={user}
         primaryWorkspace={primaryWorkspace}
         projects={projects}
@@ -165,21 +164,23 @@ export function DashboardClientView({
         inboxCount={inboxCount}
       />
 
-      {/* MAIN CONTENT */}
+      {/* Main Workspace Area */}
       <main className="dash-main">
-        {/* Top Header Area */}
-        <header className="dash-topbar">
-          <div>
-            <h1 className="topbar-welcome">
-              Good morning, <span className="text-vibrant-gradient">{user.name.split(' ')[0]}</span>
-            </h1>
-            <div className="topbar-date">{today}</div>
-          </div>
-        </header>
+        {/* Floating Topbar */}
+        <DashboardTopBar
+          workspaceName={primaryWorkspace.name}
+          projectName={activeProject.name}
+          projectKey={activeProject.key}
+          inboxCount={inboxCount}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+          onQuickCreate={() => setIsQuickCreateOpen(true)}
+          onOpenInbox={() => setActiveTab('inbox')}
+        />
 
+        {/* Tab Views */}
         <AnimatePresence mode="wait">
           {activeTab === 'overview' && (
-            <OverviewTab 
+            <OverviewTab
               user={user}
               workspaceId={primaryWorkspace.id}
               workItems={workItems}
@@ -190,7 +191,7 @@ export function DashboardClientView({
           )}
 
           {activeTab === 'inbox' && (
-            <InboxTab 
+            <InboxTab
               notifications={notifications}
               onMarkRead={handleMarkRead}
               onMarkAllRead={handleMarkAllRead}
@@ -198,8 +199,9 @@ export function DashboardClientView({
           )}
 
           {activeTab === 'tasks' && (
-            <TasksTab 
+            <TasksTab
               workItems={workItems}
+              currentUserName={user.name}
               onOpenItem={(item) => setSelectedItem(item)}
               onToggleStatus={handleToggleTaskStatus}
             />
@@ -207,50 +209,57 @@ export function DashboardClientView({
         </AnimatePresence>
       </main>
 
-      {/* DETAIL DRAWER */}
+      {/* Command Palette (Ctrl+K) */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        onNavigateTab={(tab) => setActiveTab(tab)}
+        onQuickCreate={() => setIsQuickCreateOpen(true)}
+        tasks={workItems}
+        onSelectTask={(task) => setSelectedItem(task)}
+      />
+
+      {/* Task Detail Drawer */}
       <WorkItemDetailDrawer
         item={selectedItem}
         isOpen={!!selectedItem}
         onClose={() => setSelectedItem(null)}
-        projectKey={projects[0]?.key || 'APP'}
-        statuses={DEFAULT_STATUSES}
-        types={DEFAULT_TYPES}
-        onUpdated={(updated) => {
-          setWorkItems((prev) => prev.map((w) => (w.id === updated.id ? updated : w)));
+        projectKey={activeProject.key}
+        onUpdateItem={(updated) => {
+          setWorkItems((prev) => prev.map((w) => (w.id === updated.id ? { ...w, ...updated } : w)));
         }}
-        onDeleted={(id) => {
-          setWorkItems((prev) => prev.filter((w) => w.id !== id));
+        onDeleteItem={(deletedId) => {
+          setWorkItems((prev) => prev.filter((w) => w.id !== deletedId));
+          setSelectedItem(null);
         }}
       />
 
-      {/* QUICK CREATE MODAL */}
+      {/* Quick Create Modal */}
       <QuickCreateModal
         isOpen={isQuickCreateOpen}
         onClose={() => setIsQuickCreateOpen(false)}
         workspaceId={primaryWorkspace.id}
-        projectId={projects[0]?.id || ''}
-        statuses={DEFAULT_STATUSES}
-        types={DEFAULT_TYPES}
-        onCreated={(newItem) => {
+        projectId={activeProject.id}
+        onSuccess={(newItem) => {
           setWorkItems((prev) => [newItem, ...prev]);
         }}
       />
 
-      {/* SHARE PROJECT MODAL */}
+      {/* Share Project Modal */}
       <ShareProjectModal
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
-        projectId={projects[0]?.id || ''}
-        projectName={projects[0]?.name || 'Acme Mobile'}
-        projectKey={projects[0]?.key || 'APP'}
+        projectId={activeProject.id}
+        projectName={activeProject.name}
+        projectKey={activeProject.key}
       />
 
-      {/* Super App Mobile Bottom Dock */}
+      {/* Mobile Bottom Navigation Bar */}
       <SuperAppBottomBar
         activeTab={activeTab}
         onTabChange={(tab) => {
           if (tab === 'board') {
-            window.location.href = `/projects/${projects[0]?.id || 'd0000000-0000-4000-8000-000000000001'}`;
+            setActiveTab('overview');
           } else {
             setActiveTab(tab);
           }
@@ -258,18 +267,16 @@ export function DashboardClientView({
         onQuickAction={() => setIsActionSheetOpen(true)}
         inboxCount={inboxCount}
         taskCount={workItems.filter((w) => w.status_id !== 'status-done').length}
-        projectId={projects[0]?.id}
+        projectId={activeProject.id}
       />
 
-      {/* Super App Mobile Action Sheet */}
+      {/* Mobile Action Sheet */}
       <SuperActionSheet
         isOpen={isActionSheetOpen}
         onClose={() => setIsActionSheetOpen(false)}
         onQuickCreate={() => setIsQuickCreateOpen(true)}
         onShareProject={() => setIsShareModalOpen(true)}
-        onViewBoard={() => {
-          window.location.href = `/projects/${projects[0]?.id || 'd0000000-0000-4000-8000-000000000001'}`;
-        }}
+        onViewBoard={() => setActiveTab('overview')}
       />
     </div>
   );

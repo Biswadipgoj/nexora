@@ -9,8 +9,11 @@ import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedI
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import { Logo } from '@/components/ui/Logo';
 import { createClient } from '@/lib/supabase/client';
+import { useTheme } from '@/components/theme/ThemeProvider';
 
 interface SidebarProps {
   user: { name: string; email?: string; avatar?: string };
@@ -33,6 +36,8 @@ export function Sidebar({
   onShareProject,
   inboxCount,
 }: SidebarProps) {
+  const { theme, toggleTheme } = useTheme();
+
   const getInitials = (name: string) =>
     name
       .split(' ')
@@ -46,7 +51,7 @@ export function Sidebar({
       {/* Brand Header */}
       <div className="sidebar-brand-box">
         <Logo size="sm" animated withText />
-        <div style={{ paddingLeft: 34, fontSize: '0.7rem', color: '#64748B', marginTop: -4, fontWeight: 500 }}>
+        <div style={{ paddingLeft: 34, fontSize: '0.7rem', color: 'var(--color-text-tertiary)', marginTop: -4, fontWeight: 500 }}>
           {primaryWorkspace.name}
         </div>
       </div>
@@ -101,21 +106,42 @@ export function Sidebar({
             New Issue
             <kbd className="shortcut-kbd">C</kbd>
           </button>
-          <div className="share-shortcut-card" onClick={onShareProject}>
+          <div
+            className="share-shortcut-card"
+            onClick={onShareProject}
+            style={{
+              padding: '10px 12px',
+              borderRadius: 10,
+              background: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              cursor: 'pointer',
+              transition: 'all 150ms ease',
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div className="share-icon-tonal">
-                <ShareRoundedIcon sx={{ fontSize: 14, color: '#4F46E5' }} />
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 6,
+                  background: 'var(--color-primary-tonal, rgba(99,102,241,0.12))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <ShareRoundedIcon sx={{ fontSize: 15, color: 'var(--color-primary)' }} />
               </div>
               <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#0F172A' }}>Share Project</div>
-                <div style={{ fontSize: '0.65rem', color: '#64748B' }}>Invite collaborators</div>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>Share Project</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--color-text-tertiary)' }}>Invite collaborators</div>
               </div>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* User Profile Footer & Sign Out */}
+      {/* User Profile Footer, Theme Toggle & Sign Out */}
       <div className="sidebar-footer">
         <div className="profile-chip" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
@@ -124,14 +150,14 @@ export function Sidebar({
               height: 34,
               minWidth: 34,
               borderRadius: '50%',
-              backgroundColor: '#4F46E5',
+              backgroundColor: 'var(--color-primary)',
               color: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontSize: '0.875rem',
               fontWeight: 'bold',
-              border: '2px solid #C7D2FE'
+              border: '2px solid var(--color-border-accent)',
             }}>
               {getInitials(user.name)}
             </div>
@@ -144,38 +170,72 @@ export function Sidebar({
               </div>
             </div>
           </div>
-          <button
-            onClick={async () => {
-              try {
-                const supabase = createClient();
-                await supabase.auth.signOut();
-              } catch {}
-              window.location.href = '/api/auth/signout';
-            }}
-            title="Sign out"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: '#64748B',
-              padding: 6,
-              borderRadius: 8,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 120ms ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#DC2626';
-              e.currentTarget.style.backgroundColor = '#FEE2E2';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = '#64748B';
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-          >
-            <LogoutRoundedIcon sx={{ fontSize: 18 }} />
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <button
+              onClick={toggleTheme}
+              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--color-text-tertiary)',
+                padding: 6,
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 120ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--color-primary)';
+                e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              {theme === 'dark' ? (
+                <LightModeRoundedIcon sx={{ fontSize: 17 }} />
+              ) : (
+                <DarkModeRoundedIcon sx={{ fontSize: 17 }} />
+              )}
+            </button>
+
+            <button
+              onClick={async () => {
+                try {
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                } catch {}
+                window.location.href = '/api/auth/signout';
+              }}
+              title="Sign out"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--color-text-tertiary)',
+                padding: 6,
+                borderRadius: 8,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 120ms ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = '#EF4444';
+                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--color-text-tertiary)';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <LogoutRoundedIcon sx={{ fontSize: 17 }} />
+            </button>
+          </div>
         </div>
       </div>
     </aside>

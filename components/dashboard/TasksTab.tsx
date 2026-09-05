@@ -20,11 +20,12 @@ const PRIORITY_META: Record<number, { label: string; color: string }> = {
 
 interface TasksTabProps {
   workItems: WorkItemData[];
+  currentUserName?: string;
   onOpenItem: (item: WorkItemData) => void;
   onToggleStatus: (id: string, currentStatusId: string) => void;
 }
 
-export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProps) {
+export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatus }: TasksTabProps) {
   const [filter, setFilter] = useState<'all' | 'todo' | 'done'>('all');
   
   const getInitials = (name: string) =>
@@ -35,13 +36,18 @@ export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProp
       .substring(0, 2)
       .toUpperCase();
 
-  const myTasks = workItems.filter((w) => {
+  const userMatchedTasks = workItems.filter((w) => {
+    if (!currentUserName) return true;
     if (w.assignees && w.assignees.length > 0) {
-      return w.assignees.some((a) => a.name === 'Alex Morgan' || a.name === 'Biswadip Paul');
+      return w.assignees.some((a: any) => a?.name?.toLowerCase() === currentUserName.toLowerCase());
     }
-    return w.assignee?.name === 'Alex Morgan' || w.assignee?.name === 'Biswadip Paul';
+    return false;
   });
-  const filteredTasks = myTasks.filter(w => {
+
+  // If user has specific assigned tasks, use them; otherwise show all tasks so it's not an empty screen
+  const myTasks = userMatchedTasks.length > 0 ? userMatchedTasks : workItems;
+
+  const filteredTasks = myTasks.filter((w) => {
     if (filter === 'todo') return w.status_id !== 'status-done';
     if (filter === 'done') return w.status_id === 'status-done';
     return true;
@@ -92,13 +98,14 @@ export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProp
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {filteredTasks.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748B' }}>
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--color-text-tertiary)' }}>
             No tasks match your filter. Time to celebrate! 🎉
           </div>
         ) : (
           filteredTasks.map((task) => {
             const isDone = task.status_id === 'status-done';
-            const prio = PRIORITY_META[task.priority] || PRIORITY_META[0];
+            const prioKey = task.priority !== undefined && task.priority in PRIORITY_META ? task.priority : 0;
+            const prio = PRIORITY_META[prioKey];
             return (
               <motion.div
                 layout
@@ -116,7 +123,7 @@ export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProp
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onToggleStatus(task.id, task.status_id);
+                    onToggleStatus(task.id, task.status_id || 'status-todo');
                   }}
                 >
                   {isDone ? <CheckCircleRoundedIcon /> : <RadioButtonUncheckedRoundedIcon />}
@@ -128,22 +135,22 @@ export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProp
                   </span>
                 </div>
 
-                {task.epic_name && (
+                {(task as any).epic_name && (
                   <span
                     className="material-epic-chip"
                     style={{
-                      color: task.epic_color || '#8B5CF6',
-                      borderColor: `${task.epic_color || '#8B5CF6'}40`,
-                      backgroundColor: `${task.epic_color || '#8B5CF6'}15`,
+                      color: (task as any).epic_color || '#8B5CF6',
+                      borderColor: `${(task as any).epic_color || '#8B5CF6'}40`,
+                      backgroundColor: `${(task as any).epic_color || '#8B5CF6'}15`,
                     }}
                   >
                     <BoltRoundedIcon sx={{ fontSize: 13 }} />
-                    {task.epic_name}
+                    {(task as any).epic_name}
                   </span>
                 )}
 
-                {task.story_points && (
-                  <span className="material-points-pill">{task.story_points} pts</span>
+                {task.estimate && (
+                  <span className="material-points-pill">{task.estimate} pts</span>
                 )}
 
                 <span className="material-priority-chip" style={{ color: prio.color }}>
@@ -158,15 +165,15 @@ export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProp
                   </span>
                 )}
                 
-                {((task.assignees && task.assignees.length > 0) || task.assignee) && (
+                {task.assignees && task.assignees.length > 0 && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    {(task.assignees && task.assignees.length > 0 ? task.assignees : [task.assignee!]).map((a, i) => (
-                      <Tooltip key={i} title={a.name}>
+                    {task.assignees.map((a: any, i: number) => (
+                      <Tooltip key={i} title={a.name || 'Assignee'}>
                         <div style={{
                           width: 24,
                           height: 24,
                           borderRadius: '50%',
-                          backgroundColor: '#4F46E5',
+                          backgroundColor: 'var(--color-primary)',
                           color: '#FFFFFF',
                           display: 'flex',
                           alignItems: 'center',
@@ -174,7 +181,7 @@ export function TasksTab({ workItems, onOpenItem, onToggleStatus }: TasksTabProp
                           fontSize: '0.65rem',
                           fontWeight: 'bold',
                         }}>
-                          {getInitials(a.name)}
+                          {getInitials(a.name || 'User')}
                         </div>
                       </Tooltip>
                     ))}

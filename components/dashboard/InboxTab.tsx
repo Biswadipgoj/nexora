@@ -50,8 +50,8 @@ export function InboxTab({ notifications, onMarkRead, onMarkAllRead }: InboxTabP
         </div>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#0F172A' }}>Recent Activity</h3>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Recent Activity</h3>
         <button className="open-board-tonal-btn" onClick={onMarkAllRead}>
           <MarkEmailReadRoundedIcon sx={{ fontSize: 16 }} />
           Mark all as read
