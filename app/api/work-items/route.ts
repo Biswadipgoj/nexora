@@ -12,6 +12,8 @@ import { logger } from '@/lib/logger';
  * §12: RLS authorization enforced server-side.
  */
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function GET(request: NextRequest) {
   const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
   const supabase = await createServerClient();
@@ -36,12 +38,26 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const items = await workItemQueries.listForBoard(supabase, projectId, {
-      limit,
-      statusId,
-    });
+    const [items, { data: dbStatuses }, { data: dbTypes }] = await Promise.all([
+      workItemQueries.listForBoard(supabase, projectId, {
+        limit,
+        statusId: statusId && UUID_REGEX.test(statusId) ? statusId : undefined,
+      }),
+      supabase
+        .from('statuses')
+        .select('id, name, category, position, color')
+        .eq('project_id', projectId)
+        .order('position', { ascending: true }),
+      supabase
+        .from('work_item_types')
+        .select('id, name, icon, color'),
+    ]);
 
-    return NextResponse.json({ items });
+    return NextResponse.json({
+      items,
+      statuses: dbStatuses && dbStatuses.length > 0 ? dbStatuses : undefined,
+      types: dbTypes && dbTypes.length > 0 ? dbTypes : undefined,
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Failed to fetch work items';
     logger.error('Failed to fetch work items', { error: message, user_id: user?.id });
@@ -80,11 +96,48 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    let finalStatusId = validated.status_id;
+    let finalTypeId = validated.type_id;
+
+    // Resolve non-UUID status_id (e.g. 'status-todo' or category name) to real DB status UUID
+    if (!UUID_REGEX.test(finalStatusId)) {
+      const { data: matchedStatuses } = await supabase
+        .from('statuses')
+        .select('id, name, category')
+        .eq('project_id', validated.project_id)
+        .order('position', { ascending: true });
+
+      if (matchedStatuses && matchedStatuses.length > 0) {
+        const found =
+          matchedStatuses.find(s =>
+            finalStatusId.toLowerCase().includes(s.category.toLowerCase()) ||
+            finalStatusId.toLowerCase().includes(s.name.toLowerCase())
+          ) || matchedStatuses[0];
+        finalStatusId = found.id;
+      }
+    }
+
+    // Resolve non-UUID type_id (e.g. 'type-task') to real DB work_item_types UUID
+    if (!UUID_REGEX.test(finalTypeId)) {
+      const { data: matchedTypes } = await supabase
+        .from('work_item_types')
+        .select('id, name')
+        .limit(10);
+
+      if (matchedTypes && matchedTypes.length > 0) {
+        const found =
+          matchedTypes.find(t =>
+            finalTypeId.toLowerCase().includes(t.name.toLowerCase())
+          ) || matchedTypes[0];
+        finalTypeId = found.id;
+      }
+    }
+
     const workItem = await workItemQueries.create(supabase, {
       workspace_id: validated.workspace_id,
       project_id: validated.project_id,
-      type_id: validated.type_id,
-      status_id: validated.status_id,
+      type_id: finalTypeId,
+      status_id: finalStatusId,
       title: validated.title,
       description: validated.description,
       priority: validated.priority,

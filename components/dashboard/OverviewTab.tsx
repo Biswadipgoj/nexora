@@ -8,13 +8,14 @@ import { KanbanBoard, type WorkItemData } from '@/components/board/KanbanBoard';
 
 interface OverviewTabProps {
   user: { name: string };
+  workspaceId: string;
   workItems: WorkItemData[];
   setWorkItems: React.Dispatch<React.SetStateAction<WorkItemData[]>>;
   projects: Array<{ id: string; name: string; key: string; mode: string }>;
   onOpenItem: (item: WorkItemData) => void;
 }
 
-export function OverviewTab({ user, workItems, setWorkItems, projects, onOpenItem }: OverviewTabProps) {
+export function OverviewTab({ user, workspaceId, workItems, setWorkItems, projects, onOpenItem }: OverviewTabProps) {
   const getInitials = (name: string) =>
     name
       .split(' ')
@@ -80,9 +81,9 @@ export function OverviewTab({ user, workItems, setWorkItems, projects, onOpenIte
 
       <div className="material-card" style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <KanbanBoard
-          workspaceId={projects[0]?.id || ''}
+          workspaceId={workspaceId}
           projectId={projects[0]?.id || ''}
-          projectName={projects[0]?.name || 'Acme Mobile'}
+          projectName={projects[0]?.name || 'Workspace Board'}
           projectKey={projects[0]?.key || 'APP'}
           projectMode={(projects[0]?.mode as 'simple' | 'advanced') || 'advanced'}
         />

@@ -3,8 +3,6 @@
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { Logo } from '@/components/ui/Logo';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -16,54 +14,39 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
-
-  async function handleDemoLogin() {
-    setError(null);
-    setLoading(true);
-    try {
-      const res = await fetch('/api/auth/demo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'login' }),
-      });
-      if (!res.ok) throw new Error('Could not launch demo session.');
-      const data = await res.json();
-      router.push(data.redirect || '/dashboard');
-      router.refresh();
-    } catch {
-      setError('Could not launch mock login session. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleEmailLogin(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
 
-    if (email.trim().toLowerCase() === 'demo@nexora.io' || email.trim().toLowerCase() === 'demo') {
-      await handleDemoLogin();
-      return;
-    }
-
     try {
       const supabase = createClient();
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
 
       if (authError) {
-        setError(`${authError.message}. (Tip: Click "Try via Mock Login" above to test the full workspace instantly!)`);
+        if (authError.message.toLowerCase().includes('email not confirmed')) {
+          setError('Please confirm your email address before signing in. Check your inbox for the verification link.');
+        } else if (authError.message.toLowerCase().includes('invalid login credentials')) {
+          setError('Invalid email or password. Please check your credentials and try again.');
+        } else {
+          setError(authError.message);
+        }
         return;
       }
 
-      router.push('/dashboard');
-      router.refresh();
-    } catch {
-      setError('Could not connect to authentication service. Click "Try via Mock Login" to test the app instantly.');
+      // Hard navigation ensures all session cookies are committed to browser and passed cleanly to Next.js middleware & server components
+      window.location.href = '/dashboard';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        setError('Cannot connect to authentication service. Please check your network connection.');
+      } else {
+        setError(msg || 'Could not connect to authentication service. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -98,41 +81,6 @@ export default function LoginPage() {
       <div className="login-card__header">
         <h2 className="login-card__title">Sign in</h2>
         <p className="login-card__subtitle">Enter your email and password to access your workspace.</p>
-      </div>
-
-      {/* 1-Click Instant Mock Login Banner */}
-      <div className="login-mock-banner">
-        <div className="login-mock-info">
-          <span className="login-mock-tag">⚡ Instant Demo</span>
-          <span className="login-mock-text">No signup or credentials needed</span>
-        </div>
-        <Button
-          fullWidth
-          variant="contained"
-          onClick={handleDemoLogin}
-          disabled={loading}
-          sx={{
-            py: 1.15,
-            background: 'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
-            color: '#FFFFFF',
-            fontWeight: 700,
-            fontSize: '0.875rem',
-            letterSpacing: '0.01em',
-            borderRadius: 2,
-            boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
-            transition: 'all 150ms ease',
-            '&:hover': {
-              background: 'linear-gradient(135deg, #4338CA 0%, #6D28D9 100%)',
-              boxShadow: '0 6px 20px rgba(79, 70, 229, 0.45)',
-            },
-          }}
-        >
-          {loading ? <CircularProgress size={18} color="inherit" /> : '⚡ Try via Mock Login (Instant Demo)'}
-        </Button>
-      </div>
-
-      <div className="login-divider">
-        <span>or sign in with credentials</span>
       </div>
 
       {error && (
@@ -206,7 +154,7 @@ export default function LoginPage() {
       </div>
 
       <div className="login-divider">
-        <span>or</span>
+        <span>or sign in with credentials</span>
       </div>
 
       {/* Email Password Form */}
@@ -302,26 +250,6 @@ export default function LoginPage() {
           }
         }
 
-        .login-card__mobile-logo {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          overflow: hidden;
-          border: 1px solid #E5E7EB;
-          display: flex;
-        }
-
-        .login-card__logo-img {
-          object-fit: cover;
-        }
-
-        .login-card__mobile-title {
-          font-family: var(--font-display);
-          font-size: 1.125rem;
-          font-weight: 700;
-          color: #0F172A;
-        }
-
         .login-card__header {
           margin-bottom: 24px;
         }
@@ -339,39 +267,6 @@ export default function LoginPage() {
           color: #64748B;
           margin-top: 4px;
           line-height: 1.45;
-        }
-
-        .login-mock-banner {
-          margin-bottom: 20px;
-          padding: 16px;
-          background: #EEF2FF;
-          border: 1.5px solid #C7D2FE;
-          border-radius: var(--radius-md);
-        }
-
-        .login-mock-info {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          margin-bottom: 12px;
-        }
-
-        .login-mock-tag {
-          font-size: 0.6875rem;
-          font-weight: 700;
-          color: #4F46E5;
-          background: #FFFFFF;
-          border: 1px solid #C7D2FE;
-          border-radius: 9999px;
-          padding: 2px 8px;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-        }
-
-        .login-mock-text {
-          font-size: 0.75rem;
-          font-weight: 500;
-          color: #4338CA;
         }
 
         .login-oauth-stack {

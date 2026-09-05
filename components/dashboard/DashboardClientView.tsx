@@ -181,6 +181,7 @@ export function DashboardClientView({
           {activeTab === 'overview' && (
             <OverviewTab 
               user={user}
+              workspaceId={primaryWorkspace.id}
               workItems={workItems}
               setWorkItems={setWorkItems}
               projects={projects}

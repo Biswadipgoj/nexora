@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@/lib/supabase/server';
 import { DEMO_USER, DEMO_WORKSPACE, DEMO_PROJECT, getDemoWorkItems } from '@/lib/demo/demo-store';
+import { ensureDefaultProject } from '@/lib/db/ensure-project';
 import { DashboardClientView } from '@/components/dashboard/DashboardClientView';
 import type { Metadata } from 'next';
 
@@ -58,10 +59,52 @@ export default async function DashboardPage() {
       .limit(8);
 
     projects = projs ?? [];
+
+    // If workspace has no projects, automatically ensure a default agile project exists
+    if (projects.length === 0) {
+      const defaultProj = await ensureDefaultProject(
+        supabase,
+        primaryWorkspace.id,
+        user.id,
+        primaryWorkspace.name
+      );
+      if (defaultProj) {
+        projects = [defaultProj];
+      }
+    }
   }
 
-  const initialWorkItems = isDemo ? getDemoWorkItems() : [];
-  const userName = user.user_metadata?.full_name ?? user.email?.split('@')[0] ?? 'Alex Morgan';
+  // Fetch initial work items for the active project
+  let initialWorkItems: any[] = [];
+  if (isDemo) {
+    initialWorkItems = getDemoWorkItems();
+  } else if (projects.length > 0) {
+    try {
+      const { data: dbItems } = await supabase
+        .from('work_items')
+        .select(`
+          id, workspace_id, project_id, team_id, parent_id,
+          type_id, status_id, sequence, title, description,
+          priority, creator_id, start_date, due_date, estimate,
+          position, sprint_id, completed_at, created_at, updated_at
+        `)
+        .eq('project_id', projects[0].id)
+        .is('deleted_at', null)
+        .order('position', { ascending: true })
+        .limit(50);
+
+      initialWorkItems = dbItems ?? [];
+    } catch (fetchErr) {
+      console.warn('[DashboardPage] Initial work items notice:', fetchErr);
+    }
+  }
+
+  const metadata = user.user_metadata as Record<string, unknown> | undefined;
+  const userName =
+    (typeof metadata?.full_name === 'string' && metadata.full_name) ||
+    (typeof metadata?.name === 'string' && metadata.name) ||
+    user.email?.split('@')[0] ||
+    'User';
 
   return (
     <DashboardClientView
@@ -69,7 +112,7 @@ export default async function DashboardPage() {
         id: user.id,
         email: user.email,
         name: userName,
-        avatar: user.user_metadata?.avatar_url || '/avatars/avatar_alex.jpg',
+        avatar: user.user_metadata?.avatar_url || '',
       }}
       primaryWorkspace={{
         id: primaryWorkspace.id,

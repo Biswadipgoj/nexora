@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Logo } from '@/components/ui/Logo';
+import { ensureDefaultProject } from '@/lib/db/ensure-project';
 
 /**
  * Onboarding — Create first workspace.
@@ -105,11 +106,14 @@ export default function OnboardingPage() {
         }
       }
 
-      // Success — redirect to dashboard
-      router.push('/dashboard');
-      router.refresh();
-    } catch {
-      setError('Something went wrong. Please try again.');
+      // Automatically initialize default agile project for this team workspace
+      await ensureDefaultProject(supabase, workspace.id, user.id, workspaceName.trim());
+
+      // Success — hard redirect to dashboard to ensure cookies and newly created project load cleanly
+      window.location.href = '/dashboard';
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      setError(msg || 'Something went wrong. Please try again.');
       setStep('workspace');
     } finally {
       setLoading(false);

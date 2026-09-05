@@ -48,8 +48,8 @@ export const workItemSchemas = {
   create: z.object({
     workspace_id: z.string().uuid(),
     project_id: z.string().uuid(),
-    type_id: z.string().uuid(),
-    status_id: z.string().uuid(),
+    type_id: z.string().min(1),
+    status_id: z.string().min(1),
     title: z.string().min(1).max(500),
     description: z.record(z.string(), z.unknown()).optional(),
     priority: z.number().int().min(0).max(4).default(0),

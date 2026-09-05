@@ -8,7 +8,9 @@ import InboxRoundedIcon from '@mui/icons-material/InboxRounded';
 import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedInRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import { Logo } from '@/components/ui/Logo';
+import { createClient } from '@/lib/supabase/client';
 
 interface SidebarProps {
   user: { name: string; email?: string; avatar?: string };
@@ -113,30 +115,67 @@ export function Sidebar({
         </div>
       </nav>
 
-      {/* User Profile Footer */}
+      {/* User Profile Footer & Sign Out */}
       <div className="sidebar-footer">
-        <div className="profile-chip">
-          <div style={{
-            width: 34,
-            height: 34,
-            borderRadius: '50%',
-            backgroundColor: '#4F46E5',
-            color: '#FFFFFF',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '0.875rem',
-            fontWeight: 'bold',
-            border: '2px solid #C7D2FE'
-          }}>
-            {getInitials(user.name)}
-          </div>
-          <div className="profile-info">
-            <div className="profile-name">
-              {user.name}
+        <div className="profile-chip" style={{ justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
+            <div style={{
+              width: 34,
+              height: 34,
+              minWidth: 34,
+              borderRadius: '50%',
+              backgroundColor: '#4F46E5',
+              color: '#FFFFFF',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '0.875rem',
+              fontWeight: 'bold',
+              border: '2px solid #C7D2FE'
+            }}>
+              {getInitials(user.name)}
             </div>
-            <div className="profile-email">{user.email || 'demo@nexora.io'}</div>
+            <div className="profile-info" style={{ overflow: 'hidden' }}>
+              <div className="profile-name" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.name}
+              </div>
+              <div className="profile-email" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {user.email || 'user@nexora.io'}
+              </div>
+            </div>
           </div>
+          <button
+            onClick={async () => {
+              try {
+                const supabase = createClient();
+                await supabase.auth.signOut();
+              } catch {}
+              window.location.href = '/api/auth/signout';
+            }}
+            title="Sign out"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: '#64748B',
+              padding: 6,
+              borderRadius: 8,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              transition: 'all 120ms ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#DC2626';
+              e.currentTarget.style.backgroundColor = '#FEE2E2';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = '#64748B';
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
+            <LogoutRoundedIcon sx={{ fontSize: 18 }} />
+          </button>
         </div>
       </div>
     </aside>

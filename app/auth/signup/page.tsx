@@ -26,25 +26,48 @@ export default function SignupPage() {
 
     try {
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signUp({
-        email,
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
-            full_name: fullName,
+            full_name: fullName.trim(),
+            name: fullName.trim(),
           },
         },
       });
 
       if (authError) {
-        setError(authError.message);
+        if (authError.message.toLowerCase().includes('already registered') || authError.message.toLowerCase().includes('user already exists')) {
+          setError('An account with this email already exists. Please sign in instead.');
+        } else {
+          setError(authError.message);
+        }
         return;
       }
 
+      // Check if user already exists (Supabase returns empty identities array when email enumeration protection is on)
+      if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+        setError('An account with this email already exists. Please sign in instead.');
+        return;
+      }
+
+      // If email confirmation is disabled on Supabase, a session is returned immediately
+      if (data?.session) {
+        window.location.href = '/onboarding';
+        return;
+      }
+
+      // If email confirmation is required, show verification prompt
       setSuccess(true);
-    } catch {
-      setError('Could not complete signup. Please try again.');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+        setError('Cannot connect to authentication service. Please check your network connection.');
+      } else {
+        setError(msg || 'Could not complete signup. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

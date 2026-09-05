@@ -129,23 +129,50 @@ export function KanbanBoard({
       setError(null);
     }
 
-    try {
-      const itemsRes = await fetch(`/api/work-items?projectId=${projectId}`);
-      if (!itemsRes.ok) throw new Error('Could not load work items. Please try again.');
-      const itemsData = await itemsRes.json();
-      setItems(itemsData.items || []);
-
+    if (!projectId) {
+      setItems([]);
       setStatuses([
         { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
         { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
         { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
       ]);
-
       setTypes([
         { id: 'type-task', name: 'Task' },
         { id: 'type-bug', name: 'Bug' },
         { id: 'type-feature', name: 'Feature' },
       ]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const itemsRes = await fetch(`/api/work-items?projectId=${projectId}`);
+      if (!itemsRes.ok) {
+        const errJson = await itemsRes.json().catch(() => ({}));
+        throw new Error(errJson.error || 'Could not load work items. Please try again.');
+      }
+      const itemsData = await itemsRes.json();
+      setItems(itemsData.items || []);
+
+      if (itemsData.statuses && itemsData.statuses.length > 0) {
+        setStatuses(itemsData.statuses);
+      } else {
+        setStatuses([
+          { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
+          { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
+          { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
+        ]);
+      }
+
+      if (itemsData.types && itemsData.types.length > 0) {
+        setTypes(itemsData.types);
+      } else {
+        setTypes([
+          { id: 'type-task', name: 'Task' },
+          { id: 'type-bug', name: 'Bug' },
+          { id: 'type-feature', name: 'Feature' },
+        ]);
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Network connection error');
     } finally {
