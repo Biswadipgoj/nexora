@@ -18,8 +18,8 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'any',
     // The application canvas (--nx-bg), so the splash and system chrome match
     // the obsidian shell rather than flashing white on launch.
-    background_color: '#080B12',
-    theme_color: '#080B12',
+    background_color: '#F8FAFC',
+    theme_color: '#F8FAFC',
     categories: ['productivity', 'business'],
     icons: [
       { src: '/android-chrome-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

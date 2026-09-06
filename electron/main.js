@@ -54,15 +54,12 @@ function checkUrlReady(url, maxRetries = 30, interval = 500) {
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 980,
-    minHeight: 640,
+    width: 2000,
+    height: 1080,
+    minWidth: 1400,
+    minHeight: 720,
     title: 'Nexora',
-    // The application canvas (--nx-bg). Matching it here means the window
-    // paints obsidian before the first frame instead of flashing a brand
-    // colour — section 10, "Layout shift".
-    backgroundColor: '#080B12',
+    backgroundColor: '#F8FAFC',
     icon: path.join(__dirname, 'icon.ico'),
     show: false,
     autoHideMenuBar: true,

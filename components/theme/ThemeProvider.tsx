@@ -27,7 +27,7 @@ interface ThemeContextType {
  * under [data-theme="light"], then replace the constant below with persisted
  * state and flip `themeLocked` to false.
  */
-const THEME: Theme = 'dark';
+const THEME: Theme = 'light';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 

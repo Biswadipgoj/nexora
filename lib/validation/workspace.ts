@@ -146,3 +146,18 @@ export const teamSchemas = {
     description: z.string().max(500).optional(),
   }),
 };
+
+export const invitationSchemas = {
+  create: z.object({
+    workspace_id: z.string().uuid(),
+    project_id: z.string().uuid().optional(),
+    email: z.string().email('Please enter a valid email address'),
+    role: z.enum(['admin', 'manager', 'member', 'viewer', 'guest', 'owner']).default('member'),
+  }),
+  accept: z.object({
+    token: z.string().min(1, 'Invitation token is required'),
+    full_name: z.string().min(1).optional(),
+    password: z.string().min(8, 'Password must be at least 8 characters').optional(),
+  }),
+};
+

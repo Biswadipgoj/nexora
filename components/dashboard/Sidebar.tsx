@@ -25,6 +25,7 @@ interface SidebarProps {
   setActiveTab: (tab: 'overview' | 'inbox' | 'tasks' | 'projects') => void;
   onQuickCreate: () => void;
   onShareProject: () => void;
+  onCreateProject?: () => void;
   inboxCount: number;
 }
 
@@ -36,6 +37,7 @@ export function Sidebar({
   setActiveTab,
   onQuickCreate,
   onShareProject,
+  onCreateProject,
   inboxCount,
 }: SidebarProps) {
   const { theme, themeLocked, toggleTheme } = useTheme();
@@ -114,7 +116,28 @@ export function Sidebar({
           {activeTab === 'projects' && <div className="nav-active-bar" />}
         </button>
 
-        <div className="nav-group-title">Recent</div>
+        <div className="nav-group-title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <span>RECENT</span>
+          {onCreateProject && (
+            <button
+              onClick={onCreateProject}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--nx-blue)',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '2px 4px',
+                borderRadius: 4,
+              }}
+              title="Create new project"
+              aria-label="Create new project"
+            >
+              <AddRoundedIcon sx={{ fontSize: 16 }} />
+            </button>
+          )}
+        </div>
         <div className="projects-list-nav">
           {projects.map((p) => (
             <a href={`/projects/${p.id}`} key={p.id} className="project-link-item">

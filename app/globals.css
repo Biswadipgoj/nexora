@@ -102,12 +102,12 @@ body {
   --color-text-inverse: var(--nx-bg);
 
   --color-primary: var(--nx-blue);
-  --color-primary-hover: #8FBEFF;
-  --color-primary-contrast: #06111F;
+  --color-primary-hover: #1D4ED8;
+  --color-primary-contrast: #FFFFFF;
   --color-primary-gradient: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
-  --color-primary-glow: 0 0 24px rgba(110, 168, 255, 0.28);
+  --color-primary-glow: 0 0 24px rgba(37, 99, 235, 0.25);
 
-  --shadow-glow: 0 0 28px -4px rgba(110, 168, 255, 0.30);
+  --shadow-glow: 0 0 28px -4px rgba(37, 99, 235, 0.25);
 
   /* Status. Paired with a text label everywhere it appears (section 9). */
   --color-todo: var(--nx-blue);

@@ -680,8 +680,8 @@ export function KanbanBoard({
         /* Columns Grid */
         .board-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-          gap: 18px;
+          grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+          gap: 20px;
           flex: 1;
           align-items: flex-start;
           overflow-x: auto;

@@ -82,7 +82,7 @@
   /* Section 6.4: the Android WebView draws behind the status bar. */
   top: calc(16px + var(--nx-safe-top));
   z-index: 50;
-  max-width: 1140px;
+  max-width: 1740px;
   margin: 0 auto;
   padding: 0 16px;
 }
@@ -286,7 +286,7 @@
 .landing-hero-stage {
   position: relative;
   z-index: 10;
-  max-width: 1140px;
+  max-width: 1740px;
   margin: 0 auto;
   padding: 48px 16px 80px;
   text-align: center;
@@ -299,7 +299,7 @@
   letter-spacing: -0.03em;
   line-height: 1.15;
   color: var(--text-main);
-  max-width: 900px;
+  max-width: 1300px;
   margin: 0 auto 20px;
   text-shadow: 0 2px 28px rgba(110, 168, 255, 0.18);
 }
@@ -307,7 +307,7 @@
 .hero-subtitle {
   font-size: clamp(1rem, 2vw, 1.2rem);
   color: var(--text-muted);
-  max-width: 680px;
+  max-width: 980px;
   margin: 0 auto 32px;
   line-height: 1.6;
   font-weight: 500;
@@ -390,7 +390,7 @@
 /* --- Live Sandbox Mini-Kanban Hero Box --- */
 .sandbox-card-shell {
   position: relative;
-  max-width: 1040px;
+  max-width: 1640px;
   margin: 0 auto;
   border-radius: var(--nx-radius-shell);
   background: var(--surface-primary);
@@ -601,7 +601,7 @@
 
 /* --- Feature Grid Section --- */
 .feature-section {
-  max-width: 1140px;
+  max-width: 1740px;
   margin: 80px auto 0;
   padding: 0 16px;
 }
@@ -716,7 +716,7 @@
 /* --- Bottom CTA Box --- */
 .landing-cta-banner {
   position: relative;
-  max-width: 920px;
+  max-width: 1520px;
   margin: 90px auto 0;
   border-radius: var(--nx-radius-shell);
   border: 1px solid var(--nx-border);
@@ -747,7 +747,7 @@
 .cta-banner-desc {
   font-size: 0.9375rem;
   color: var(--text-muted);
-  max-width: 580px;
+  max-width: 880px;
   margin: 0 auto 24px;
   line-height: 1.55;
   font-weight: 500;
@@ -912,7 +912,7 @@
   /* Section 6.4: the Android WebView draws behind the status bar. */
   top: calc(16px + var(--nx-safe-top));
   z-index: 40;
-  max-width: 1400px;
+  max-width: 2000px;
   width: 100%;
   margin: 0 auto;
   padding: 0 20px;
@@ -1081,7 +1081,7 @@
 .project-main-stage {
   position: relative;
   z-index: 10;
-  max-width: 1400px;
+  max-width: 2000px;
   width: 100%;
   margin: 0 auto;
   padding: 24px 20px 48px;

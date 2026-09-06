@@ -1,18 +1,9 @@
 /* ============================================================================
-   NEXORA — Aurora compatibility layer
+   NEXORA — Aurora compatibility layer (Luminous Light System)
 
-   The canonical system lives in styles/nexora-tokens.css. This file no longer
-   defines a palette of its own: it maps the legacy "Executive Luminous
-   Platinum" token names onto the obsidian dark tokens so existing component
-   styles resolve correctly while they are migrated.
-
-   Section 4.1: "Existing tokens in styles/prismatic-aurora.css,
-   styles/prismatic-components.css, and components/dashboard/dashboard.css
-   should be mapped to these semantic names rather than used directly inside
-   components."
-
-   Do not add new colour values here. Add them to nexora-tokens.css and
-   consume the --nx-* name directly.
+   The canonical system lives in styles/nexora-tokens.css. This file maps the
+   aurora token names onto the light luxury tokens so existing component
+   styles resolve cleanly and with extreme visual punch.
    ========================================================================= */
 
 :root {
@@ -20,23 +11,21 @@
   --canvas-bg: var(--nx-bg);
   --canvas-surface: var(--nx-surface);
 
-  /* The aurora is an accent, not a backdrop for work content (section 2).
-     Kept at low opacity so it reads as depth rather than decoration. */
+  /* The aurora is a vibrant, luminous accent mesh over a pristine radiant canvas */
   --canvas-gradient:
-    radial-gradient(circle at 12% 8%, rgba(110, 168, 255, 0.10) 0%, transparent 52%),
-    radial-gradient(circle at 88% 12%, rgba(155, 140, 255, 0.09) 0%, transparent 48%),
-    radial-gradient(circle at 50% 92%, rgba(70, 215, 232, 0.06) 0%, transparent 55%);
+    radial-gradient(circle at 12% 8%, rgba(99, 102, 241, 0.08) 0%, transparent 52%),
+    radial-gradient(circle at 88% 12%, rgba(236, 72, 153, 0.07) 0%, transparent 48%),
+    radial-gradient(circle at 50% 92%, rgba(6, 182, 212, 0.07) 0%, transparent 55%),
+    #F8FAFC;
 
   /* ---- Surfaces -------------------------------------------------------- */
   --surface-primary: var(--nx-surface);
   --surface-elevated: var(--nx-surface-2);
   --surface-hover: var(--nx-surface-2);
   --surface-modal: var(--nx-surface-3);
-  --surface-glass: rgba(18, 26, 39, 0.72);
+  --surface-glass: rgba(255, 255, 255, 0.88);
 
   /* ---- Borders and rims ------------------------------------------------ */
-  /* Section 4.2: avoid white glass borders; they create a light-theme
-     appearance and reduce the premium dark feel. */
   --border-rim: 1px solid var(--nx-border);
   --border-rim-highlight: var(--nx-rim);
   --border-subtle: 1px solid var(--nx-border);
@@ -60,15 +49,14 @@
   --shadow-lifted: var(--nx-shadow-lg), var(--nx-shadow-xl), var(--nx-rim-strong);
 
   /* ---- Glow halos ------------------------------------------------------ */
-  --glow-iris: 0 0 20px rgba(155, 140, 255, 0.22);
-  --glow-aqua: 0 0 20px rgba(70, 215, 232, 0.22);
-  --glow-amber: 0 0 20px rgba(241, 184, 106, 0.22);
-  --glow-rose: 0 0 20px rgba(255, 113, 133, 0.22);
-  --glow-jade: 0 0 20px rgba(87, 211, 154, 0.22);
+  --glow-iris: 0 0 20px rgba(124, 58, 237, 0.18);
+  --glow-aqua: 0 0 20px rgba(8, 145, 178, 0.18);
+  --glow-amber: 0 0 20px rgba(217, 119, 6, 0.18);
+  --glow-rose: 0 0 20px rgba(225, 29, 72, 0.18);
+  --glow-jade: 0 0 20px rgba(5, 150, 105, 0.18);
 }
 
-/* Application canvas. Flat and dark; the aurora sits above it as a fixed,
-   non-scrolling accent layer rather than a tiled background image. */
+/* Application canvas */
 body {
   background-color: var(--nx-bg);
   background-image: var(--canvas-gradient);
@@ -78,7 +66,7 @@ body {
   font-family: var(--nx-font-sans);
 }
 
-/* ---- Legacy utility classes, restated on the dark system ---------------- */
+/* ---- Legacy utility classes, restated on the light luxury system ------ */
 
 .prismatic-panel {
   background: var(--nx-surface-gradient);
@@ -103,8 +91,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* Product identity accent. Used for the wordmark and hero statements only —
-   never for body copy or interface labels. */
+/* Product identity accent. Used for the wordmark and hero statements only */
 .text-prismatic {
   background: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
   -webkit-background-clip: text;

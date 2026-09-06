@@ -355,7 +355,7 @@
   min-width: 0;
   position: relative;
   z-index: 10;
-  max-width: 1600px;
+  max-width: 2200px;
   margin: 0 auto;
   width: 100%;
   animation: nexoraPageFadeUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;

@@ -3,59 +3,42 @@ import fs from 'fs';
 import path from 'path';
 
 /**
- * Guards the obsidian dark system defined by the Master Product Design and
- * Production Readiness Document.
- *
- * Section 2 replaced the "Executive Luminous Platinum" light palette with
- * obsidian dark as the default authenticated experience. Section 10 makes the
- * rule enforceable: "Use semantic tokens and prohibit hard-coded pale surfaces
- * in authenticated UI."
+ * Guards the luminous light luxury system and scaled container dimensions (+600px).
  */
 
 const read = (relative: string) =>
   fs.readFileSync(path.resolve(process.cwd(), relative), 'utf-8');
 
-/** Stylesheets and components that make up the authenticated experience. */
-const AUTHENTICATED_SOURCES = [
-  'app/globals.css',
-  'styles/nexora-tokens.css',
-  'styles/prismatic-aurora.css',
-  'styles/prismatic-components.css',
-  'styles/nexora-auth.css',
-  'components/dashboard/dashboard.css',
-  'components/navigation/super-app-bar.css',
-];
-
-describe('Nexora canonical design tokens', () => {
-  it('defines the section 4.1 palette', () => {
+describe('Nexora canonical design tokens (Luminous Light Luxury)', () => {
+  it('defines the light luxury palette', () => {
     const css = read('styles/nexora-tokens.css');
 
     // Canvas and surfaces
-    expect(css).toContain('--nx-bg: #080B12');
-    expect(css).toContain('--nx-bg-raised: #0E131D');
-    expect(css).toContain('--nx-surface: #121A27');
-    expect(css).toContain('--nx-surface-2: #172235');
-    expect(css).toContain('--nx-surface-3: #1D2B40');
+    expect(css).toContain('--nx-bg: #F8FAFC');
+    expect(css).toContain('--nx-bg-raised: #FFFFFF');
+    expect(css).toContain('--nx-surface: #FFFFFF');
+    expect(css).toContain('--nx-surface-2: #F1F5F9');
+    expect(css).toContain('--nx-surface-3: #E2E8F0');
 
     // Borders
-    expect(css).toContain('--nx-border: rgba(174, 205, 255, 0.14)');
-    expect(css).toContain('--nx-border-strong: rgba(174, 205, 255, 0.28)');
+    expect(css).toContain('--nx-border: rgba(15, 23, 42, 0.08)');
+    expect(css).toContain('--nx-border-strong: rgba(99, 102, 241, 0.35)');
 
     // Text
-    expect(css).toContain('--nx-text: #F4F7FB');
-    expect(css).toContain('--nx-text-2: #B9C5D6');
-    expect(css).toContain('--nx-text-3: #7E8DA3');
+    expect(css).toContain('--nx-text: #0F172A');
+    expect(css).toContain('--nx-text-2: #334155');
+    expect(css).toContain('--nx-text-3: #64748B');
 
     // Accents
-    expect(css).toContain('--nx-blue: #6EA8FF');
-    expect(css).toContain('--nx-cyan: #46D7E8');
-    expect(css).toContain('--nx-violet: #9B8CFF');
-    expect(css).toContain('--nx-green: #57D39A');
-    expect(css).toContain('--nx-amber: #F1B86A');
-    expect(css).toContain('--nx-red: #FF7185');
+    expect(css).toContain('--nx-blue: #2563EB');
+    expect(css).toContain('--nx-cyan: #0891B2');
+    expect(css).toContain('--nx-violet: #7C3AED');
+    expect(css).toContain('--nx-green: #059669');
+    expect(css).toContain('--nx-amber: #D97706');
+    expect(css).toContain('--nx-red: #E11D48');
   });
 
-  it('defines the section 4.4 radius scale and section 4.5 motion scale', () => {
+  it('defines the radius scale and motion scale', () => {
     const css = read('styles/nexora-tokens.css');
 
     expect(css).toContain('--nx-radius-control: 8px');
@@ -74,14 +57,14 @@ describe('Nexora canonical design tokens', () => {
     expect(Number(panel![1])).toBeLessThanOrEqual(280);
   });
 
-  it('honours prefers-reduced-motion (section 9)', () => {
+  it('honours prefers-reduced-motion', () => {
     const css = read('styles/nexora-tokens.css');
     expect(css).toContain('@media (prefers-reduced-motion: reduce)');
     // Aurora drift, tilt and parallax must be disabled, not merely shortened.
     expect(css).toMatch(/\.aurora-orb[\s\S]*animation: none/);
   });
 
-  it('exposes a visible focus ring for keyboard users (section 9)', () => {
+  it('exposes a visible focus ring for keyboard users', () => {
     const css = read('styles/nexora-tokens.css');
     expect(css).toContain('--nx-focus-ring');
     expect(css).toContain(':focus-visible');
@@ -107,47 +90,45 @@ describe('Legacy token compatibility layer', () => {
       expect(css).toContain(mapping);
     }
   });
-
-  it('no longer declares the light "Executive Luminous Platinum" palette', () => {
-    const css = read('styles/prismatic-aurora.css');
-    expect(css).not.toContain('#dbe4f2');
-    expect(css).not.toContain('--text-main: #0f172a');
-  });
 });
 
-describe('Theme mismatch guard (section 10)', () => {
-  it('keeps hard-coded pale surfaces out of the authenticated stylesheets', () => {
-    const offenders: string[] = [];
-
-    for (const file of AUTHENTICATED_SOURCES) {
-      const css = read(file);
-      css.split('\n').forEach((line, index) => {
-        // A white or near-white fill or border. Low-alpha whites are allowed:
-        // they are the inset bevel rims the surface recipe in section 4.2 uses.
-        const paleWhite = /(background|border|border-color|color)\s*:[^;]*(#f{3,6}\b|#F{3,6}\b|rgba\(255,\s*255,\s*255,\s*0?\.[2-9])/;
-        // Light-theme slate ramp.
-        const paleSlate = /#(0f172a|1e293b|334155|64748b|94a3b8|cbd5e1|e2e8f0|f1f5f9|f8fafc|dbe4f2)\b/i;
-        if (paleWhite.test(line) || paleSlate.test(line)) {
-          offenders.push(`${file}:${index + 1}  ${line.trim()}`);
-        }
-      });
-    }
-
-    expect(offenders).toEqual([]);
-  });
-
-  it('renders the application shell on the dark canvas', () => {
+describe('Application shell & light theme integration', () => {
+  it('renders the application shell on the light canvas', () => {
     const globals = read('app/globals.css');
     expect(globals).toContain('--color-text-primary: var(--nx-text)');
     expect(globals).toContain('--color-bg: var(--nx-bg)');
 
     const layout = read('app/layout.tsx');
-    expect(layout).toContain('data-theme="dark"');
-    expect(layout).toContain("themeColor: '#080B12'");
+    expect(layout).toContain('data-theme="light"');
+    expect(layout).toContain("themeColor: '#F8FAFC'");
+  });
+
+  it('configures the theme provider with light mode default', () => {
+    const provider = read('components/theme/ThemeProvider.tsx');
+    expect(provider).toContain("const THEME: Theme = 'light'");
   });
 });
 
-describe('Identity system (section 8)', () => {
+describe('Layout scaled up by +600px', () => {
+  it('scales the Electron desktop window width to 2000px', () => {
+    const electron = read('electron/main.js');
+    expect(electron).toContain('width: 2000');
+    expect(electron).toContain("backgroundColor: '#F8FAFC'");
+  });
+
+  it('scales the dashboard main stage to 2200px', () => {
+    const dash = read('components/dashboard/dashboard.css');
+    expect(dash).toContain('max-width: 2200px');
+  });
+
+  it('scales the landing hero and component containers by 600px', () => {
+    const comp = read('styles/prismatic-components.css');
+    expect(comp).toContain('max-width: 1740px'); // landing hero & features (+600px from 1140px)
+    expect(comp).toContain('max-width: 2000px'); // project board stage (+600px from 1400px)
+  });
+});
+
+describe('Identity system', () => {
   it('ships the full icon set generated from the master mark', () => {
     for (const asset of [
       'public/logo.svg',
@@ -167,18 +148,17 @@ describe('Identity system (section 8)', () => {
 
   it('keeps the wordmark out of the favicon and states the mark geometry', () => {
     const svg = read('public/logo.svg');
-    // "Do not place the full wordmark inside the favicon."
     expect(svg.toLowerCase()).not.toContain('>nexora<');
-    // Two vertical strokes and one diagonal bridge.
     expect(svg).toContain('M26 28h14v44H26z');
     expect(svg).toContain('M60 28h14v44H60z');
     expect(svg).toContain('M26 28h14l34 44H60z');
   });
 
-  it('points the manifest at the generated launcher icons', () => {
+  it('points the manifest at the generated launcher icons and light theme', () => {
     const manifest = read('app/manifest.ts');
     expect(manifest).toContain('/android-chrome-192.png');
     expect(manifest).toContain('/android-chrome-512.png');
-    expect(manifest).toContain("theme_color: '#080B12'");
+    expect(manifest).toContain("theme_color: '#F8FAFC'");
+    expect(manifest).toContain("background_color: '#F8FAFC'");
   });
 });

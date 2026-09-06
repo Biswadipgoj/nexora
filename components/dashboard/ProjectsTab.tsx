@@ -12,6 +12,7 @@ import { countFocus, isDone } from '@/lib/work/focus';
 interface ProjectsTabProps {
   projects: Array<{ id: string; name: string; key: string; mode: string }>;
   workItems: WorkItemData[];
+  onCreateProject?: () => void;
 }
 
 /**
@@ -24,7 +25,7 @@ interface ProjectsTabProps {
  * was no route to the project list at all below 900px. This is that
  * destination.
  */
-export function ProjectsTab({ projects, workItems }: ProjectsTabProps) {
+export function ProjectsTab({ projects, workItems, onCreateProject }: ProjectsTabProps) {
   const rows = useMemo(
     () =>
       projects.map((project) => {
@@ -51,7 +52,7 @@ export function ProjectsTab({ projects, workItems }: ProjectsTabProps) {
       transition={{ duration: 0.18 }}
       className="tab-content"
     >
-      <div className="tab-header-card">
+      <div className="tab-header-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div className="tab-header-title-wrap">
           <div className="tab-header-title">
             <FolderOpenRoundedIcon sx={{ fontSize: 24, color: 'var(--nx-blue)' }} />
@@ -62,6 +63,29 @@ export function ProjectsTab({ projects, workItems }: ProjectsTabProps) {
           </div>
           <p className="tab-header-desc">Every board in this workspace, with what is left to do on each.</p>
         </div>
+
+        {onCreateProject && (
+          <button
+            onClick={onCreateProject}
+            className="btn-primary-gradient"
+            style={{
+              padding: '8px 16px',
+              borderRadius: 10,
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              border: 'none',
+              color: '#FFFFFF',
+              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
+            }}
+          >
+            <AddRoundedIcon sx={{ fontSize: 18 }} />
+            <span>New Project</span>
+          </button>
+        )}
       </div>
 
       {rows.length === 0 ? (
@@ -72,10 +96,17 @@ export function ProjectsTab({ projects, workItems }: ProjectsTabProps) {
             A project groups related work and gives every task a short key you can say out loud.
           </p>
           <div className="empty-state-box__actions">
-            <Link href="/onboarding/project" className="overview-empty__action">
-              <AddRoundedIcon sx={{ fontSize: 16 }} />
-              Create a project
-            </Link>
+            {onCreateProject ? (
+              <button onClick={onCreateProject} className="overview-empty__action" style={{ cursor: 'pointer', border: 'none', background: 'none' }}>
+                <AddRoundedIcon sx={{ fontSize: 16 }} />
+                Create a project
+              </button>
+            ) : (
+              <Link href="/onboarding/project" className="overview-empty__action">
+                <AddRoundedIcon sx={{ fontSize: 16 }} />
+                Create a project
+              </Link>
+            )}
           </div>
         </div>
       ) : (

@@ -411,3 +411,60 @@ export function resetDemoStore(): void {
   demoItems = [...INITIAL_WORK_ITEMS];
   currentCounter = 105;
 }
+
+export interface DemoProject {
+  id: string;
+  workspace_id: string;
+  team_id?: string | null;
+  name: string;
+  key: string;
+  description?: string | null;
+  mode: 'simple' | 'advanced';
+  is_personal: boolean;
+  item_counter: number;
+  created_at: string;
+  updated_at: string;
+}
+
+let demoProjects: DemoProject[] = [{ ...DEMO_PROJECT }];
+
+export function getDemoProjects(): DemoProject[] {
+  return [...demoProjects];
+}
+
+export function addDemoProject(
+  project: {
+    id?: string;
+    workspace_id?: string;
+    team_id?: string | null;
+    name: string;
+    key: string;
+    description?: string | null;
+    mode?: 'simple' | 'advanced';
+    is_personal?: boolean;
+  }
+): DemoProject {
+  const newProj: DemoProject = {
+    id: project.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Math.random().toString(36).slice(2, 10)),
+    workspace_id: project.workspace_id || DEMO_WORKSPACE.id,
+    team_id: project.team_id || null,
+    name: project.name,
+    key: project.key.toUpperCase(),
+    description: project.description || '',
+    mode: project.mode || 'simple',
+    is_personal: project.is_personal || false,
+    item_counter: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  // Avoid duplicate key in the same workspace
+  demoProjects = demoProjects.filter((p) => p.id !== newProj.id);
+  demoProjects.unshift(newProj);
+  return newProj;
+}
+
+export function getDemoProjectById(id: string): DemoProject | undefined {
+  return demoProjects.find((p) => p.id === id);
+}
+

@@ -5,6 +5,7 @@ import { AnimatePresence } from 'motion/react';
 import { WorkItemDetailDrawer } from '@/components/board/WorkItemDetailDrawer';
 import { QuickCreateModal } from '@/components/board/QuickCreateModal';
 import { ShareProjectModal } from '@/components/board/ShareProjectModal';
+import { CreateProjectModal } from '@/components/board/CreateProjectModal';
 import { CommandPalette } from '@/components/navigation/CommandPalette';
 import { DashboardTopBar } from './DashboardTopBar';
 import type { WorkItemData } from '@/components/board/KanbanBoard';
@@ -98,14 +99,16 @@ export function DashboardClientView({
   // Navigation Tabs: 'overview' | 'inbox' | 'tasks' | 'projects'
   const [activeTab, setActiveTab] = useState<'overview' | 'inbox' | 'tasks' | 'projects'>('overview');
 
-  // Work items state
+  // Work items & projects state
   const [workItems, setWorkItems] = useState<WorkItemData[]>(initialWorkItems);
+  const [projectList, setProjectList] = useState(projects);
   const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
 
   // Modal / Drawer state
   const [selectedItem, setSelectedItem] = useState<WorkItemData | null>(null);
   const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
@@ -131,7 +134,7 @@ export function DashboardClientView({
     setActiveTab('tasks');
   };
 
-  const activeProject = projects[0] || {
+  const activeProject = projectList[0] || {
     id: 'proj-' + primaryWorkspace.id.slice(0, 8),
     name: `${primaryWorkspace.name} Project`,
     key: 'PRJ',
@@ -209,11 +212,12 @@ export function DashboardClientView({
       <Sidebar
         user={user}
         primaryWorkspace={primaryWorkspace}
-        projects={projects}
+        projects={projectList}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onQuickCreate={() => setIsQuickCreateOpen(true)}
         onShareProject={() => setIsShareModalOpen(true)}
+        onCreateProject={() => setIsCreateProjectOpen(true)}
         inboxCount={inboxCount}
       />
 
@@ -239,7 +243,7 @@ export function DashboardClientView({
               workspaceId={primaryWorkspace.id}
               workItems={workItems}
               setWorkItems={setWorkItems}
-              projects={projects}
+              projects={projectList}
               onOpenItem={(item) => setSelectedItem(item)}
               onOpenFiltered={openFiltered}
               onItemsChange={setWorkItems}
@@ -268,7 +272,11 @@ export function DashboardClientView({
           )}
 
           {activeTab === 'projects' && (
-            <ProjectsTab projects={projects} workItems={workItems} />
+            <ProjectsTab
+              projects={projectList}
+              workItems={workItems}
+              onCreateProject={() => setIsCreateProjectOpen(true)}
+            />
           )}
         </AnimatePresence>
       </main>
@@ -346,6 +354,18 @@ export function DashboardClientView({
         projectId={activeProject.id}
         projectName={activeProject.name}
         projectKey={activeProject.key}
+        workspaceId={primaryWorkspace.id}
+      />
+
+      {/* Create Project Modal */}
+      <CreateProjectModal
+        isOpen={isCreateProjectOpen}
+        onClose={() => setIsCreateProjectOpen(false)}
+        workspaceId={primaryWorkspace.id}
+        onProjectCreated={(newProj) => {
+          setProjectList((prev) => [newProj, ...prev]);
+          setNotice({ tone: 'success', message: `Project "${newProj.name}" created successfully!` });
+        }}
       />
 
       {/* Mobile Bottom Navigation Bar */}

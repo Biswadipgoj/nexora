@@ -49,8 +49,8 @@ export const viewport: Viewport = {
   // Section 9: text must stay legible at 200% zoom, so pinch-zoom is not capped.
   maximumScale: 5,
   viewportFit: 'cover',
-  themeColor: '#080B12',
-  colorScheme: 'dark',
+  themeColor: '#F8FAFC',
+  colorScheme: 'light',
 };
 
 export default function RootLayout({
@@ -61,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning
