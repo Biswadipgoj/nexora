@@ -16,11 +16,12 @@
     "android:open": "cap open android",
     "desktop": "electron .",
     "desktop:build": "node scripts/package-windows.js",
-    "desktop:package": "node scripts/package-windows.js"
+    "desktop:package": "node scripts/package-windows.js",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "build": {
     "appId": "com.nexora.app",
-    "productName": "NEXORA",
+    "productName": "Nexora",
     "directories": {
       "output": "dist-electron"
     },
@@ -34,6 +35,7 @@
     "nodeGypRebuild": false,
     "asar": false,
     "win": {
+      "icon": "electron/icon.ico",
       "target": [
         "portable",
         "dir"

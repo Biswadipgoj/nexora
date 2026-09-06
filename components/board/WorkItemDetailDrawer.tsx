@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
@@ -53,59 +53,146 @@ export function WorkItemDetailDrawer({
       ? item.description
       : item?.description?.ops?.[0]?.insert || ''
   );
-  const [subtasks, setSubtasks] = useState<Array<{ id: string; title: string; done: boolean }>>([
-    { id: 'st-1', title: 'Review specifications & requirements', done: true },
-    { id: 'st-2', title: 'Verify design contrast and keyboard accessibility', done: false },
-    { id: 'st-3', title: 'Test on both mobile and desktop viewports', done: false },
-  ]);
+  /**
+   * Subtasks and comments start empty.
+   *
+   * They used to be seeded with three fixed subtasks and a "NEXORA Bot" comment
+   * that appeared identically on every task in the product, which read as real
+   * content belonging to that item. Neither has a server route in this codebase
+   * — there is no subtasks table at all, and the `comments` table has no API —
+   * so both are session-local scratch space and the panel says so.
+   */
+  const [subtasks, setSubtasks] = useState<Array<{ id: string; title: string; done: boolean }>>([]);
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
-  const [comments, setComments] = useState<Array<{ id: string; author: string; text: string; time: string }>>([
-    { id: 'c-1', author: 'NEXORA Bot', text: 'Task initialized and placed on Kanban board.', time: 'Just now' },
-  ]);
+  const [comments, setComments] = useState<Array<{ id: string; author: string; text: string; time: string }>>([]);
   const [newComment, setNewComment] = useState('');
 
+  /** Section 3.4 — the drawer reports whether a change was saved or rejected. */
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSave = useRef<Partial<WorkItemData>>({});
+
+  /**
+   * Reset every field when a different task is opened.
+   *
+   * Subtasks and comments were previously left untouched here, so opening a
+   * second card showed the first card's subtasks and comments as if they
+   * belonged to it (section 10, "Stale data").
+   */
   useEffect(() => {
-    if (item) {
-      setTitle(item.title || '');
-      setStatusId(item.status_id || 'status-todo');
-      setTypeId(item.type_id || 'type-task');
-      setPriority(item.priority ?? 1);
-      setDueDate(item.due_date || '');
-      setDescription(
-        typeof item.description === 'string'
-          ? item.description
-          : item.description?.ops?.[0]?.insert || ''
-      );
-    }
-  }, [item]);
+    if (!item) return;
+    setTitle(item.title || '');
+    setStatusId(item.status_id || 'status-todo');
+    setTypeId(item.type_id || 'type-task');
+    setPriority(item.priority ?? 1);
+    setDueDate(item.due_date || '');
+    setDescription(
+      typeof item.description === 'string'
+        ? item.description
+        : item.description?.ops?.[0]?.insert || ''
+    );
+    setSubtasks([]);
+    setComments([]);
+    setNewSubtaskTitle('');
+    setNewComment('');
+    setSaveState('idle');
+    setSaveError(null);
+    setConfirmingDelete(false);
+  }, [item?.id]);
+
+  /** Clears the "Saved" flag a moment after it appears. */
+  useEffect(() => {
+    if (saveState !== 'saved') return;
+    const timer = setTimeout(() => setSaveState('idle'), 2000);
+    return () => clearTimeout(timer);
+  }, [saveState]);
 
   const activeCategory = getCategoryByIdOrName(typeId);
 
   if (!item) return null;
 
-  const handleUpdate = (updates: Partial<WorkItemData>) => {
+  /**
+   * Persists a field change and reports the outcome.
+   *
+   * Previously this fired an unawaited fetch per keystroke, never read the
+   * response, and wrapped it in a try/catch that could not catch the async
+   * rejection — so a rejected save was invisible and the drawer showed no
+   * saving, saved or error state at all (section 3.4). Title and description
+   * are now debounced by their callers; every write reports its result.
+   */
+  const handleUpdate = async (updates: Partial<WorkItemData>) => {
     const updated = { ...item, ...updates };
     if (onUpdated) onUpdated(updated);
     if (onUpdateItem) onUpdateItem(updated);
 
-    // Save to server
+    setSaveState('saving');
     try {
-      fetch(`/api/work-items/${item.id}`, {
+      const res = await fetch(`/api/work-items/${item.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updates),
       });
-    } catch {}
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        throw new Error(payload?.error ?? String(res.status));
+      }
+
+      setSaveState('saved');
+      setSaveError(null);
+    } catch (err) {
+      setSaveState('error');
+      setSaveError(err instanceof Error ? err.message : 'Could not save that change.');
+    }
   };
 
-  const handleDelete = () => {
-    if (onDeleted) onDeleted(item.id);
-    if (onDeleteItem) onDeleteItem(item.id);
-    onClose();
+  /**
+   * Debounced text saving.
+   *
+   * Typing a 40-character title used to issue 40 PATCH requests whose responses
+   * could arrive out of order, so the last one to land won regardless of what
+   * the user actually typed. Edits now settle for a moment first, and blurring
+   * the field flushes immediately so nothing is lost on close.
+   */
+  const queueSave = (updates: Partial<WorkItemData>) => {
+    pendingSave.current = { ...pendingSave.current, ...updates };
+    setSaveState('saving');
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(flushSave, 600);
+  };
+
+  const flushSave = () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
+    }
+    const updates = pendingSave.current;
+    pendingSave.current = {};
+    if (Object.keys(updates).length > 0) void handleUpdate(updates);
+  };
+
+  /**
+   * Section 5.5: "Destructive actions must live behind a menu and require
+   * confirmation with the item name." Delete used to be a bare icon button in
+   * the header that removed the card on a single click.
+   */
+  const handleDelete = async () => {
+    setConfirmingDelete(false);
+    setSaveState('saving');
 
     try {
-      fetch(`/api/work-items/${item.id}`, { method: 'DELETE' });
-    } catch {}
+      const res = await fetch(`/api/work-items/${item.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error(String(res.status));
+
+      if (onDeleted) onDeleted(item.id);
+      if (onDeleteItem) onDeleteItem(item.id);
+      onClose();
+    } catch {
+      setSaveState('error');
+      setSaveError('Could not delete this task. It is still on the board.');
+    }
   };
 
   const handleAddSubtask = (e: React.FormEvent) => {
@@ -160,6 +247,30 @@ export function WorkItemDetailDrawer({
       }}
     >
       <div className="drawer-root">
+        {/* Section 5.5 — a destructive action confirms with the item's name. */}
+        {confirmingDelete && (
+          <div className="drawer-confirm" role="alertdialog" aria-label="Confirm delete">
+            <p className="drawer-confirm__title">Delete this task?</p>
+            <p className="drawer-confirm__body">
+              <strong>{title || 'Untitled task'}</strong> will be removed from the board.
+            </p>
+            <div className="drawer-confirm__actions">
+              <button type="button" className="drawer-confirm__cancel" onClick={() => setConfirmingDelete(false)}>
+                Keep it
+              </button>
+              <button type="button" className="drawer-confirm__delete" onClick={handleDelete}>
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
+
+        {saveError && (
+          <div className="drawer-save-error" role="alert">
+            {saveError}
+          </div>
+        )}
+
         {/* Top Sticky Header */}
         <div className="drawer-topbar">
           <div className="drawer-topbar__key">
@@ -178,11 +289,19 @@ export function WorkItemDetailDrawer({
           </div>
 
           <div className="drawer-topbar__actions">
+            {/* Section 3.4 — saving, saved and error are all visible states. */}
+            <span className={`drawer-save-state drawer-save-state--${saveState}`} aria-live="polite">
+              {saveState === 'saving' && 'Saving…'}
+              {saveState === 'saved' && 'Saved'}
+              {saveState === 'error' && 'Not saved'}
+            </span>
+
             <IconButton
               size="small"
-              onClick={handleDelete}
+              onClick={() => setConfirmingDelete(true)}
               title="Delete task"
-              sx={{ color: 'var(--color-text-tertiary)', '&:hover': { color: '#EF4444' } }}
+              aria-label="Delete task"
+              sx={{ color: 'var(--color-text-tertiary)', '&:hover': { color: 'var(--nx-red)' } }}
             >
               <DeleteOutlineRoundedIcon sx={{ fontSize: 18 }} />
             </IconButton>
@@ -206,8 +325,9 @@ export function WorkItemDetailDrawer({
             value={title}
             onChange={(e) => {
               setTitle(e.target.value);
-              handleUpdate({ title: e.target.value });
+              queueSave({ title: e.target.value });
             }}
+            onBlur={() => flushSave()}
             placeholder="Issue title..."
             rows={2}
           />
@@ -291,8 +411,9 @@ export function WorkItemDetailDrawer({
               value={description}
               onChange={(e) => {
                 setDescription(e.target.value);
-                handleUpdate({ description: e.target.value });
+                queueSave({ description: e.target.value });
               }}
+              onBlur={() => flushSave()}
               placeholder="Add a detailed description, notes, or acceptance criteria..."
               rows={4}
             />
@@ -345,7 +466,10 @@ export function WorkItemDetailDrawer({
 
           {/* Activity & Comments Stream */}
           <div className="drawer-section">
-            <h3 className="section-title">Activity & Discussion</h3>
+            <h3 className="section-title">Activity</h3>
+            {/* Section 3.5 — no endpoint stores these yet, so the panel says so
+                rather than implying the note was kept. */}
+            <p className="drawer-local-note">Notes here stay on this device and are not saved yet.</p>
 
             <div className="comments-list">
               {comments.map((c) => (
@@ -411,7 +535,7 @@ export function WorkItemDetailDrawer({
         }
 
         .drawer-topbar__key > span:first-child {
-          background: rgba(99, 102, 241, 0.12);
+          background: rgba(155, 140, 255, 0.12);
           padding: 2px 8px;
           border-radius: 6px;
         }
@@ -502,12 +626,13 @@ export function WorkItemDetailDrawer({
           justify-content: space-between;
         }
 
+        /* Section 4.3: "Avoid uppercase labels longer than two words." Sentence
+           case scans faster in the panel users read most. */
         .section-title {
           font-size: 0.8125rem;
-          font-weight: 700;
-          color: var(--color-text-secondary);
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
+          font-weight: 650;
+          color: var(--nx-text-2);
+          letter-spacing: -0.005em;
         }
 
         .progress-badge {
@@ -602,7 +727,7 @@ export function WorkItemDetailDrawer({
           height: 26px;
           border-radius: 50%;
           background: var(--color-primary);
-          color: #FFFFFF;
+          color: var(--nx-on-accent);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -665,7 +790,7 @@ export function WorkItemDetailDrawer({
           border-radius: 8px;
           border: none;
           background: var(--color-primary);
-          color: #FFFFFF;
+          color: var(--nx-on-accent);
           display: flex;
           align-items: center;
           justify-content: center;

@@ -38,16 +38,16 @@ export function InboxTab({ notifications, onMarkRead, onMarkAllRead }: InboxTabP
   });
 
   const getAuthorIcon = (type: string, name: string) => {
-    if (type === 'milestone') return <RocketLaunchRoundedIcon sx={{ fontSize: 18, color: '#ffffff' }} />;
-    if (type === 'assign') return <AssignmentIndRoundedIcon sx={{ fontSize: 18, color: '#ffffff' }} />;
-    if (type === 'comment') return <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18, color: '#ffffff' }} />;
+    if (type === 'milestone') return <RocketLaunchRoundedIcon sx={{ fontSize: 18, color: 'var(--nx-on-accent)' }} />;
+    if (type === 'assign') return <AssignmentIndRoundedIcon sx={{ fontSize: 18, color: 'var(--nx-on-accent)' }} />;
+    if (type === 'comment') return <ChatBubbleOutlineRoundedIcon sx={{ fontSize: 18, color: 'var(--nx-on-accent)' }} />;
     return name.slice(0, 2).toUpperCase();
   };
 
   const getAvatarBg = (type: string) => {
-    if (type === 'milestone') return 'linear-gradient(135deg, #059669 0%, #10b981 100%)';
-    if (type === 'assign') return 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)';
-    return 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)';
+    if (type === 'milestone') return 'linear-gradient(135deg, var(--nx-green) 0%, var(--nx-green) 100%)';
+    if (type === 'assign') return 'linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%)';
+    return 'linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 100%)';
   };
 
   return (
@@ -59,7 +59,7 @@ export function InboxTab({ notifications, onMarkRead, onMarkAllRead }: InboxTabP
             <NotificationsActiveRoundedIcon sx={{ fontSize: 24, color: 'var(--aurora-iris)' }} />
             <span>Activity Inbox</span>
             {unreadCount > 0 && (
-              <span className="nav-badge-pill" style={{ background: '#dc2626', fontSize: '0.75rem' }}>
+              <span className="nav-badge-pill" style={{ background: 'var(--nx-red)', fontSize: '0.75rem' }}>
                 {unreadCount} unread
               </span>
             )}

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Native shell colours, mirrored from styles/nexora-tokens.css.
+
+  Without this file the app inherited Capacitor's stock Material Indigo/Pink,
+  so the native chrome around an obsidian web app was a different product.
+-->
+<resources>
+    <!-- --nx-bg -->
+    <color name="colorPrimaryDark">#080B12</color>
+    <!-- --nx-blue -->
+    <color name="colorPrimary">#6EA8FF</color>
+    <!-- --nx-violet -->
+    <color name="colorAccent">#9B8CFF</color>
+
+    <color name="nexoraCanvas">#080B12</color>
+    <color name="nexoraSurface">#121A27</color>
+    <color name="nexoraText">#F4F7FB</color>
+</resources>

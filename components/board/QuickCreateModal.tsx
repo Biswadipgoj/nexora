@@ -22,7 +22,32 @@ export interface QuickCreateModalProps {
   availableTypes?: Array<{ id: string; name: string }>;
   onSuccess?: (newItem: WorkItemData) => void;
   onItemCreated?: (newItem: WorkItemData) => void;
+  /** Replaces the optimistic placeholder with the row the server actually stored. */
+  onItemReconciled?: (optimisticId: string, storedItem: WorkItemData) => void;
+  /** The write was rejected — the caller should withdraw the optimistic card. */
+  onCreateFailed?: (optimisticItem: WorkItemData, message: string) => void;
 }
+
+/**
+ * Module-level constants, NOT inline default parameters.
+ *
+ * A default written as `availableStatuses = [...]` builds a new array on every
+ * render. That array is in the reset effect's dependency list, so the effect
+ * re-ran after every commit and called setTitle('') — typing one character
+ * re-rendered the modal, which wiped the field. The title could never hold more
+ * than a single character from any surface that did not pass the prop.
+ * Hoisting the defaults gives them a stable identity across renders.
+ */
+const FALLBACK_STATUSES: Array<{ id: string; name: string }> = [
+  { id: 'status-todo', name: 'To Do' },
+  { id: 'status-in-progress', name: 'In Progress' },
+  { id: 'status-done', name: 'Done' },
+];
+
+const FALLBACK_TYPES: Array<{ id: string; name: string }> = TASK_CATEGORIES.map((c) => ({
+  id: c.id,
+  name: c.name,
+}));
 
 export function QuickCreateModal({
   isOpen,
@@ -30,14 +55,12 @@ export function QuickCreateModal({
   workspaceId,
   projectId,
   initialStatusId = 'status-todo',
-  availableStatuses = [
-    { id: 'status-todo', name: 'To Do' },
-    { id: 'status-in-progress', name: 'In Progress' },
-    { id: 'status-done', name: 'Done' },
-  ],
-  availableTypes = TASK_CATEGORIES.map((c) => ({ id: c.id, name: c.name })),
+  availableStatuses = FALLBACK_STATUSES,
+  availableTypes = FALLBACK_TYPES,
   onSuccess,
   onItemCreated,
+  onItemReconciled,
+  onCreateFailed,
 }: QuickCreateModalProps) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -48,16 +71,19 @@ export function QuickCreateModal({
   const [submitting, setSubmitting] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
+  // Resets only on open. Including the prop values here would clear the form
+  // mid-typing whenever a parent re-rendered with a new array identity.
   useEffect(() => {
-    if (isOpen) {
-      setTitle('');
-      setDescription('');
-      setStatusId(initialStatusId || availableStatuses[0]?.id || 'status-todo');
-      setPriority(1);
-      setDueDate('');
-      setTimeout(() => titleInputRef.current?.focus(), 50);
-    }
-  }, [isOpen, initialStatusId, availableStatuses]);
+    if (!isOpen) return;
+    setTitle('');
+    setDescription('');
+    setStatusId(initialStatusId || availableStatuses[0]?.id || 'status-todo');
+    setPriority(1);
+    setDueDate('');
+    const timer = setTimeout(() => titleInputRef.current?.focus(), 50);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,14 +107,22 @@ export function QuickCreateModal({
       updated_at: new Date().toISOString(),
     };
 
-    // Instant optimistic response
+    // Show the card immediately, then reconcile with the stored row.
     if (onSuccess) onSuccess(optimisticItem);
     if (onItemCreated) onItemCreated(optimisticItem);
     onClose();
 
-    // Persist to server
+    /**
+     * The response is read and checked.
+     *
+     * This previously awaited the fetch and threw the body away, so the board
+     * kept the placeholder id and the random sequence forever. Every later edit
+     * then PATCHed /api/work-items/wi-1757… , which matches no row, and the
+     * change was lost (section 10, "Stale data"). A rejected write was also
+     * invisible, because the catch was empty (section 3.4).
+     */
     try {
-      await fetch('/api/work-items', {
+      const res = await fetch('/api/work-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -96,13 +130,27 @@ export function QuickCreateModal({
           project_id: projectId,
           type_id: typeId,
           status_id: statusId,
-          title: title.trim(),
-          description: description ? { ops: [{ insert: description + '\n' }] } : null,
+          title: optimisticItem.title,
+          description: optimisticItem.description,
           priority,
           due_date: dueDate || null,
         }),
       });
-    } catch {} finally {
+
+      const payload = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        onCreateFailed?.(optimisticItem, payload?.error ?? 'Could not save the task.');
+        return;
+      }
+
+      // Swap the placeholder for the stored row so its real id and sequence win.
+      if (payload?.workItem) {
+        onItemReconciled?.(optimisticItem.id, payload.workItem as WorkItemData);
+      }
+    } catch {
+      onCreateFailed?.(optimisticItem, 'Could not reach the server. The task was not saved.');
+    } finally {
       setSubmitting(false);
     }
   };
@@ -308,7 +356,7 @@ export function QuickCreateModal({
         .field-textarea:focus,
         .field-select:focus {
           border-color: var(--color-primary);
-          box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+          box-shadow: 0 0 0 3px rgba(155, 140, 255, 0.2);
         }
 
         .field-input--title {
@@ -351,7 +399,7 @@ export function QuickCreateModal({
         .category-pill-btn:hover {
           background: var(--color-surface-hover);
           color: var(--color-text-primary);
-          border-color: rgba(99, 102, 241, 0.4);
+          border-color: rgba(155, 140, 255, 0.4);
         }
 
         .category-pill-btn--selected {
@@ -383,7 +431,7 @@ export function QuickCreateModal({
 
         .modal-submit-btn {
           background: var(--color-primary-gradient);
-          color: #FFFFFF;
+          color: var(--nx-on-accent);
           border: none;
           border-radius: 8px;
           padding: 8px 18px;
@@ -395,7 +443,7 @@ export function QuickCreateModal({
 
         .modal-submit-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+          box-shadow: 0 4px 14px rgba(155, 140, 255, 0.4);
         }
 
         .modal-submit-btn:disabled {

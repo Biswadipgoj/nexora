@@ -16,7 +16,7 @@ interface DashboardTopBarProps {
   projectName: string;
   projectKey: string;
   inboxCount: number;
-  activeTab?: 'overview' | 'inbox' | 'tasks';
+  activeTab?: 'overview' | 'inbox' | 'tasks' | 'projects';
   onOpenCommandPalette: () => void;
   onQuickCreate: () => void;
   onOpenInbox: () => void;
@@ -32,7 +32,7 @@ export function DashboardTopBar({
   onQuickCreate,
   onOpenInbox,
 }: DashboardTopBarProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, themeLocked, toggleTheme } = useTheme();
 
   return (
     <header className="dash-header glass-panel">
@@ -42,22 +42,22 @@ export function DashboardTopBar({
         <span className="dash-header__sep">/</span>
         {activeTab === 'inbox' ? (
           <div className="dash-header__project">
-            <InboxRoundedIcon sx={{ fontSize: 16, color: '#4f46e5' }} />
+            <InboxRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-violet)' }} />
             <span className="dash-header__project-name">Inbox</span>
             {inboxCount > 0 && (
-              <span className="dash-header__project-key" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#dc2626' }}>
+              <span className="dash-header__project-key" style={{ background: 'rgba(255, 113, 133, 0.15)', color: 'var(--nx-red)' }}>
                 {inboxCount} new
               </span>
             )}
           </div>
         ) : activeTab === 'tasks' ? (
           <div className="dash-header__project">
-            <AssignmentTurnedInRoundedIcon sx={{ fontSize: 16, color: '#059669' }} />
+            <AssignmentTurnedInRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-green)' }} />
             <span className="dash-header__project-name">My Tasks</span>
           </div>
         ) : (
           <div className="dash-header__project">
-            <FolderSpecialRoundedIcon sx={{ fontSize: 16, color: '#2563eb' }} />
+            <FolderSpecialRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-blue)' }} />
             <span className="dash-header__project-name">{projectName}</span>
             <span className="dash-header__project-key">{projectKey}</span>
           </div>
@@ -77,21 +77,25 @@ export function DashboardTopBar({
         </button>
       </div>
 
-      {/* Right: Actions, Theme toggle, Notification Bell, New Task */}
+      {/* Right: Actions, Notification Bell, New Task */}
       <div className="dash-header__right">
-        {/* Theme Toggle Button */}
-        <button
-          className="header-icon-btn"
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to Light mode' : 'Switch to Dark mode'}
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? (
-            <LightModeRoundedIcon sx={{ fontSize: 18, color: '#F59E0B' }} />
-          ) : (
-            <DarkModeRoundedIcon sx={{ fontSize: 18, color: '#6366F1' }} />
-          )}
-        </button>
+        {/* Light mode is not built yet (section 2), so the toggle is hidden
+            rather than shown inert — a control that contradicts its own label
+            reads as unresolved (section 3.5). */}
+        {!themeLocked && (
+          <button
+            className="header-icon-btn"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {theme === 'dark' ? (
+              <LightModeRoundedIcon sx={{ fontSize: 18, color: 'var(--nx-amber)' }} />
+            ) : (
+              <DarkModeRoundedIcon sx={{ fontSize: 18, color: 'var(--nx-violet)' }} />
+            )}
+          </button>
+        )}
 
         {/* Notifications Bell */}
         <button
@@ -108,7 +112,7 @@ export function DashboardTopBar({
         <button className="btn-primary-gradient" onClick={onQuickCreate}>
           <AddRoundedIcon sx={{ fontSize: 16 }} />
           <span>New Task</span>
-          <span className="kbd-shortcut" style={{ background: 'rgba(255,255,255,0.2)', color: '#FFFFFF', border: 'none', marginLeft: 4 }}>C</span>
+          <span className="kbd-shortcut kbd-shortcut--on-accent" style={{ marginLeft: 4 }}>C</span>
         </button>
       </div>
     </header>

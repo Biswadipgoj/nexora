@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
 import RadioButtonUncheckedRoundedIcon from '@mui/icons-material/RadioButtonUncheckedRounded';
@@ -11,25 +11,46 @@ import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import Tooltip from '@mui/material/Tooltip';
 import { getCategoryByIdOrName } from '@/lib/constants/categories';
 import type { WorkItemData } from '@/components/board/KanbanBoard';
+import {
+  countFocus,
+  filterItems,
+  sortForFocus,
+  formatDueLabel,
+  bucketOf,
+  FILTER_LABELS,
+  type FocusFilter,
+} from '@/lib/work/focus';
 
 const PRIORITY_META: Record<number, { label: string; color: string; bg: string }> = {
-  0: { label: 'None', color: '#64748b', bg: 'rgba(100, 116, 139, 0.12)' },
-  1: { label: 'Low', color: '#0284c7', bg: 'rgba(2, 132, 199, 0.12)' },
-  2: { label: 'Medium', color: '#d97706', bg: 'rgba(217, 119, 6, 0.12)' },
-  3: { label: 'High', color: '#ea580c', bg: 'rgba(234, 88, 12, 0.12)' },
-  4: { label: 'Urgent', color: '#dc2626', bg: 'rgba(220, 38, 38, 0.12)' },
+  0: { label: 'None', color: 'var(--nx-text-3)', bg: 'rgba(100, 116, 139, 0.12)' },
+  1: { label: 'Low', color: 'var(--nx-cyan)', bg: 'rgba(70, 215, 232, 0.12)' },
+  2: { label: 'Medium', color: 'var(--nx-amber)', bg: 'rgba(241, 184, 106, 0.12)' },
+  3: { label: 'High', color: 'var(--nx-amber)', bg: 'rgba(234, 88, 12, 0.12)' },
+  4: { label: 'Urgent', color: 'var(--nx-red)', bg: 'rgba(255, 113, 133, 0.12)' },
 };
 
 interface TasksTabProps {
   workItems: WorkItemData[];
   currentUserName?: string;
+  /** Owned by the dashboard so a metric click carries its filter here (5.2). */
+  filter: FocusFilter;
+  onFilterChange: (filter: FocusFilter) => void;
   onOpenItem: (item: WorkItemData) => void;
   onToggleStatus: (id: string, currentStatusId: string) => void;
+  onQuickCreate: () => void;
 }
 
-export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatus }: TasksTabProps) {
-  const [filter, setFilter] = useState<'all' | 'todo' | 'done'>('all');
+const FILTER_ORDER: FocusFilter[] = ['all', 'overdue', 'due-today', 'in-progress', 'completed'];
 
+export function TasksTab({
+  workItems,
+  currentUserName,
+  filter,
+  onFilterChange,
+  onOpenItem,
+  onToggleStatus,
+  onQuickCreate,
+}: TasksTabProps) {
   const getInitials = (name: string) =>
     name
       .split(' ')
@@ -46,16 +67,31 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
     return false;
   });
 
-  // If user has specific assigned tasks, use them; otherwise show all tasks so it's not an empty screen
+  // If the user has assigned tasks, show those; otherwise fall back to the whole
+  // workspace so a new account does not open onto a blank screen.
   const myTasks = userMatchedTasks.length > 0 ? userMatchedTasks : workItems;
 
-  const filteredTasks = myTasks.filter((w) => {
-    if (filter === 'todo') return w.status_id !== 'status-done';
-    if (filter === 'done') return w.status_id === 'status-done';
-    return true;
-  });
+  const counts = useMemo(() => countFocus(myTasks), [myTasks]);
 
-  const completedCount = myTasks.filter((w) => w.status_id === 'status-done').length;
+  // Section 5.4: "The default sort is overdue, due today, due soon, then
+  // unscheduled." Shared with the dashboard so both surfaces agree.
+  const filteredTasks = useMemo(
+    () => sortForFocus(filterItems(myTasks, filter)),
+    [myTasks, filter]
+  );
+
+  const countFor = (f: FocusFilter) =>
+    f === 'all'
+      ? myTasks.length
+      : f === 'overdue'
+      ? counts.overdue
+      : f === 'due-today'
+      ? counts.dueToday
+      : f === 'in-progress'
+      ? counts.inProgress
+      : counts.completed;
+
+  const completedCount = counts.completed;
 
   return (
     <div className="tab-content">
@@ -65,12 +101,12 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
           <div className="tab-header-title">
             <AssignmentTurnedInRoundedIcon sx={{ fontSize: 24, color: 'var(--aurora-jade)' }} />
             <span>My Tasks</span>
-            <span className="nav-badge-pill" style={{ background: '#2563eb', fontSize: '0.75rem' }}>
+            <span className="nav-badge-pill" style={{ background: 'var(--nx-blue)', fontSize: '0.75rem' }}>
               {myTasks.length - completedCount} pending
             </span>
           </div>
           <p className="tab-header-desc">
-            Your personal priority list. Click the checkbox to mark tasks complete with instant tactile sync.
+            Sorted by what needs you first: overdue, then due today, then everything else.
           </p>
         </div>
 
@@ -81,27 +117,22 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
         </div>
       </div>
 
-      {/* Filter Bar */}
+      {/* Filter bar. The same FocusFilter set the dashboard strip uses, so a
+          metric click lands here with its filter already applied (section 5.2)
+          and the counts match the number that was clicked. */}
       <div className="tab-filter-bar">
-        <div className="tab-filter-group">
-          <button
-            className={`tab-filter-pill ${filter === 'all' ? 'tab-filter-pill--active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All Assigned ({myTasks.length})
-          </button>
-          <button
-            className={`tab-filter-pill ${filter === 'todo' ? 'tab-filter-pill--active' : ''}`}
-            onClick={() => setFilter('todo')}
-          >
-            To Do ({myTasks.length - completedCount})
-          </button>
-          <button
-            className={`tab-filter-pill ${filter === 'done' ? 'tab-filter-pill--active' : ''}`}
-            onClick={() => setFilter('done')}
-          >
-            Completed ({completedCount})
-          </button>
+        <div className="tab-filter-group" role="group" aria-label="Filter tasks">
+          {FILTER_ORDER.map((f) => (
+            <button
+              key={f}
+              type="button"
+              aria-pressed={filter === f}
+              className={`tab-filter-pill ${filter === f ? 'tab-filter-pill--active' : ''}`}
+              onClick={() => onFilterChange(f)}
+            >
+              {FILTER_LABELS[f]} ({countFor(f)})
+            </button>
+          ))}
         </div>
       </div>
 
@@ -112,7 +143,11 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
             const isDone = task.status_id === 'status-done';
             const prioKey = task.priority !== undefined && task.priority in PRIORITY_META ? task.priority : 0;
             const prio = PRIORITY_META[prioKey];
-            const sequenceKey = task.sequence ? `APP-${task.sequence}` : `APP-${100 + idx}`;
+            // No fabricated project prefix. This rendered "APP-" for every task
+            // regardless of its project, and fell back to an index-derived
+            // number, so the same item showed a different key here than on the
+            // board — it read as two separate tasks (section 3.5).
+            const sequenceKey = task.sequence ? `#${task.sequence}` : '';
             const category = getCategoryByIdOrName(task.type_id);
 
             return (
@@ -125,6 +160,18 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
                 transition={{ duration: 0.2 }}
                 className={`task-row-card ${isDone ? 'task-row-card--done' : ''}`}
                 onClick={() => onOpenItem(task)}
+                /* Section 9 — rows were plain divs, so keyboard users could not
+                   open a task and never received the global focus ring. */
+                role="button"
+                tabIndex={0}
+                aria-label={`Open ${task.title}`}
+                onKeyDown={(e) => {
+                  if (e.target !== e.currentTarget) return;
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onOpenItem(task);
+                  }
+                }}
               >
                 <div className="task-row-left">
                   <button
@@ -175,10 +222,13 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
                     {prio.label}
                   </span>
 
-                  {task.due_date && (
-                    <span className="task-date-chip">
+                  {/* A readable relative label, not the raw stored date, and
+                      the urgency is carried by the word as well as the colour
+                      (section 9). */}
+                  {formatDueLabel(task) && (
+                    <span className={`task-date-chip task-date-chip--${bucketOf(task)}`}>
                       <AccessTimeRoundedIcon sx={{ fontSize: 13 }} />
-                      {task.due_date}
+                      {formatDueLabel(task)}
                     </span>
                   )}
 
@@ -191,14 +241,14 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
                               width: 26,
                               height: 26,
                               borderRadius: '50%',
-                              background: 'linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)',
-                              color: '#FFFFFF',
+                              background: 'linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%)',
+                              color: 'var(--nx-on-accent)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               fontSize: '0.6875rem',
                               fontWeight: 700,
-                              boxShadow: '0 1px 4px rgba(15, 23, 42, 0.15)',
+                              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.39)',
                             }}
                           >
                             {getInitials(a.name || 'User')}
@@ -215,17 +265,44 @@ export function TasksTab({ workItems, currentUserName, onOpenItem, onToggleStatu
           })}
         </AnimatePresence>
 
+        {/* Section 5.4: "The empty state should offer Create task, Plan my week,
+            and Open a project as explicit next actions." The wording depends on
+            which filter emptied the list, so it says what actually happened. */}
         {filteredTasks.length === 0 && (
           <div className="empty-state-box">
-            <CheckCircleRoundedIcon sx={{ fontSize: 36, color: 'var(--aurora-jade)', marginBottom: 1 }} />
-            <h4 style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: 4 }}>
-              No Tasks Found
+            <CheckCircleRoundedIcon sx={{ fontSize: 32, color: 'var(--nx-green)', marginBottom: 1 }} />
+            <h4 className="empty-state-box__title">
+              {myTasks.length === 0
+                ? 'No tasks yet'
+                : filter === 'all'
+                ? 'Nothing assigned to you'
+                : `Nothing ${FILTER_LABELS[filter].toLowerCase()}`}
             </h4>
-            <p style={{ fontSize: '0.875rem' }}>
-              {filter === 'done'
-                ? 'No completed tasks yet. Check off items as you finish them!'
-                : 'You have completed all assigned tasks. Outstanding job!'}
+            <p className="empty-state-box__body">
+              {myTasks.length === 0
+                ? 'Create your first task and it will appear here and on the board.'
+                : filter === 'overdue'
+                ? 'Nothing has slipped past its due date.'
+                : filter === 'due-today'
+                ? 'Nothing is due today. A good moment to pull work forward.'
+                : filter === 'completed'
+                ? 'Finished work will collect here as you check items off.'
+                : 'Nothing matches this filter right now.'}
             </p>
+            <div className="empty-state-box__actions">
+              <button type="button" className="overview-empty__action" onClick={onQuickCreate}>
+                Create task
+              </button>
+              {filter !== 'all' && (
+                <button
+                  type="button"
+                  className="overview-empty__action"
+                  onClick={() => onFilterChange('all')}
+                >
+                  Show all tasks
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

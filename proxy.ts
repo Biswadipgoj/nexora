@@ -1,20 +1,22 @@
 /**
- * Next.js middleware.
- * §13.2: Validates session on every request.
- * §12.1: First layer in the authorization chain.
+ * Next.js proxy (formerly the `middleware` file convention, renamed in Next 16).
+ *
+ * Validates the session on every request and forms the first layer of the
+ * authorization chain. Server-side checks in route handlers remain the
+ * authority — section 10, "Permission leakage".
  */
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   try {
     return await updateSession(request);
   } catch (error) {
-    console.error('[CRITICAL] Unhandled Next.js Middleware Exception caught safely:', error);
-    // Never allow an uncaught exception to crash Vercel Edge with MIDDLEWARE_INVOCATION_FAILED (500)
+    console.error('[CRITICAL] Unhandled Next.js proxy exception caught safely:', error);
+    // Never let an uncaught exception surface as a 500 from the edge runtime.
     const response = NextResponse.next({ request });
-    response.headers.set('X-Middleware-Fallback', 'recovered');
+    response.headers.set('X-Proxy-Fallback', 'recovered');
     return response;
   }
 }
@@ -22,12 +24,12 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (svg, png, jpg, etc.)
+     * Match every request path except:
+     * - _next/static and _next/image (framework assets)
+     * - the generated icon set and web manifest, which must stay reachable to
+     *   signed-out visitors and to the browser's install prompt
+     * - static image files in public/
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon.svg|apple-icon.png|manifest.webmanifest|robots.txt|sitemap.xml|.*\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)',
   ],
 };

@@ -133,9 +133,9 @@ export default function OnboardingPage() {
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="url(#spinnerGrad)" strokeWidth="2.5">
                 <defs>
                   <linearGradient id="spinnerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#4F46E5" />
-                    <stop offset="50%" stopColor="#7C3AED" />
-                    <stop offset="100%" stopColor="#EC4899" />
+                    <stop offset="0%" stopColor="var(--nx-violet)" />
+                    <stop offset="50%" stopColor="var(--nx-violet)" />
+                    <stop offset="100%" stopColor="var(--nx-violet)" />
                   </linearGradient>
                 </defs>
                 <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.07-5.07l-2.83 2.83M9.76 14.24l-2.83 2.83m11.14 0l-2.83-2.83M9.76 9.76L6.93 6.93" strokeLinecap="round"/>
@@ -204,11 +204,11 @@ export default function OnboardingPage() {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.18) 0px, transparent 45%),
-                      radial-gradient(at 90% 15%, rgba(236, 72, 153, 0.15) 0px, transparent 45%),
-                      radial-gradient(at 50% 92%, rgba(14, 165, 233, 0.16) 0px, transparent 50%),
+          background: radial-gradient(at 10% 12%, rgba(155, 140, 255, 0.18) 0px, transparent 45%),
+                      radial-gradient(at 90% 15%, rgba(155, 140, 255, 0.15) 0px, transparent 45%),
+                      radial-gradient(at 50% 92%, rgba(70, 215, 232, 0.16) 0px, transparent 50%),
                       radial-gradient(at 85% 85%, rgba(168, 85, 247, 0.12) 0px, transparent 45%),
-                      #F8FAFC;
+                      var(--nx-surface-2);
           padding: 24px;
         }
 
@@ -216,14 +216,14 @@ export default function OnboardingPage() {
           width: 100%;
           max-width: 480px;
           text-align: center;
-          background: rgba(255, 255, 255, 0.94);
+          background: var(--nx-surface-2);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(99, 102, 241, 0.2);
+          border: 1px solid rgba(155, 140, 255, 0.2);
           border-radius: 20px;
           padding: 44px 36px;
-          box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.18),
-                      0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+          box-shadow: 0 20px 40px -15px rgba(155, 140, 255, 0.18),
+                      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
         }
 
         .onboarding__logo {
@@ -235,8 +235,8 @@ export default function OnboardingPage() {
         .onboarding__logo-ring {
           padding: 3px;
           border-radius: 14px;
-          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
-          box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3);
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 50%, var(--nx-violet) 100%);
+          box-shadow: 0 6px 16px rgba(155, 140, 255, 0.3);
           display: inline-flex;
         }
 
@@ -244,27 +244,27 @@ export default function OnboardingPage() {
           border-radius: 11px;
           object-fit: cover;
           display: block;
-          background: #FFFFFF;
+          background: var(--nx-surface);
         }
 
         .onboarding__title {
           font-family: var(--font-display, inherit);
           font-size: 1.625rem;
           font-weight: 700;
-          color: #0F172A;
+          color: var(--nx-text);
           letter-spacing: -0.02em;
           margin-bottom: 8px;
         }
 
         .onboarding__brand-grad {
-          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #EC4899 100%);
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 50%, var(--nx-violet) 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           font-weight: 800;
         }
 
         .onboarding__subtitle {
-          color: #475467;
+          color: var(--nx-text-2);
           font-size: 0.9375rem;
           margin-bottom: 28px;
           line-height: 1.5;
@@ -287,45 +287,45 @@ export default function OnboardingPage() {
         .auth-form__label {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #1E293B;
+          color: var(--nx-text);
         }
 
         .auth-form__input {
           width: 100%;
           padding: 12px 16px;
-          border: 1px solid #CBD5E1;
+          border: 1px solid var(--nx-border);
           border-radius: 10px;
           font-size: 0.9375rem;
-          color: #0F172A;
-          background: #FFFFFF;
+          color: var(--nx-text);
+          background: var(--nx-surface);
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           box-sizing: border-box;
         }
 
         .auth-form__input:focus {
           outline: none;
-          border-color: #6366F1;
-          box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.2);
+          border-color: var(--nx-violet);
+          box-shadow: 0 0 0 3.5px rgba(155, 140, 255, 0.2);
         }
 
         .auth-form__submit {
           width: 100%;
           padding: 12px 20px;
-          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-          color: #FFFFFF;
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 100%);
+          color: var(--nx-on-accent);
           border: none;
           border-radius: 10px;
           font-size: 0.9375rem;
           font-weight: 600;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+          box-shadow: 0 4px 14px rgba(155, 140, 255, 0.35);
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
           margin-top: 6px;
         }
 
         .auth-form__submit:hover:not(:disabled) {
-          background: linear-gradient(135deg, #4338CA 0%, #6D28D9 100%);
-          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 100%);
+          box-shadow: 0 6px 20px rgba(155, 140, 255, 0.45);
           transform: translateY(-1px);
         }
 
@@ -334,8 +334,8 @@ export default function OnboardingPage() {
         }
 
         .auth-form__submit:disabled {
-          background: #E2E8F0;
-          color: #94A3B8;
+          background: var(--nx-border);
+          color: var(--nx-text-3);
           box-shadow: none;
           cursor: not-allowed;
           opacity: 0.7;
@@ -346,10 +346,10 @@ export default function OnboardingPage() {
           align-items: center;
           gap: 8px;
           padding: 12px 16px;
-          background: #FEF2F2;
-          border: 1px solid #FECACA;
+          background: var(--nx-red-soft);
+          border: 1px solid var(--nx-red-line);
           border-radius: 10px;
-          color: #DC2626;
+          color: var(--nx-red);
           font-size: 0.875rem;
           margin-bottom: 16px;
         }
@@ -357,12 +357,12 @@ export default function OnboardingPage() {
         .onboarding__slug {
           display: block;
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--nx-text-3);
           margin-top: 6px;
         }
 
         .onboarding__slug strong {
-          color: #4F46E5;
+          color: var(--nx-violet);
           font-weight: 600;
         }
 
@@ -377,11 +377,11 @@ export default function OnboardingPage() {
         .onboarding__creating h2 {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #0F172A;
+          color: var(--nx-text);
         }
 
         .onboarding__creating p {
-          color: #64748B;
+          color: var(--nx-text-3);
           font-size: 0.875rem;
         }
 

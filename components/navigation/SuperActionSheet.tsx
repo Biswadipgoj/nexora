@@ -38,7 +38,7 @@ export function SuperActionSheet({
             style={{
               position: 'fixed',
               inset: 0,
-              backgroundColor: 'rgba(15, 23, 42, 0.45)',
+              backgroundColor: 'rgba(0, 0, 0, 0.50)',
               backdropFilter: 'blur(8px)',
               WebkitBackdropFilter: 'blur(8px)',
               zIndex: 1000,
@@ -58,13 +58,13 @@ export function SuperActionSheet({
               left: 0,
               right: 0,
               maxHeight: '85vh',
-              background: '#FFFFFF',
+              background: 'var(--nx-surface)',
               borderTopLeftRadius: 28,
               borderTopRightRadius: 28,
               padding: '20px 20px calc(28px + env(safe-area-inset-bottom, 20px))',
               zIndex: 1001,
-              boxShadow: '0 -10px 40px rgba(79, 70, 229, 0.2)',
-              borderTop: '1px solid rgba(226, 232, 240, 0.8)',
+              boxShadow: '0 -10px 40px rgba(155, 140, 255, 0.2)',
+              borderTop: '1px solid var(--nx-border)',
             }}
           >
             {/* Grabber handle */}
@@ -72,7 +72,7 @@ export function SuperActionSheet({
               style={{
                 width: 40,
                 height: 4,
-                backgroundColor: '#CBD5E1',
+                backgroundColor: 'var(--nx-border)',
                 borderRadius: 999,
                 margin: '0 auto 16px',
               }}
@@ -93,16 +93,16 @@ export function SuperActionSheet({
                     width: 28,
                     height: 28,
                     borderRadius: 8,
-                    background: 'linear-gradient(135deg, #4F46E5, #7C3AED)',
+                    background: 'linear-gradient(135deg, var(--nx-violet), var(--nx-violet))',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    color: '#FFFFFF',
+                    color: 'var(--nx-on-accent)',
                   }}
                 >
                   <BoltRoundedIcon sx={{ fontSize: 18 }} />
                 </div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F172A', margin: 0 }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--nx-text)', margin: 0 }}>
                   Quick Actions
                 </h3>
               </div>
@@ -113,12 +113,12 @@ export function SuperActionSheet({
                   width: 32,
                   height: 32,
                   borderRadius: '50%',
-                  background: '#F1F5F9',
+                  background: 'var(--nx-surface-2)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   border: 'none',
-                  color: '#64748B',
+                  color: 'var(--nx-text-3)',
                   cursor: 'pointer',
                 }}
               >
@@ -148,11 +148,11 @@ export function SuperActionSheet({
                   alignItems: 'flex-start',
                   padding: '16px',
                   borderRadius: 16,
-                  border: '1.5px solid rgba(99, 102, 241, 0.2)',
-                  background: 'linear-gradient(135deg, #EEF2FF, #FFFFFF)',
+                  border: '1.5px solid rgba(155, 140, 255, 0.2)',
+                  background: 'linear-gradient(145deg, var(--nx-surface-2), var(--nx-surface))',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.08)',
+                  boxShadow: '0 4px 12px rgba(155, 140, 255, 0.08)',
                 }}
               >
                 <div
@@ -160,21 +160,21 @@ export function SuperActionSheet({
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: '#4F46E5',
-                    color: '#FFFFFF',
+                    backgroundColor: 'var(--nx-violet)',
+                    color: 'var(--nx-on-accent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    boxShadow: '0 4px 10px rgba(79, 70, 229, 0.3)',
+                    boxShadow: '0 4px 10px rgba(155, 140, 255, 0.3)',
                   }}
                 >
                   <AddTaskRoundedIcon sx={{ fontSize: 20 }} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--nx-text)' }}>
                   Create Task
                 </span>
-                <span style={{ fontSize: '0.725rem', color: '#64748B', marginTop: 2 }}>
+                <span style={{ fontSize: '0.725rem', color: 'var(--nx-text-3)', marginTop: 2 }}>
                   Assign to team or guest
                 </span>
               </motion.button>
@@ -193,11 +193,11 @@ export function SuperActionSheet({
                   alignItems: 'flex-start',
                   padding: '16px',
                   borderRadius: 16,
-                  border: '1.5px solid rgba(236, 72, 153, 0.2)',
-                  background: 'linear-gradient(135deg, #FDF2F8, #FFFFFF)',
+                  border: '1.5px solid rgba(155, 140, 255, 0.2)',
+                  background: 'linear-gradient(145deg, var(--nx-violet-soft), var(--nx-surface))',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  boxShadow: '0 4px 12px rgba(236, 72, 153, 0.08)',
+                  boxShadow: '0 4px 12px rgba(155, 140, 255, 0.08)',
                 }}
               >
                 <div
@@ -205,21 +205,21 @@ export function SuperActionSheet({
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: '#EC4899',
-                    color: '#FFFFFF',
+                    backgroundColor: 'var(--nx-violet)',
+                    color: 'var(--nx-on-accent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    boxShadow: '0 4px 10px rgba(236, 72, 153, 0.3)',
+                    boxShadow: '0 4px 10px rgba(155, 140, 255, 0.3)',
                   }}
                 >
                   <ShareRoundedIcon sx={{ fontSize: 20 }} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--nx-text)' }}>
                   Share Project
                 </span>
-                <span style={{ fontSize: '0.725rem', color: '#64748B', marginTop: 2 }}>
+                <span style={{ fontSize: '0.725rem', color: 'var(--nx-text-3)', marginTop: 2 }}>
                   Invite guests & short link
                 </span>
               </motion.button>
@@ -242,11 +242,11 @@ export function SuperActionSheet({
                   alignItems: 'flex-start',
                   padding: '16px',
                   borderRadius: 16,
-                  border: '1.5px solid rgba(14, 165, 233, 0.2)',
-                  background: 'linear-gradient(135deg, #F0F9FF, #FFFFFF)',
+                  border: '1.5px solid rgba(70, 215, 232, 0.2)',
+                  background: 'linear-gradient(145deg, var(--nx-cyan-soft), var(--nx-surface))',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  boxShadow: '0 4px 12px rgba(14, 165, 233, 0.08)',
+                  boxShadow: '0 4px 12px rgba(70, 215, 232, 0.08)',
                 }}
               >
                 <div
@@ -254,21 +254,21 @@ export function SuperActionSheet({
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: '#0EA5E9',
-                    color: '#FFFFFF',
+                    backgroundColor: 'var(--nx-cyan)',
+                    color: 'var(--nx-on-accent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    boxShadow: '0 4px 10px rgba(14, 165, 233, 0.3)',
+                    boxShadow: '0 4px 10px rgba(70, 215, 232, 0.3)',
                   }}
                 >
                   <ViewKanbanRoundedIcon sx={{ fontSize: 20 }} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--nx-text)' }}>
                   Kanban Board
                 </span>
-                <span style={{ fontSize: '0.725rem', color: '#64748B', marginTop: 2 }}>
+                <span style={{ fontSize: '0.725rem', color: 'var(--nx-text-3)', marginTop: 2 }}>
                   Interactive agile swimlanes
                 </span>
               </motion.button>
@@ -287,11 +287,11 @@ export function SuperActionSheet({
                   alignItems: 'flex-start',
                   padding: '16px',
                   borderRadius: 16,
-                  border: '1.5px solid rgba(239, 68, 68, 0.2)',
-                  background: 'linear-gradient(135deg, #FEF2F2, #FFFFFF)',
+                  border: '1.5px solid rgba(255, 113, 133, 0.2)',
+                  background: 'linear-gradient(145deg, var(--nx-red-soft), var(--nx-surface))',
                   cursor: 'pointer',
                   textAlign: 'left',
-                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.08)',
+                  boxShadow: '0 4px 12px rgba(255, 113, 133, 0.08)',
                 }}
               >
                 <div
@@ -299,21 +299,21 @@ export function SuperActionSheet({
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: '#EF4444',
-                    color: '#FFFFFF',
+                    backgroundColor: 'var(--nx-red)',
+                    color: 'var(--nx-on-accent)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     marginBottom: 10,
-                    boxShadow: '0 4px 10px rgba(239, 68, 68, 0.3)',
+                    boxShadow: '0 4px 10px rgba(255, 113, 133, 0.3)',
                   }}
                 >
                   <BugReportRoundedIcon sx={{ fontSize: 20 }} />
                 </div>
-                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F172A' }}>
+                <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--nx-text)' }}>
                   Log Bug
                 </span>
-                <span style={{ fontSize: '0.725rem', color: '#64748B', marginTop: 2 }}>
+                <span style={{ fontSize: '0.725rem', color: 'var(--nx-text-3)', marginTop: 2 }}>
                   Urgent triage priority
                 </span>
               </motion.button>

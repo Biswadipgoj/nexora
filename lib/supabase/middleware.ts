@@ -11,6 +11,15 @@ import { checkRateLimit, RATE_LIMITS, rateLimitHeaders } from '@/lib/security/ra
 import { logger } from '@/lib/logger';
 
 const AUTH_ROUTES = ['/auth/login', '/auth/signup', '/auth/forgot-password'];
+
+/** Shared attributes so the demo cookie is cleared with the same scope it was set with. */
+const DEMO_COOKIE = {
+  name: 'nexora_demo_session',
+  path: '/',
+  httpOnly: false,
+  sameSite: 'lax',
+  secure: process.env.NODE_ENV === 'production',
+} as const;
 const PUBLIC_ROUTES = [
   '/',
   '/auth/login',
@@ -31,28 +40,32 @@ export async function updateSession(request: NextRequest) {
     : `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 
   const isDemo = request.cookies.get('nexora_demo_session')?.value === 'true';
+  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route));
 
-  // Handle explicit logout query in demo mode
+  // Handle explicit demo exit
   if (isDemo && pathname.startsWith('/auth/login') && request.nextUrl.searchParams.get('logout') === 'true') {
     const response = NextResponse.next({ request });
-    response.cookies.set({
-      name: 'nexora_demo_session',
-      value: '',
-      path: '/',
-      maxAge: 0,
-    });
+    response.cookies.set({ ...DEMO_COOKIE, value: '', maxAge: 0 });
     return response;
   }
 
-  // If in demo mode and hitting auth routes, redirect to dashboard
-  if (isDemo && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
-  }
+  // A demo session must never block the sign-in routes.
+  //
+  // This previously redirected every /auth/* request to /dashboard, so a single
+  // click on "Explore the demo workspace" set a seven-day cookie that made
+  // signing in unreachable from the UI — the only escape was an undocumented
+  // ?logout=true parameter. Section 3.5 counts unexpected navigation as an
+  // unresolved defect, and section 10 requires every route to offer a useful
+  // recovery path. Demo visitors now fall through to the normal auth handling
+  // below, which renders the page and lets a real session supersede the demo.
+  // A real Supabase session always outranks the demo cookie. Without this a
+  // user who signed in while the demo cookie was still set would keep landing
+  // in the sample workspace instead of their own.
+  const hasSupabaseSession = request.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith('sb-') && cookie.name.includes('auth-token'));
 
-  // If in demo mode and accessing protected routes, allow through
-  if (isDemo) {
+  if (isDemo && !isAuthRoute && !hasSupabaseSession) {
     const response = NextResponse.next({ request });
     response.headers.set('X-Request-ID', requestId);
     response.headers.set('X-Nexora-Mode', 'demo');
@@ -166,10 +179,27 @@ export async function updateSession(request: NextRequest) {
   }
 
   // === Redirect authenticated users away from auth pages ===
-  if (user && AUTH_ROUTES.some((route) => pathname.startsWith(route))) {
+  if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
-    return NextResponse.redirect(url);
+    const redirect = NextResponse.redirect(url);
+    // A real session supersedes a leftover demo session, so the user lands in
+    // their own workspace rather than the sample data.
+    if (isDemo) redirect.cookies.set({ ...DEMO_COOKIE, value: '', maxAge: 0 });
+    return redirect;
+  }
+
+  // A verified session retires the demo cookie, so the two can never disagree
+  // about which workspace the user is looking at (section 3.4).
+  if (user && isDemo) {
+    supabaseResponse.cookies.set({ ...DEMO_COOKIE, value: '', maxAge: 0 });
+  }
+
+  // A demo visitor who reaches a protected route still needs the sample
+  // workspace: they have no real session, but they are not signed out either.
+  if (!user && isDemo && !isPublicRoute) {
+    supabaseResponse.headers.set('X-Nexora-Mode', 'demo');
+    return supabaseResponse;
   }
 
   // === Protected routes — redirect to login if not authenticated ===

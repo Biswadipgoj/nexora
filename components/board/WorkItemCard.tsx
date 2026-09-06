@@ -38,11 +38,11 @@ export interface WorkItemCardProps {
 }
 
 const PRIORITY_DATA: Record<number, { label: string; class: string; glow: string; color: string }> = {
-  4: { label: 'Urgent', class: 'badge-priority--urgent', glow: 'rgba(244, 63, 94, 0.4)', color: '#f43f5e' },
-  3: { label: 'High', class: 'badge-priority--high', glow: 'rgba(245, 158, 11, 0.4)', color: '#f59e0b' },
-  2: { label: 'Medium', class: 'badge-priority--medium', glow: 'rgba(234, 179, 8, 0.4)', color: '#eab308' },
-  1: { label: 'Low', class: 'badge-priority--low', glow: 'rgba(6, 182, 212, 0.4)', color: '#06b6d4' },
-  0: { label: 'None', class: 'badge-priority--low', glow: 'rgba(148, 163, 184, 0.2)', color: '#94a3b8' },
+  4: { label: 'Urgent', class: 'badge-priority--urgent', glow: 'rgba(255, 113, 133, 0.4)', color: 'var(--nx-red)' },
+  3: { label: 'High', class: 'badge-priority--high', glow: 'rgba(241, 184, 106, 0.4)', color: 'var(--nx-amber)' },
+  2: { label: 'Medium', class: 'badge-priority--medium', glow: 'rgba(241, 184, 106, 0.4)', color: 'var(--nx-amber)' },
+  1: { label: 'Low', class: 'badge-priority--low', glow: 'rgba(70, 215, 232, 0.4)', color: 'var(--nx-cyan)' },
+  0: { label: 'None', class: 'badge-priority--low', glow: 'rgba(148, 163, 184, 0.2)', color: 'var(--nx-text-3)' },
 };
 
 export function WorkItemCard({
@@ -55,7 +55,7 @@ export function WorkItemCard({
   typeName = 'Task',
   storyPoints,
   epicName,
-  epicColor = '#8B5CF6',
+  epicColor = 'var(--nx-violet)',
   assignees,
   onClick,
   onStatusChange,
@@ -116,6 +116,12 @@ export function WorkItemCard({
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
+      /* Section 5.5: "Hover can reveal secondary actions; keyboard focus must
+         reveal them as well." */
+      onFocus={() => setIsHovered(true)}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) handleMouseLeave();
+      }}
       style={{
         perspective: 1000,
         rotateX,
@@ -128,12 +134,31 @@ export function WorkItemCard({
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
+        // Only when the card itself holds focus, so the controls nested inside
+        // it keep their own key handling.
+        if (e.target !== e.currentTarget) return;
+
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onClick?.();
+          return;
+        }
+
+        /* Section 9: the board "must support keyboard navigation, card
+           activation, drawer closing, and status movement without requiring
+           drag and drop. Pointer drag is an enhancement, not the only
+           interaction." Left and right step through the status columns. */
+        if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && onStatusChange && availableStatuses.length > 1) {
+          const current = availableStatuses.findIndex((s) => s.id === statusId);
+          if (current === -1) return;
+          const next = current + (e.key === 'ArrowRight' ? 1 : -1);
+          if (next < 0 || next >= availableStatuses.length) return;
+          e.preventDefault();
+          onStatusChange(availableStatuses[next].id);
         }
       }}
-      aria-label={`${projectKey}-${sequence}: ${title}`}
+      aria-label={`${projectKey}-${sequence}: ${title}. Use left and right arrow keys to change status.`}
+      aria-roledescription="Work item card"
     >
       {/* Dynamic 3D Specular Glare Layer */}
       <motion.div
@@ -154,7 +179,7 @@ export function WorkItemCard({
             title={isDone ? 'Mark as Incomplete' : 'Mark as Done'}
             aria-label="Toggle completed"
           >
-            {isDone && <CheckRoundedIcon sx={{ fontSize: 12, color: '#FFFFFF' }} />}
+            {isDone && <CheckRoundedIcon sx={{ fontSize: 12, color: 'var(--nx-on-accent)' }} />}
           </button>
 
           {/* Issue Key */}
@@ -251,7 +276,7 @@ export function WorkItemCard({
                 <Tooltip key={`${a.name}-${idx}`} title={`Assignee: ${a.name}`} arrow>
                   <Avatar
                     src={a.avatar}
-                    sx={{ bgcolor: 'var(--color-primary)', color: '#fff', fontWeight: 'bold' }}
+                    sx={{ bgcolor: 'var(--color-primary)', color: 'var(--nx-on-accent)', fontWeight: 'bold' }}
                     alt={a.name}
                   >
                     {!a.avatar ? a.name.charAt(0) : ''}
@@ -320,9 +345,9 @@ export function WorkItemCard({
           position: relative;
           user-select: none;
           border-radius: 14px;
-          background: rgba(255, 255, 255, 0.65);
-          border: 1px solid rgba(255, 255, 255, 0.85);
-          box-shadow: 0 4px 14px -1px rgba(20, 15, 60, 0.12), inset 0 1px 0 0 #ffffff;
+          background: var(--nx-surface);
+          border: 1px solid var(--nx-border);
+          box-shadow: 0 4px 14px -1px rgba(0, 0, 0, 0.31), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
           backdrop-filter: blur(24px) saturate(220%) brightness(106%);
           -webkit-backdrop-filter: blur(24px) saturate(220%) brightness(106%);
           overflow: hidden;
@@ -330,9 +355,9 @@ export function WorkItemCard({
         }
 
         .card-container--hovered {
-          border-color: #ffffff;
-          background: rgba(255, 255, 255, 0.88);
-          box-shadow: 0 16px 36px -4px rgba(20, 15, 60, 0.2), 0 0 24px rgba(109, 40, 217, 0.25), inset 0 1.5px 0 0 #ffffff;
+          border-color: var(--nx-border-strong);
+          background: var(--nx-surface-2);
+          box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.50), 0 0 24px rgba(155, 140, 255, 0.25), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.05);
         }
 
         .card-glare {
@@ -364,8 +389,8 @@ export function WorkItemCard({
           width: 16px;
           height: 16px;
           border-radius: 4px;
-          border: 1.5px solid rgba(20, 15, 60, 0.25);
-          background: rgba(255, 255, 255, 0.6);
+          border: 1.5px solid rgba(0, 0, 0, 0.50);
+          background: var(--nx-surface);
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -396,7 +421,7 @@ export function WorkItemCard({
         }
 
         .card-key-btn:hover {
-          background: rgba(255, 255, 255, 0.6);
+          background: var(--nx-surface);
         }
 
         .card-key {
@@ -458,7 +483,7 @@ export function WorkItemCard({
           align-items: center;
           justify-content: space-between;
           padding-top: 8px;
-          border-top: 1px solid rgba(20, 15, 60, 0.08);
+          border-top: 1px solid rgba(0, 0, 0, 0.21);
         }
 
         .card-footer__left {
@@ -497,7 +522,7 @@ export function WorkItemCard({
 
         .card-points {
           font-family: var(--font-mono);
-          color: #0284c7;
+          color: var(--nx-cyan);
           font-weight: 800;
           display: inline-flex;
           align-items: center;

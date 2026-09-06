@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@/lib/supabase/server';
 import { workItemSchemas } from '@/lib/validation/workspace';
 import { workItemQueries } from '@/lib/db/work-items';
+import { UUID_REGEX, resolveStatusForItem, resolveTypeId } from '@/lib/db/reference-ids';
 import {
   getDemoWorkItem,
   updateDemoWorkItem,
@@ -76,17 +77,57 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const updated = await workItemQueries.update(supabase, id, validated);
+    /**
+     * Build the column patch.
+     *
+     * Three things had to be fixed here, each of which turned a legitimate edit
+     * into a silent 400 (section 3.4 — the user must know whether a change was
+     * saved or rejected):
+     *
+     * 1. `assignees`, `assignee_ids` and `comments` are accepted by the schema
+     *    but are NOT columns on `work_items`. Passing them straight through
+     *    made PostgREST reject the whole update.
+     * 2. `status_id` and `type_id` arrive as built-in slugs whenever the board
+     *    falls back to its defaults, but the columns are uuid FKs. POST already
+     *    resolved slugs to real ids; PATCH did not, so every status move on a
+     *    real project failed.
+     * 3. The drawer sends `description` as plain text; storage expects a delta.
+     */
+    const { description, assignees, assignee_ids, comments, ...columns } = validated;
 
-    // Record activity event
-    await supabase.from('activity_events').insert({
-      workspace_id: updated.workspace_id,
-      entity_type: 'work_item',
-      entity_id: updated.id,
-      actor_id: user.id,
-      action: 'updated',
-      changes: validated,
-    });
+    const patch: Record<string, unknown> = { ...columns };
+
+    if (description !== undefined) {
+      patch.description =
+        typeof description === 'string' ? { ops: [{ insert: `${description}\n` }] } : description;
+    }
+
+    if (patch.status_id && !UUID_REGEX.test(String(patch.status_id))) {
+      patch.status_id = await resolveStatusForItem(supabase, id, String(patch.status_id));
+    }
+
+    if (patch.type_id && !UUID_REGEX.test(String(patch.type_id))) {
+      patch.type_id = await resolveTypeId(supabase, String(patch.type_id));
+    }
+
+    // A slug that matched nothing must not be written into a uuid column.
+    if (patch.status_id && !UUID_REGEX.test(String(patch.status_id))) delete patch.status_id;
+    if (patch.type_id && !UUID_REGEX.test(String(patch.type_id))) delete patch.type_id;
+
+    const updated = await workItemQueries.update(supabase, id, patch);
+
+    // Best effort. An activity-log failure previously propagated and turned a
+    // successful update into a 400.
+    try {
+      await supabase.from('activity_events').insert({
+        workspace_id: updated.workspace_id,
+        entity_type: 'work_item',
+        entity_id: updated.id,
+        actor_id: user.id,
+        action: 'updated',
+        changes: columns,
+      });
+    } catch {}
 
     return NextResponse.json({ item: updated });
   } catch (err: unknown) {

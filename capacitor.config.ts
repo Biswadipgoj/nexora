@@ -11,7 +11,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'com.nexora.app',
-  appName: 'NEXORA',
+  appName: 'Nexora',
   webDir: 'public',
   server: {
     androidScheme: 'https',
@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
     // url: 'http://10.0.2.2:3000',
   },
   android: {
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#080B12',
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: process.env.NODE_ENV !== 'production',
@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 800,
       launchAutoHide: true,
-      backgroundColor: '#F8FAFC',
+      backgroundColor: '#080B12',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,

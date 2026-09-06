@@ -1,91 +1,114 @@
-/* styles/prismatic-aurora.css — Executive Luminous Platinum & Royal Sapphire Design Tokens */
+/* ============================================================================
+   NEXORA — Aurora compatibility layer
+
+   The canonical system lives in styles/nexora-tokens.css. This file no longer
+   defines a palette of its own: it maps the legacy "Executive Luminous
+   Platinum" token names onto the obsidian dark tokens so existing component
+   styles resolve correctly while they are migrated.
+
+   Section 4.1: "Existing tokens in styles/prismatic-aurora.css,
+   styles/prismatic-components.css, and components/dashboard/dashboard.css
+   should be mapped to these semantic names rather than used directly inside
+   components."
+
+   Do not add new colour values here. Add them to nexora-tokens.css and
+   consume the --nx-* name directly.
+   ========================================================================= */
+
 :root {
-  /* Executive Luminous Platinum Canvas (STRICTLY non-dark, strictly non-pure-white, luxury tech atmosphere) */
-  --canvas-bg: #dbe4f2;
-  --canvas-surface: rgba(255, 255, 255, 0.72);
-  --canvas-gradient: radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.22) 0%, transparent 55%),
-                     radial-gradient(circle at 85% 15%, rgba(79, 70, 229, 0.20) 0%, transparent 50%),
-                     radial-gradient(circle at 50% 85%, rgba(2, 132, 199, 0.18) 0%, transparent 55%),
-                     radial-gradient(circle at 80% 80%, rgba(99, 102, 241, 0.16) 0%, transparent 50%),
-                     linear-gradient(135deg, #dbe4f3 0%, #e2eaf6 50%, #d4e0f1 100%);
+  /* ---- Canvas ---------------------------------------------------------- */
+  --canvas-bg: var(--nx-bg);
+  --canvas-surface: var(--nx-surface);
 
-  /* Crystalline Frosted 3D Quartz Surfaces (Executive, Refractive, Luminous) */
-  --surface-primary: rgba(255, 255, 255, 0.76);
-  --surface-elevated: rgba(255, 255, 255, 0.88);
-  --surface-hover: rgba(255, 255, 255, 0.96);
-  --surface-modal: rgba(255, 255, 255, 0.94);
-  --surface-glass: rgba(255, 255, 255, 0.60);
+  /* The aurora is an accent, not a backdrop for work content (section 2).
+     Kept at low opacity so it reads as depth rather than decoration. */
+  --canvas-gradient:
+    radial-gradient(circle at 12% 8%, rgba(110, 168, 255, 0.10) 0%, transparent 52%),
+    radial-gradient(circle at 88% 12%, rgba(155, 140, 255, 0.09) 0%, transparent 48%),
+    radial-gradient(circle at 50% 92%, rgba(70, 215, 232, 0.06) 0%, transparent 55%);
 
-  /* 3D Specular Rims & Precision Bevels */
-  --border-rim: 1px solid rgba(255, 255, 255, 0.85);
-  --border-rim-highlight: inset 0 1.5px 0 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 0 rgba(15, 23, 42, 0.05);
-  --border-subtle: 1px solid rgba(255, 255, 255, 0.65);
+  /* ---- Surfaces -------------------------------------------------------- */
+  --surface-primary: var(--nx-surface);
+  --surface-elevated: var(--nx-surface-2);
+  --surface-hover: var(--nx-surface-2);
+  --surface-modal: var(--nx-surface-3);
+  --surface-glass: rgba(18, 26, 39, 0.72);
 
-  /* Executive Semantic Accents */
-  --aurora-iris: #4f46e5;
-  --aurora-aqua: #0284c7;
-  --aurora-amber: #d97706;
-  --aurora-rose: #dc2626;
-  --aurora-jade: #059669;
+  /* ---- Borders and rims ------------------------------------------------ */
+  /* Section 4.2: avoid white glass borders; they create a light-theme
+     appearance and reduce the premium dark feel. */
+  --border-rim: 1px solid var(--nx-border);
+  --border-rim-highlight: var(--nx-rim);
+  --border-subtle: 1px solid var(--nx-border);
 
-  /* Typography (High-Contrast Obsidian Midnight Slate, 100% WCAG AAA readability) */
-  --text-main: #0f172a;
-  --text-muted: #334155;
-  --text-subtle: #64748b;
+  /* ---- Semantic accents ------------------------------------------------ */
+  --aurora-iris: var(--nx-violet);
+  --aurora-aqua: var(--nx-cyan);
+  --aurora-amber: var(--nx-amber);
+  --aurora-rose: var(--nx-red);
+  --aurora-jade: var(--nx-green);
 
-  /* 3D Elevation Shadows with Subtle Sapphire Penumbras */
-  --shadow-sm: 0 2px 8px -1px rgba(15, 23, 42, 0.08), 0 0 12px rgba(37, 99, 235, 0.06), inset 0 1px 0 0 #ffffff;
-  --shadow-md: 0 10px 25px -3px rgba(15, 23, 42, 0.09), 0 0 20px rgba(37, 99, 235, 0.10), inset 0 1.5px 0 0 #ffffff;
-  --shadow-lg: 0 20px 40px -6px rgba(15, 23, 42, 0.12), 0 0 28px rgba(79, 70, 229, 0.14), inset 0 1.5px 0 0 #ffffff;
-  --shadow-lifted: 0 24px 48px -6px rgba(15, 23, 42, 0.16), 0 0 32px rgba(37, 99, 235, 0.22), inset 0 1.5px 0 0 #ffffff;
+  /* ---- Typography ------------------------------------------------------ */
+  --text-main: var(--nx-text);
+  --text-muted: var(--nx-text-2);
+  --text-subtle: var(--nx-text-3);
 
-  /* Subtle Executive Glow Halos */
-  --glow-iris: 0 0 20px rgba(79, 70, 229, 0.25);
-  --glow-aqua: 0 0 20px rgba(2, 132, 199, 0.25);
-  --glow-amber: 0 0 20px rgba(217, 119, 6, 0.25);
-  --glow-rose: 0 0 20px rgba(220, 38, 38, 0.25);
-  --glow-jade: 0 0 20px rgba(5, 150, 105, 0.25);
+  /* ---- Elevation ------------------------------------------------------- */
+  --shadow-sm: var(--nx-elevation-1);
+  --shadow-md: var(--nx-elevation-2);
+  --shadow-lg: var(--nx-elevation-3);
+  --shadow-lifted: var(--nx-shadow-lg), var(--nx-shadow-xl), var(--nx-rim-strong);
+
+  /* ---- Glow halos ------------------------------------------------------ */
+  --glow-iris: 0 0 20px rgba(155, 140, 255, 0.22);
+  --glow-aqua: 0 0 20px rgba(70, 215, 232, 0.22);
+  --glow-amber: 0 0 20px rgba(241, 184, 106, 0.22);
+  --glow-rose: 0 0 20px rgba(255, 113, 133, 0.22);
+  --glow-jade: 0 0 20px rgba(87, 211, 154, 0.22);
 }
 
-/* Global 3D Immersive Body Canvas */
+/* Application canvas. Flat and dark; the aurora sits above it as a fixed,
+   non-scrolling accent layer rather than a tiled background image. */
 body {
-  background: var(--canvas-gradient) !important;
-  background-color: var(--canvas-bg) !important;
-  background-attachment: fixed !important;
-  color: var(--text-main) !important;
+  background-color: var(--nx-bg);
+  background-image: var(--canvas-gradient);
+  background-attachment: fixed;
+  color: var(--nx-text);
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--nx-font-sans);
 }
 
-/* Tactile 3D Glass Panel Utility */
+/* ---- Legacy utility classes, restated on the dark system ---------------- */
+
 .prismatic-panel {
-  background: var(--surface-elevated);
-  backdrop-filter: blur(28px) saturate(180%);
-  -webkit-backdrop-filter: blur(28px) saturate(180%);
-  border: var(--border-rim);
-  box-shadow: var(--shadow-md), var(--border-rim-highlight);
-  border-radius: 1.25rem;
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  box-shadow: var(--nx-elevation-2);
+  border-radius: var(--nx-radius-panel);
 }
 
 .prismatic-card {
-  background: var(--surface-primary);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: var(--border-rim);
-  box-shadow: var(--shadow-sm), var(--border-rim-highlight);
-  border-radius: 1rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  box-shadow: var(--nx-elevation-1);
+  border-radius: var(--nx-radius-card);
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover),
+    box-shadow var(--nx-t-hover), transform var(--nx-t-hover);
 }
 
 .prismatic-card:hover {
-  background: var(--surface-hover);
-  box-shadow: var(--shadow-lifted), var(--border-rim-highlight);
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border-strong);
+  box-shadow: var(--nx-elevation-2);
   transform: translateY(-2px);
 }
 
-/* Executive Gradient Text */
+/* Product identity accent. Used for the wordmark and hero statements only —
+   never for body copy or interface labels. */
 .text-prismatic {
-  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #4f46e5 100%);
+  background: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: var(--nx-blue);
 }

@@ -18,7 +18,7 @@ interface SparkleParticle {
   scale: number;
 }
 
-const SPARKLE_COLORS = ['#2563eb', '#4f46e5', '#059669', '#d97706', '#dc2626', '#8b5cf6'];
+const SPARKLE_COLORS = ['var(--nx-blue)', 'var(--nx-violet)', 'var(--nx-green)', 'var(--nx-amber)', 'var(--nx-red)', 'var(--nx-violet)'];
 
 export function CreatorBadge({ className = '', size = 'md' }: CreatorBadgeProps) {
   const [isBursting, setIsBursting] = useState(false);
@@ -94,7 +94,7 @@ export function CreatorBadge({ className = '', size = 'md' }: CreatorBadgeProps)
         whileHover={{
           scale: 1.05,
           y: -2,
-          boxShadow: '0 8px 24px rgba(37, 99, 235, 0.22), inset 0 1.5px 0 #ffffff',
+          boxShadow: '0 8px 24px rgba(110, 168, 255, 0.22), inset 0 1.5px 0 rgba(255, 255, 255, 0.05)',
         }}
         whileTap={{ scale: 0.94 }}
         animate={
@@ -119,13 +119,13 @@ export function CreatorBadge({ className = '', size = 'md' }: CreatorBadgeProps)
               animate={{ scale: 1, opacity: 1 }}
               className="creator-badge-launching"
             >
-              <RocketLaunchRoundedIcon sx={{ fontSize: 16, color: '#2563eb' }} />
+              <RocketLaunchRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-blue)' }} />
               <span className="creator-launch-text">Teleporting to biswadip.in...</span>
             </motion.div>
           ) : (
             <>
               <span className="creator-sparkle-icon">
-                <AutoAwesomeRoundedIcon sx={{ fontSize: 15, color: '#4f46e5' }} />
+                <AutoAwesomeRoundedIcon sx={{ fontSize: 15, color: 'var(--nx-violet)' }} />
               </span>
 
               <span className="creator-prefix">Crafted with precision by</span>

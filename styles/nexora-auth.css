@@ -1,0 +1,313 @@
+/* ============================================================================
+   NEXORA — Authentication shell
+   Master Design Document, section 6.2.
+   ========================================================================= */
+
+.auth-root {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  /* "a nearly black canvas" — one step below the application canvas so the
+     panel reads as the only lit object on screen. */
+  background: #05070C;
+  padding: 40px 20px calc(40px + var(--nx-safe-bottom));
+  overflow: hidden;
+}
+
+/* One soft radial light, sitting behind the brand mark. */
+.auth-light {
+  position: absolute;
+  top: -180px;
+  left: 50%;
+  width: min(760px, 140vw);
+  height: 620px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(110, 168, 255, 0.16) 0%,
+    rgba(155, 140, 255, 0.08) 38%,
+    transparent 70%
+  );
+}
+
+.auth-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  /* Section 6.2: "Keep the form width between 360 and 440 px." */
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: var(--nx-radius-control);
+}
+
+.auth-brand__name {
+  font-family: var(--nx-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nx-text);
+  line-height: 1;
+}
+
+.auth-panel {
+  width: 100%;
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-panel);
+  box-shadow: var(--nx-elevation-3), var(--nx-shadow-xl);
+  padding: 32px 28px;
+}
+
+@media (max-width: 420px) {
+  .auth-panel {
+    padding: 26px 20px;
+  }
+}
+
+.auth-legal {
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+  text-align: center;
+  line-height: 1.5;
+  max-width: 340px;
+}
+
+/* ---- Panel contents, shared by sign in, sign up and recovery ------------- */
+
+.auth-heading {
+  font-family: var(--nx-font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nx-text);
+  margin-bottom: 6px;
+}
+
+.auth-subheading {
+  font-size: 0.875rem;
+  color: var(--nx-text-2);
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+.auth-oauth-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--nx-border);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-recovery-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+}
+
+.auth-link {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--nx-blue);
+  border-radius: 4px;
+  transition: color var(--nx-t-hover);
+}
+
+.auth-link:hover {
+  color: var(--nx-text);
+}
+
+.auth-link--bold {
+  font-weight: 600;
+}
+
+.auth-footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--nx-text-2);
+}
+
+/* Demo entry sits last in the panel (section 6.2). */
+.auth-demo {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--nx-border);
+  text-align: center;
+}
+
+.auth-demo__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-control);
+  padding: 9px 14px;
+  color: var(--nx-text-2);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover),
+    color var(--nx-t-hover);
+}
+
+.auth-demo__btn:hover:not(:disabled) {
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border-strong);
+  color: var(--nx-text);
+}
+
+.auth-demo__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.auth-demo__hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+/* ============================================================================
+   Status pages — not found, unhandled error.
+   Section 10: every route produces a useful recovery path.
+   ========================================================================= */
+.nx-status-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 4px;
+  padding: 48px 24px calc(48px + var(--nx-safe-bottom));
+  background: var(--nx-bg);
+}
+
+.nx-status-page__eyebrow {
+  margin-top: 24px;
+  font: var(--nx-text-key);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--nx-text-3);
+}
+
+.nx-status-page__title {
+  font-family: var(--nx-font-display);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nx-text);
+  margin: 6px 0 10px;
+}
+
+.nx-status-page__body {
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--nx-text-2);
+  max-width: 460px;
+}
+
+.nx-status-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.nx-status-page__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border-radius: var(--nx-radius-control);
+  border: 1px solid var(--nx-border);
+  background: var(--nx-surface);
+  color: var(--nx-text);
+  font: var(--nx-text-button);
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover);
+}
+
+.nx-status-page__btn:hover {
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border-strong);
+}
+
+.nx-status-page__btn--primary {
+  background: var(--nx-blue);
+  border-color: var(--nx-blue);
+  color: var(--nx-on-accent);
+}
+
+.nx-status-page__btn--primary:hover {
+  background: #8FBEFF;
+  border-color: #8FBEFF;
+}
+
+.nx-status-page__digest {
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+.nx-status-page__digest code {
+  font-family: var(--nx-font-mono);
+  color: var(--nx-text-2);
+}
+
+/* Demo-session notice on the auth panel (section 3.4). */
+.auth-demo-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: -8px;
+  padding: 10px 14px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-cyan-soft);
+  border: 1px solid var(--nx-cyan-line);
+  color: var(--nx-text-2);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  text-align: center;
+}

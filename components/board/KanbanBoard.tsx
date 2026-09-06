@@ -37,6 +37,15 @@ export interface KanbanBoardProps {
   projectKey?: string;
   projectMode?: 'simple' | 'advanced';
   initialItems?: WorkItemData[];
+  /**
+   * Lets an embedding surface stay in step with the board.
+   *
+   * Without this the Overview board and the priority strip directly above it
+   * diverged: a drag changed the board's private state, the strip kept the old
+   * counts, and the next parent render pushed the stale list back into the
+   * board (section 10, "Stale data").
+   */
+  onItemsChange?: (items: WorkItemData[]) => void;
 }
 
 interface StatusColumn {
@@ -48,10 +57,10 @@ interface StatusColumn {
 }
 
 const DEFAULT_STATUSES: StatusColumn[] = [
-  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#8B5CF6' },
-  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#F59E0B' },
-  { id: 'status-review', name: 'Code Review', category: 'in_progress', position: 2, color: '#06B6D4' },
-  { id: 'status-done', name: 'Done', category: 'done', position: 3, color: '#10B981' },
+  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: 'var(--nx-violet)' },
+  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: 'var(--nx-amber)' },
+  { id: 'status-review', name: 'Code Review', category: 'in_progress', position: 2, color: 'var(--nx-cyan)' },
+  { id: 'status-done', name: 'Done', category: 'done', position: 3, color: 'var(--nx-green)' },
 ];
 
 export function KanbanBoard({
@@ -61,6 +70,7 @@ export function KanbanBoard({
   projectKey = 'PRJ',
   projectMode = 'advanced',
   initialItems = [],
+  onItemsChange,
 }: KanbanBoardProps) {
   const [items, setItems] = useState<WorkItemData[]>(initialItems);
   const [statuses, setStatuses] = useState<StatusColumn[]>(DEFAULT_STATUSES);
@@ -80,31 +90,75 @@ export function KanbanBoard({
   const [selectedItem, setSelectedItem] = useState<WorkItemData | null>(null);
   const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
   const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
+  /** Section 3.4 — a refused move is reported, not swallowed. */
+  const [moveError, setMoveError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Sync initial items when changed
+  /**
+   * Adopt the parent's list only when it genuinely differs.
+   *
+   * `initialItems` is a new array identity on most parent renders, so this
+   * effect used to fire constantly and overwrite the board's own state —
+   * a card dragged to another column snapped back the moment anything else on
+   * the dashboard re-rendered. Comparing content instead of identity keeps
+   * legitimate refreshes working without discarding local edits.
+   */
+  const initialSignature = useMemo(
+    () => (initialItems ?? []).map((i) => `${i.id}:${i.status_id}:${i.updated_at ?? ''}`).join('|'),
+    [initialItems]
+  );
+
   useEffect(() => {
-    if (initialItems && initialItems.length > 0) {
-      setItems(initialItems);
-    }
-  }, [initialItems]);
+    if (!initialItems || initialItems.length === 0) return;
+    setItems((current) => {
+      const currentSignature = current
+        .map((i) => `${i.id}:${i.status_id}:${i.updated_at ?? ''}`)
+        .join('|');
+      return currentSignature === initialSignature ? current : initialItems;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSignature]);
+
+  /** Report every board change upward so embedding surfaces stay in step. */
+  const applyItems = useCallback(
+    (updater: (prev: WorkItemData[]) => WorkItemData[]) => {
+      setItems((prev) => {
+        const next = updater(prev);
+        onItemsChange?.(next);
+        return next;
+      });
+    },
+    [onItemsChange]
+  );
 
   // Load live data from API
+  /**
+   * Loads the board.
+   *
+   * Two problems this fixes (section 3.4 — loading and error states must be
+   * designed alongside the ideal state):
+   * - a failed request silently rendered as an empty board, indistinguishable
+   *   from a project with no work in it;
+   * - results were applied only when non-empty, so deleting the last card left
+   *   the stale one on screen until a full reload.
+   */
   const loadData = useCallback(async () => {
     if (!projectId) return;
+    setIsLoading(true);
     try {
       const res = await fetch(`/api/work-items?projectId=${projectId}`);
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(String(res.status));
+
       const data = await res.json();
-      if (data.items && data.items.length > 0) {
-        setItems(data.items);
-      }
-      if (data.statuses && data.statuses.length > 0) {
-        setStatuses(data.statuses);
-      }
-      if (data.types && data.types.length > 0) {
-        setTypes(data.types);
-      }
-    } catch {}
+      setItems(Array.isArray(data.items) ? data.items : []);
+      if (data.statuses && data.statuses.length > 0) setStatuses(data.statuses);
+      if (data.types && data.types.length > 0) setTypes(data.types);
+      setMoveError(null);
+    } catch {
+      setMoveError('Could not load this board. Check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, [projectId]);
 
   useEffect(() => {
@@ -201,46 +255,65 @@ export function KanbanBoard({
     setDragOverColumnId(null);
 
     if (!itemId) return;
+    await moveItem(itemId, targetStatusId);
+  };
 
-    // Optimistic client update
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, status_id: targetStatusId } : item
-      )
+  /**
+   * Moves a card and keeps the board honest about the outcome.
+   *
+   * The write was previously fire-and-forget inside an empty catch with no
+   * `res.ok` check, so a rejected move stayed on screen and reverted on the
+   * next reload — the card appeared to move and silently did not (section 3.4,
+   * section 10 "Stale data").
+   */
+  const moveItem = async (itemId: string, targetStatusId: string) => {
+    const previousStatusId = items.find((i) => i.id === itemId)?.status_id;
+    if (previousStatusId === targetStatusId) return;
+
+    applyItems((prev) =>
+      prev.map((item) => (item.id === itemId ? { ...item, status_id: targetStatusId } : item))
     );
 
-    // Save to API
     try {
-      await fetch(`/api/work-items/${itemId}`, {
+      const res = await fetch(`/api/work-items/${itemId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status_id: targetStatusId }),
       });
-    } catch {}
+      if (!res.ok) throw new Error(String(res.status));
+      setMoveError(null);
+    } catch {
+      // Return the card to the column the server still has it in.
+      applyItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId ? { ...item, status_id: previousStatusId } : item
+        )
+      );
+      setMoveError('That move could not be saved. The card was put back.');
+    }
   };
 
   const handleStatusChange = async (itemId: string, newStatusId: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, status_id: newStatusId } : item
-      )
-    );
-    try {
-      await fetch(`/api/work-items/${itemId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status_id: newStatusId }),
-      });
-    } catch {}
+    await moveItem(itemId, newStatusId);
   };
 
   const handleCreateSuccess = (newItem: WorkItemData) => {
-    setItems((prev) => [newItem, ...prev]);
+    applyItems((prev) => [newItem, ...prev]);
     setIsQuickCreateOpen(false);
   };
 
   return (
     <div className="board-root">
+      {/* Section 3.4 — a refused move or a failed load says so, with a retry. */}
+      {moveError && (
+        <div className="board-error" role="alert">
+          <span>{moveError}</span>
+          <button type="button" onClick={() => loadData()}>
+            Retry
+          </button>
+        </div>
+      )}
+
       {/* Board Top Controls & Filtering */}
       <div className="board-controls">
         <div className="board-controls__left">
@@ -421,6 +494,8 @@ export function KanbanBoard({
       {/* Task Detail Slide-Over Drawer */}
       <WorkItemDetailDrawer
         item={selectedItem}
+        statuses={statuses}
+        types={types}
         isOpen={!!selectedItem}
         onClose={() => setSelectedItem(null)}
         projectKey={projectKey}
@@ -465,19 +540,19 @@ export function KanbanBoard({
           display: flex;
           align-items: center;
           gap: 8px;
-          background: rgba(255, 255, 255, 0.5);
-          border: 1px solid rgba(255, 255, 255, 0.85);
+          background: var(--nx-bg-raised);
+          border: 1px solid var(--nx-border);
           border-radius: 12px;
           padding: 7px 14px;
           width: 260px;
-          box-shadow: inset 0 1px 2px rgba(20, 15, 60, 0.06), 0 2px 8px rgba(20, 15, 60, 0.08);
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.21);
           backdrop-filter: blur(20px);
           transition: all 0.2s ease;
         }
 
         .board-search:focus-within {
           border-color: var(--aurora-iris);
-          box-shadow: 0 0 18px rgba(109, 40, 217, 0.35), inset 0 1px 2px rgba(20, 15, 60, 0.06);
+          box-shadow: 0 0 18px rgba(155, 140, 255, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.16);
         }
 
         .board-search__input {
@@ -496,29 +571,29 @@ export function KanbanBoard({
         }
 
         .filter-pill {
-          background: rgba(255, 255, 255, 0.45);
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          background: var(--nx-bg-raised);
+          border: 1px solid var(--nx-border);
           color: var(--text-main);
           font-size: 0.75rem;
           font-weight: 700;
           padding: 5px 14px;
           border-radius: 9999px;
           cursor: pointer;
-          box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .filter-pill:hover {
-          background: rgba(255, 255, 255, 0.75);
-          border-color: #ffffff;
+          background: var(--nx-surface);
+          border-color: var(--nx-border-strong);
           transform: translateY(-1px);
         }
 
         .filter-pill--active {
-          background: linear-gradient(135deg, #6d28d9, #7c3aed);
-          color: #ffffff;
-          border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 4px 14px rgba(109, 40, 217, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+          background: linear-gradient(135deg, var(--nx-violet), var(--nx-violet));
+          color: var(--nx-on-accent);
+          border-color: var(--nx-border-strong);
+          box-shadow: 0 4px 14px rgba(155, 140, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
         }
 
         .category-filter-wrap {
@@ -527,8 +602,8 @@ export function KanbanBoard({
         }
 
         .category-filter-select {
-          background: rgba(255, 255, 255, 0.55);
-          border: 1px solid rgba(255, 255, 255, 0.85);
+          background: var(--nx-surface);
+          border: 1px solid var(--nx-border);
           color: var(--text-main);
           font-size: 0.8125rem;
           font-weight: 600;
@@ -537,15 +612,15 @@ export function KanbanBoard({
           outline: none;
           cursor: pointer;
           backdrop-filter: blur(12px);
-          box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
           transition: all 0.2s ease;
         }
 
         .category-filter-select:hover,
         .category-filter-select:focus {
-          background: rgba(255, 255, 255, 0.85);
-          border-color: #6d28d9;
-          box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.15);
+          background: var(--nx-surface-2);
+          border-color: var(--nx-violet);
+          box-shadow: 0 0 0 3px rgba(155, 140, 255, 0.15);
         }
 
         .board-controls__right {
@@ -560,46 +635,46 @@ export function KanbanBoard({
           display: flex;
           align-items: center;
           justify-content: center;
-          background: rgba(255, 255, 255, 0.45);
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          background: var(--nx-bg-raised);
+          border: 1px solid var(--nx-border);
           border-radius: 10px;
           color: var(--text-main);
           cursor: pointer;
-          box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
           transition: all 0.2s ease;
         }
 
         .icon-btn:hover {
-          background: rgba(255, 255, 255, 0.75);
-          border-color: #ffffff;
+          background: var(--nx-surface);
+          border-color: var(--nx-border-strong);
           transform: translateY(-1px);
         }
 
         .icon-btn--active {
-          color: #0284c7;
-          border-color: #0284c7;
-          box-shadow: 0 0 14px rgba(2, 132, 199, 0.4);
+          color: var(--nx-cyan);
+          border-color: var(--nx-cyan);
+          box-shadow: 0 0 14px rgba(70, 215, 232, 0.4);
         }
 
         .btn-create {
           display: flex;
           align-items: center;
           gap: 6px;
-          background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 50%, #0284c7 100%);
-          color: #FFFFFF;
-          border: 1px solid rgba(255, 255, 255, 0.4);
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 50%, var(--nx-cyan) 100%);
+          color: var(--nx-on-accent);
+          border: 1px solid var(--nx-border);
           border-radius: 9999px;
           padding: 8px 18px;
           font-size: 0.8125rem;
           font-weight: 700;
           cursor: pointer;
-          box-shadow: 0 4px 18px rgba(109, 40, 217, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+          box-shadow: 0 4px 18px rgba(155, 140, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .btn-create:hover {
           transform: translateY(-1px) scale(1.03);
-          box-shadow: 0 8px 24px rgba(109, 40, 217, 0.6), inset 0 1.5px 0 #ffffff;
+          box-shadow: 0 8px 24px rgba(155, 140, 255, 0.6), inset 0 1.5px 0 rgba(255, 255, 255, 0.05);
         }
 
         /* Columns Grid */
@@ -614,8 +689,8 @@ export function KanbanBoard({
         }
 
         .board-column {
-          background: rgba(255, 255, 255, 0.28);
-          border: 1px solid rgba(255, 255, 255, 0.65);
+          background: var(--nx-bg-raised);
+          border: 1px solid var(--nx-border);
           border-radius: 20px;
           padding: 16px;
           display: flex;
@@ -624,14 +699,14 @@ export function KanbanBoard({
           min-height: 520px;
           backdrop-filter: blur(28px) saturate(220%) brightness(106%);
           -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(106%);
-          box-shadow: 0 8px 24px -2px rgba(20, 15, 60, 0.12), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.85);
+          box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.31), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.05);
           transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .board-column--dragover {
           border-color: var(--aurora-iris);
-          background: rgba(255, 255, 255, 0.52);
-          box-shadow: 0 0 32px rgba(109, 40, 217, 0.4), inset 0 1.5px 0 0 #ffffff;
+          background: var(--nx-surface);
+          box-shadow: 0 0 32px rgba(155, 140, 255, 0.4), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.05);
           transform: scale(1.015);
         }
 
@@ -640,7 +715,7 @@ export function KanbanBoard({
           align-items: center;
           justify-content: space-between;
           padding: 4px 6px 10px;
-          border-bottom: 1px solid rgba(255, 255, 255, 0.45);
+          border-bottom: 1px solid var(--nx-border);
           margin-bottom: 4px;
         }
 
@@ -670,8 +745,8 @@ export function KanbanBoard({
           font-size: 0.6875rem;
           font-weight: 800;
           color: var(--text-main);
-          background: rgba(255, 255, 255, 0.6);
-          border: 1px solid rgba(255, 255, 255, 0.85);
+          background: var(--nx-surface);
+          border: 1px solid var(--nx-border);
           padding: 2px 8px;
           border-radius: 9999px;
         }
@@ -690,7 +765,7 @@ export function KanbanBoard({
         }
 
         .column-add-btn:hover {
-          background: rgba(255, 255, 255, 0.5);
+          background: var(--nx-bg-raised);
           color: var(--text-main);
         }
 
@@ -706,7 +781,7 @@ export function KanbanBoard({
         }
 
         .column-empty-state {
-          border: 2px dashed rgba(255, 255, 255, 0.55);
+          border: 2px dashed var(--nx-border-strong);
           border-radius: 12px;
           padding: 32px 16px;
           text-align: center;

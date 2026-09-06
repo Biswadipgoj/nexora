@@ -1,12 +1,23 @@
 /**
- * NEXORA Design System — Modern Dual-Theme (Dark & Light)
- * Principles: Precision, Glassmorphism, Micro-Interactions, High Density, Fast Motion.
+ * NEXORA Design System — Obsidian Dark
+ *
+ * Section 2: "the master direction below resolves that conflict by making
+ * obsidian dark the default authenticated experience, with a restrained light
+ * mode only after dark-mode parity is complete."
+ *
+ * Load order matters. nexora-tokens.css defines the canonical --nx-* system;
+ * prismatic-aurora.css maps legacy names onto it; prismatic-components.css and
+ * dashboard.css consume those names.
+ *
+ * Fonts are loaded by next/font/google in app/layout.tsx, which exposes
+ * --font-sans, --font-display and --font-mono. No webfont @import here: it
+ * would duplicate the download and block first paint.
  */
 
-/* ============ Fonts & Prismatic Aurora Design System ============ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import '../styles/nexora-tokens.css';
 @import '../styles/prismatic-aurora.css';
 @import '../styles/prismatic-components.css';
+@import '../styles/nexora-auth.css';
 
 /* ============ Reset ============ */
 *,
@@ -22,166 +33,170 @@ a {
   text-decoration: none;
 }
 
-/* Accessibility Skip Link (Off-screen until keyboard focused) */
+html {
+  /* Section 9: a percentage keeps the user's own browser or Android font-size
+     setting in play. An absolute 16px silently discarded it for the whole app. */
+  font-size: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+  background: var(--nx-bg);
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Section 9 — skip link, off-screen until keyboard focused. */
 .skip-link {
   position: absolute;
   top: -100px;
   left: 16px;
   z-index: 99999;
   padding: 8px 16px;
-  border-radius: 8px;
-  background: var(--surface-elevated);
-  color: var(--text-main);
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem;
-  font-weight: 600;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-surface-3);
+  color: var(--nx-text);
+  border: 1px solid var(--nx-border-strong);
+  font: var(--nx-text-button);
   text-decoration: none;
-  transition: top 0.2s ease;
+  transition: top var(--nx-t-hover);
 }
 
 .skip-link:focus {
   top: 16px;
-  outline: 2px solid var(--aurora-aqua);
+  box-shadow: var(--nx-focus-ring);
 }
 
-html {
-  font-size: 16px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
-  scroll-behavior: smooth;
-}
+/* ============================================================================
+   Semantic aliases
 
-/* ============ PRISMATIC AURORA SYSTEM (Executive Luminous Platinum & Royal Sapphire) ============ */
-
-:root,
-[data-theme="dark"],
-[data-theme="light"],
-[data-theme="prismatic"] {
-  /* Executive Luminous Canvas (STRICTLY Non-Dark, Non-White, Luxury Tech Atmosphere) */
-  --color-bg: var(--canvas-bg);
-  --color-bg-subtle: rgba(255, 255, 255, 0.72);
-  --color-bg-alt: rgba(255, 255, 255, 0.85);
-  --color-bg-mesh: var(--canvas-gradient);
-  
-  /* Crystalline 3D Frosted Quartz Surfaces */
-  --color-surface: var(--surface-primary);
-  --color-surface-hover: var(--surface-hover);
-  --color-surface-active: var(--surface-hover);
-  --color-surface-elevated: var(--surface-elevated);
-  --color-surface-overlay: var(--surface-modal);
-  --glass-bg: var(--surface-primary);
-  --glass-border: rgba(255, 255, 255, 0.85);
-  --glass-hover: rgba(255, 255, 255, 0.95);
-
-  /* Borders & Specular Accents */
-  --color-border: rgba(255, 255, 255, 0.8);
-  --color-border-subtle: rgba(15, 23, 42, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.95);
-  --color-border-accent: rgba(37, 99, 235, 0.45);
-
-  /* Typography (High Contrast Midnight Obsidian Slate, NEVER blinding white) */
-  --color-text-primary: #0F172A;
-  --color-text-secondary: #334155;
-  --color-text-tertiary: #64748B;
-  --color-text-inverse: #FFFFFF;
-
-  /* Executive Brand Chromatics */
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-primary-gradient: linear-gradient(135deg, #2563EB 0%, #4F46E5 50%, #7C3AED 100%);
-  --color-primary-glow: 0 0 24px rgba(37, 99, 235, 0.35);
-
-  /* 3D Shadows with Subtle Sapphire Ambient Penumbras */
-  --shadow-sm: var(--shadow-sm);
-  --shadow-md: var(--shadow-md);
-  --shadow-lg: var(--shadow-lg);
-  --shadow-glow: 0 0 28px -4px rgba(37, 99, 235, 0.35);
-}
-
-/* --- COMMON TOKENS --- */
+   Legacy --color-* names used across components, restated on the dark system.
+   New code should read --nx-* directly.
+   ========================================================================= */
 :root {
-  /* Semantic Status Chromatics */
-  --color-todo: #6366F1;
-  --color-in-progress: #8B5CF6;
-  --color-done: #10B981;
-  --color-backlog: #64748B;
+  --color-bg: var(--nx-bg);
+  --color-bg-subtle: var(--nx-bg-raised);
+  --color-bg-alt: var(--nx-surface);
+  --color-bg-mesh: var(--canvas-gradient);
 
-  --color-urgent: #EF4444;
-  --color-high: #F97316;
-  --color-medium: #F59E0B;
-  --color-low: #0EA5E9;
+  --color-surface: var(--nx-surface);
+  --color-surface-hover: var(--nx-surface-2);
+  --color-surface-active: var(--nx-surface-2);
+  --color-surface-elevated: var(--nx-surface-2);
+  --color-surface-overlay: var(--nx-surface-3);
 
-  /* Typography Fonts */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Outfit', 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --glass-bg: var(--nx-surface);
+  --glass-border: var(--nx-border);
+  --glass-hover: var(--nx-surface-2);
 
-  /* Transitions */
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
-  --transition-fast: 150ms var(--ease-out);
-  --transition-smooth: 240ms var(--ease-spring);
+  --color-border: var(--nx-border);
+  --color-border-subtle: var(--nx-border);
+  --color-border-strong: var(--nx-border-strong);
+  --color-border-accent: var(--nx-blue-line);
+
+  --color-text-primary: var(--nx-text);
+  --color-text-secondary: var(--nx-text-2);
+  --color-text-tertiary: var(--nx-text-3);
+  --color-text-inverse: var(--nx-bg);
+
+  --color-primary: var(--nx-blue);
+  --color-primary-hover: #8FBEFF;
+  --color-primary-contrast: #06111F;
+  --color-primary-gradient: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
+  --color-primary-glow: 0 0 24px rgba(110, 168, 255, 0.28);
+
+  --shadow-glow: 0 0 28px -4px rgba(110, 168, 255, 0.30);
+
+  /* Status. Paired with a text label everywhere it appears (section 9). */
+  --color-todo: var(--nx-blue);
+  --color-in-progress: var(--nx-violet);
+  --color-done: var(--nx-green);
+  --color-backlog: var(--nx-text-3);
+
+  /* Priority. The palette assigns red to urgent and amber to warning. On a
+     four-step scale, urgent and high both read hot (red at full and reduced
+     emphasis), medium takes amber, and low drops to supporting text so it
+     never competes for attention. Colour is always paired with a label. */
+  --color-urgent: var(--nx-red);
+  --color-high: var(--nx-red);
+  --color-medium: var(--nx-amber);
+  --color-low: var(--nx-text-3);
+
+  /* Fonts */
+  --font-family: var(--nx-font-sans);
+  --font-display: var(--nx-font-display);
+  --font-mono: var(--nx-font-mono);
+
+  /* Motion */
+  --ease-spring: var(--nx-ease-spring);
+  --ease-out: var(--nx-ease-out);
+  --transition-fast: var(--nx-t-hover);
+  --transition-smooth: var(--nx-t-panel);
 }
 
 body {
-  font-family: var(--font-family);
-  background: var(--color-bg);
-  background-image: var(--color-bg-mesh);
-  color: var(--color-text-primary);
+  font-family: var(--nx-font-sans);
+  color: var(--nx-text);
   min-height: 100vh;
-  transition: background-color 0.25s ease, color 0.25s ease;
-  overflow-x: hidden;
 }
 
-/* ============ REUSABLE UTILITIES ============ */
+/* ============================================================================
+   Reusable surfaces
+
+   Section 4.2: backdrop-filter is for short-lived overlays and floating
+   navigation. Persistent cards are opaque so text stays legible and
+   scrolling stays cheap.
+   ========================================================================= */
 
 .glass-panel {
-  background: var(--surface-primary);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: var(--shadow-md), var(--border-rim-highlight);
-  border-radius: 16px;
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  box-shadow: var(--nx-elevation-2);
+  border-radius: var(--nx-radius-panel);
 }
 
 .glass-card {
-  background: var(--surface-elevated);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  box-shadow: var(--shadow-sm), var(--border-rim-highlight);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-card);
+  box-shadow: var(--nx-elevation-1);
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover),
+    box-shadow var(--nx-t-hover), transform var(--nx-t-hover);
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.28);
-  box-shadow: var(--shadow-lifted), inset 0 1px 0 0 rgba(255, 255, 255, 0.3);
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border-strong);
+  box-shadow: var(--nx-elevation-2);
   transform: translateY(-2px);
 }
 
 .text-gradient {
   background: var(--color-primary-gradient);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: var(--nx-blue);
 }
 
+/* Section 4.3 — monospace, compact capsule, for shortcuts and keys only. */
 .kbd-shortcut {
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 2px 6px;
+  font: var(--nx-text-key);
+  padding: 3px 6px;
   border-radius: 6px;
-  background: var(--color-bg-subtle);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
+  background: var(--nx-surface-2);
+  border: 1px solid var(--nx-border);
+  color: var(--nx-text-2);
   display: inline-flex;
   align-items: center;
   gap: 2px;
 }
 
-/* Status & Priority Badges */
+/* ============================================================================
+   Priority badges — colour plus label, never colour alone (section 9).
+   ========================================================================= */
 .badge-priority {
   display: inline-flex;
   align-items: center;
@@ -190,44 +205,89 @@ body {
   font-weight: 600;
   padding: 2px 7px;
   border-radius: 6px;
+  white-space: nowrap;
 }
 
 .badge-priority--urgent {
-  background: rgba(239, 68, 68, 0.15);
-  color: #EF4444;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: var(--nx-red-soft);
+  color: var(--nx-red);
+  border: 1px solid var(--nx-red-line);
 }
 
 .badge-priority--high {
-  background: rgba(249, 115, 22, 0.15);
-  color: #F97316;
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background: var(--nx-red-soft);
+  color: var(--nx-red);
+  border: 1px solid transparent;
 }
 
 .badge-priority--medium {
-  background: rgba(245, 158, 11, 0.15);
-  color: #F59E0B;
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: var(--nx-amber-soft);
+  color: var(--nx-amber);
+  border: 1px solid transparent;
 }
 
 .badge-priority--low {
-  background: rgba(14, 165, 233, 0.15);
-  color: #0EA5E9;
-  border: 1px solid rgba(14, 165, 233, 0.3);
+  background: rgba(126, 141, 163, 0.14);
+  color: var(--nx-text-3);
+  border: 1px solid transparent;
 }
 
-/* Custom Scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ============================================================================
+   Scrollbars
+   ========================================================================= */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(174, 205, 255, 0.22) transparent;
 }
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border-strong);
-  border-radius: 9999px;
+  background: rgba(174, 205, 255, 0.18);
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: var(--nx-radius-pill);
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-tertiary);
+  background: rgba(174, 205, 255, 0.34);
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Native form controls inherit the dark canvas rather than the OS default. */
+input,
+textarea,
+select,
+button {
+  font-family: inherit;
+  color: inherit;
+}
+
+::placeholder {
+  color: var(--nx-text-3);
+  opacity: 1;
+}
+
+::selection {
+  background: rgba(110, 168, 255, 0.28);
+  color: var(--nx-text);
+}
+
+/* A shortcut capsule inset into a filled accent, such as the New task button.
+   Uses the ink wash rather than a white one, which would wash out the accent. */
+.kbd-shortcut--on-accent {
+  background: var(--nx-on-accent-wash);
+  border-color: var(--nx-on-accent-line);
+  color: var(--nx-on-accent);
 }

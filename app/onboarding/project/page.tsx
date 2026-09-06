@@ -206,11 +206,11 @@ export default function CreateProjectPage() {
       <style>{`
         .new-proj-page {
           min-height: 100vh;
-          background: radial-gradient(at 10% 12%, rgba(99, 102, 241, 0.18) 0px, transparent 45%),
-                      radial-gradient(at 90% 15%, rgba(236, 72, 153, 0.15) 0px, transparent 45%),
-                      radial-gradient(at 50% 92%, rgba(14, 165, 233, 0.16) 0px, transparent 50%),
+          background: radial-gradient(at 10% 12%, rgba(155, 140, 255, 0.18) 0px, transparent 45%),
+                      radial-gradient(at 90% 15%, rgba(155, 140, 255, 0.15) 0px, transparent 45%),
+                      radial-gradient(at 50% 92%, rgba(70, 215, 232, 0.16) 0px, transparent 50%),
                       radial-gradient(at 85% 85%, rgba(168, 85, 247, 0.12) 0px, transparent 45%),
-                      #F8FAFC;
+                      var(--nx-surface-2);
           padding: 48px 24px;
           display: flex;
           justify-content: center;
@@ -229,7 +229,7 @@ export default function CreateProjectPage() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          color: #4F46E5;
+          color: var(--nx-violet);
           font-size: 0.875rem;
           font-weight: 600;
           margin-bottom: 16px;
@@ -238,7 +238,7 @@ export default function CreateProjectPage() {
         }
 
         .new-proj-back:hover {
-          color: #7C3AED;
+          color: var(--nx-violet);
           transform: translateX(-2px);
         }
 
@@ -246,13 +246,13 @@ export default function CreateProjectPage() {
           font-family: var(--font-display, inherit);
           font-size: 1.875rem;
           font-weight: 700;
-          color: #0F172A;
+          color: var(--nx-text);
           letter-spacing: -0.02em;
           margin-bottom: 8px;
         }
 
         .new-proj-header p {
-          color: #475467;
+          color: var(--nx-text-2);
           font-size: 0.9375rem;
           line-height: 1.5;
         }
@@ -261,14 +261,14 @@ export default function CreateProjectPage() {
           display: flex;
           flex-direction: column;
           gap: 24px;
-          background: rgba(255, 255, 255, 0.94);
+          background: var(--nx-surface-2);
           backdrop-filter: blur(24px);
           -webkit-backdrop-filter: blur(24px);
-          border: 1px solid rgba(99, 102, 241, 0.2);
+          border: 1px solid rgba(155, 140, 255, 0.2);
           border-radius: 20px;
           padding: 36px 32px;
-          box-shadow: 0 20px 40px -15px rgba(99, 102, 241, 0.18),
-                      0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+          box-shadow: 0 20px 40px -15px rgba(155, 140, 255, 0.18),
+                      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
         }
 
         .new-proj-field {
@@ -280,12 +280,12 @@ export default function CreateProjectPage() {
         .new-proj-field label {
           font-size: 0.875rem;
           font-weight: 600;
-          color: #1E293B;
+          color: var(--nx-text);
         }
 
         .new-proj-hint {
           font-size: 0.75rem;
-          color: #64748B;
+          color: var(--nx-text-3);
           margin-left: 8px;
           font-weight: 400;
         }
@@ -293,10 +293,10 @@ export default function CreateProjectPage() {
         .new-proj-input,
         .new-proj-textarea {
           padding: 12px 16px;
-          border: 1px solid #CBD5E1;
+          border: 1px solid var(--nx-border);
           border-radius: 10px;
-          background: #FFFFFF;
-          color: #0F172A;
+          background: var(--nx-surface);
+          color: var(--nx-text);
           font-size: 0.9375rem;
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -304,8 +304,8 @@ export default function CreateProjectPage() {
         .new-proj-input:focus,
         .new-proj-textarea:focus {
           outline: none;
-          border-color: #6366F1;
-          box-shadow: 0 0 0 3.5px rgba(99, 102, 241, 0.2);
+          border-color: var(--nx-violet);
+          box-shadow: 0 0 0 3.5px rgba(155, 140, 255, 0.2);
         }
 
         .new-proj-modes {
@@ -319,39 +319,39 @@ export default function CreateProjectPage() {
           align-items: flex-start;
           gap: 14px;
           padding: 16px;
-          border: 1px solid #E2E8F0;
+          border: 1px solid var(--nx-border);
           border-radius: 12px;
-          background: #FFFFFF;
+          background: var(--nx-surface);
           cursor: pointer;
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .new-proj-mode-card:hover {
-          border-color: #A5B4FC;
-          background: #F8FAFC;
+          border-color: var(--nx-violet-line);
+          background: var(--nx-surface-2);
         }
 
         .new-proj-mode-card--active {
-          border-color: #6366F1;
-          background: linear-gradient(135deg, #EEF2FF 0%, #F5F3FF 100%);
-          box-shadow: 0 4px 14px rgba(99, 102, 241, 0.12);
+          border-color: var(--nx-violet);
+          background: linear-gradient(135deg, var(--nx-surface-2) 0%, var(--nx-surface-2) 100%);
+          box-shadow: 0 4px 14px rgba(155, 140, 255, 0.12);
         }
 
         .new-proj-mode-card input {
           margin-top: 4px;
-          accent-color: #4F46E5;
+          accent-color: var(--nx-violet);
         }
 
         .new-proj-mode-card strong {
           display: block;
           font-size: 0.875rem;
-          color: #0F172A;
+          color: var(--nx-text);
           margin-bottom: 3px;
         }
 
         .new-proj-mode-card p {
           font-size: 0.8125rem;
-          color: #475467;
+          color: var(--nx-text-2);
           line-height: 1.5;
         }
 
@@ -366,37 +366,37 @@ export default function CreateProjectPage() {
         .new-proj-btn-cancel {
           font-size: 0.875rem;
           font-weight: 500;
-          color: #64748B;
+          color: var(--nx-text-3);
           text-decoration: none;
           transition: color 0.15s ease;
         }
 
         .new-proj-btn-cancel:hover {
-          color: #0F172A;
+          color: var(--nx-text);
         }
 
         .new-proj-btn-submit {
           padding: 12px 24px;
-          background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-          color: #FFFFFF;
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 100%);
+          color: var(--nx-on-accent);
           border: none;
           border-radius: 10px;
           font-size: 0.9375rem;
           font-weight: 600;
           cursor: pointer;
-          box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+          box-shadow: 0 4px 14px rgba(155, 140, 255, 0.35);
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .new-proj-btn-submit:hover:not(:disabled) {
-          background: linear-gradient(135deg, #4338CA 0%, #6D28D9 100%);
-          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.45);
+          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 100%);
+          box-shadow: 0 6px 20px rgba(155, 140, 255, 0.45);
           transform: translateY(-1px);
         }
 
         .new-proj-btn-submit:disabled {
-          background: #E2E8F0;
-          color: #94A3B8;
+          background: var(--nx-border);
+          color: var(--nx-text-3);
           box-shadow: none;
           cursor: not-allowed;
           opacity: 0.7;

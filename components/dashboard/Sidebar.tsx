@@ -8,11 +8,12 @@ import InboxRoundedIcon from '@mui/icons-material/InboxRounded';
 import AssignmentTurnedInRoundedIcon from '@mui/icons-material/AssignmentTurnedInRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
 import ShareRoundedIcon from '@mui/icons-material/ShareRounded';
+import FolderOpenRoundedIcon from '@mui/icons-material/FolderOpenRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
 import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
 import { Logo } from '@/components/ui/Logo';
-import { CreatorBadge } from '@/components/ui/CreatorBadge';
+
 import { createClient } from '@/lib/supabase/client';
 import { useTheme } from '@/components/theme/ThemeProvider';
 
@@ -20,8 +21,8 @@ interface SidebarProps {
   user: { name: string; email?: string; avatar?: string };
   primaryWorkspace: { id: string; name: string; slug: string };
   projects: Array<{ id: string; name: string; key: string }>;
-  activeTab: 'overview' | 'inbox' | 'tasks';
-  setActiveTab: (tab: 'overview' | 'inbox' | 'tasks') => void;
+  activeTab: 'overview' | 'inbox' | 'tasks' | 'projects';
+  setActiveTab: (tab: 'overview' | 'inbox' | 'tasks' | 'projects') => void;
   onQuickCreate: () => void;
   onShareProject: () => void;
   inboxCount: number;
@@ -37,7 +38,7 @@ export function Sidebar({
   onShareProject,
   inboxCount,
 }: SidebarProps) {
-  const { theme, toggleTheme } = useTheme();
+  const { theme, themeLocked, toggleTheme } = useTheme();
 
   const getInitials = (name: string) =>
     name
@@ -101,9 +102,19 @@ export function Sidebar({
 
         <div className="nav-divider" />
 
-        <div className="nav-group-title">
-          PROJECTS <span className="nav-count-chip">{projects.length}</span>
-        </div>
+        {/* Section 6.4 requires Projects to be one of the four shared
+            destinations, so the rail and the mobile dock agree. */}
+        <button
+          onClick={() => setActiveTab('projects')}
+          className={`nav-item-btn ${activeTab === 'projects' ? 'nav-item-btn--active' : ''}`}
+        >
+          <div className="nav-icon-container"><FolderOpenRoundedIcon sx={{ fontSize: 17 }} /></div>
+          <span className="nav-label">Projects</span>
+          <span className="nav-count-chip">{projects.length}</span>
+          {activeTab === 'projects' && <div className="nav-active-bar" />}
+        </button>
+
+        <div className="nav-group-title">Recent</div>
         <div className="projects-list-nav">
           {projects.map((p) => (
             <a href={`/projects/${p.id}`} key={p.id} className="project-link-item">
@@ -123,18 +134,7 @@ export function Sidebar({
           >
             <AddRoundedIcon sx={{ fontSize: 18 }} />
             <span>New Task</span>
-            <span
-              style={{
-                background: 'rgba(255, 255, 255, 0.22)',
-                color: '#FFFFFF',
-                fontSize: '0.6875rem',
-                fontWeight: 800,
-                padding: '2px 6px',
-                borderRadius: 5,
-                marginLeft: 6,
-                border: '1px solid rgba(255, 255, 255, 0.3)',
-              }}
-            >
+            <span className="kbd-shortcut kbd-shortcut--on-accent" style={{ marginLeft: 6 }}>
               C
             </span>
           </button>
@@ -144,9 +144,9 @@ export function Sidebar({
             style={{
               padding: '10px 12px',
               borderRadius: 12,
-              background: 'rgba(255, 255, 255, 0.7)',
-              border: '1px solid rgba(255, 255, 255, 0.95)',
-              boxShadow: '0 2px 6px rgba(15, 23, 42, 0.04)',
+              background: 'var(--nx-surface)',
+              border: '1px solid var(--nx-border)',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.10)',
               cursor: 'pointer',
               transition: 'all 180ms cubic-bezier(0.16, 1, 0.3, 1)',
             }}
@@ -157,18 +157,18 @@ export function Sidebar({
                   width: 30,
                   height: 30,
                   borderRadius: 8,
-                  background: 'rgba(37, 99, 235, 0.1)',
+                  background: 'rgba(110, 168, 255, 0.1)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#2563eb',
+                  color: 'var(--nx-blue)',
                 }}
               >
                 <ShareRoundedIcon sx={{ fontSize: 16 }} />
               </div>
               <div>
-                <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: '#0f172a' }}>Share Project</div>
-                <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>Invite collaborators</div>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 700, color: 'var(--nx-text)' }}>Share Project</div>
+                <div style={{ fontSize: '0.6875rem', color: 'var(--nx-text-3)' }}>Invite collaborators</div>
               </div>
             </div>
           </div>
@@ -177,9 +177,7 @@ export function Sidebar({
 
       {/* User Profile Footer, Theme Toggle & Sign Out */}
       <div className="sidebar-footer">
-        <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'center' }}>
-          <CreatorBadge size="sm" />
-        </div>
+
 
         <div className="profile-chip" style={{ justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
@@ -189,7 +187,7 @@ export function Sidebar({
               minWidth: 34,
               borderRadius: '50%',
               backgroundColor: 'var(--color-primary)',
-              color: '#FFFFFF',
+              color: 'var(--nx-on-accent)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -210,36 +208,21 @@ export function Sidebar({
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <button
-              onClick={toggleTheme}
-              title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-tertiary)',
-                padding: 6,
-                borderRadius: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 120ms ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--color-primary)';
-                e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
-            >
-              {theme === 'dark' ? (
-                <LightModeRoundedIcon sx={{ fontSize: 17 }} />
-              ) : (
-                <DarkModeRoundedIcon sx={{ fontSize: 17 }} />
-              )}
-            </button>
+            {/* Hidden until light mode reaches parity (sections 2 and 3.5). */}
+            {!themeLocked && (
+              <button
+                onClick={toggleTheme}
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                className="sidebar-profile-action"
+              >
+                {theme === 'dark' ? (
+                  <LightModeRoundedIcon sx={{ fontSize: 17 }} />
+                ) : (
+                  <DarkModeRoundedIcon sx={{ fontSize: 17 }} />
+                )}
+              </button>
+            )}
 
             <button
               onClick={async () => {
@@ -250,26 +233,8 @@ export function Sidebar({
                 window.location.href = '/api/auth/signout';
               }}
               title="Sign out"
-              style={{
-                background: 'transparent',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-tertiary)',
-                padding: 6,
-                borderRadius: 8,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 120ms ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = '#EF4444';
-                e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--color-text-tertiary)';
-                e.currentTarget.style.backgroundColor = 'transparent';
-              }}
+              aria-label="Sign out"
+              className="sidebar-profile-action sidebar-profile-action--danger"
             >
               <LogoutRoundedIcon sx={{ fontSize: 17 }} />
             </button>

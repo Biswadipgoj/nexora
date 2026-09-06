@@ -10,21 +10,31 @@ import InboxRoundedIcon from '@mui/icons-material/InboxRounded';
 import './super-app-bar.css';
 
 export interface SuperAppBottomBarProps {
-  activeTab: 'overview' | 'inbox' | 'tasks' | 'board';
-  onTabChange: (tab: 'overview' | 'inbox' | 'tasks' | 'board') => void;
+  activeTab: 'overview' | 'inbox' | 'tasks' | 'projects';
+  onTabChange: (tab: 'overview' | 'inbox' | 'tasks' | 'projects') => void;
   onQuickAction: () => void;
   inboxCount?: number;
   taskCount?: number;
-  projectId?: string;
 }
 
+/**
+ * Android navigation dock — Master Design Document, section 6.4.
+ *
+ * "On Android, replace the persistent left rail with the existing bottom bar,
+ * but preserve the same four destinations: Home, Inbox, My Tasks, and Projects."
+ *
+ * The second slot used to be "Board", which hard-navigated to a hard-coded
+ * project UUID. On any workspace whose first project was not the demo one that
+ * opened a dead board, and it left the user on a route where the dock is not
+ * mounted at all — stranded with no navigation. It is now Projects, the same
+ * destination the rail exposes.
+ */
 export function SuperAppBottomBar({
   activeTab,
   onTabChange,
   onQuickAction,
   inboxCount = 0,
   taskCount = 0,
-  projectId = 'd0000000-0000-4000-8000-000000000001',
 }: SuperAppBottomBarProps) {
   return (
     <nav className="super-app-dock-container" aria-label="Mobile Navigation Dock">
@@ -51,22 +61,16 @@ export function SuperAppBottomBar({
           <span className="super-dock-label">Home</span>
         </motion.button>
 
-        {/* Tab 2: Board / Projects */}
+        {/* Tab 2: Projects — the same destination the rail exposes */}
         <motion.button
           type="button"
-          className={`super-dock-item ${activeTab === 'board' ? 'super-dock-item--active' : ''}`}
-          onClick={() => {
-            if (window.location.pathname.includes('/projects/')) {
-              onTabChange('board');
-            } else {
-              window.location.href = `/projects/${projectId}`;
-            }
-          }}
+          className={`super-dock-item ${activeTab === 'projects' ? 'super-dock-item--active' : ''}`}
+          onClick={() => onTabChange('projects')}
           whileTap={{ scale: 0.88 }}
           transition={{ type: 'spring', stiffness: 450, damping: 22 }}
-          aria-label="Kanban Board"
+          aria-label="Projects"
         >
-          {activeTab === 'board' && (
+          {activeTab === 'projects' && (
             <motion.div
               layoutId="super-dock-active-pill"
               className="super-dock-active-glow"
@@ -76,7 +80,7 @@ export function SuperAppBottomBar({
           <div className="super-dock-icon">
             <ViewKanbanRoundedIcon sx={{ fontSize: 22 }} />
           </div>
-          <span className="super-dock-label">Board</span>
+          <span className="super-dock-label">Projects</span>
         </motion.button>
 
         {/* Center: Raised Super Action Button (+) */}
@@ -92,7 +96,7 @@ export function SuperAppBottomBar({
           >
             <div className="super-action-fab-ring" />
             <div className="super-action-fab-core">
-              <AddRoundedIcon sx={{ fontSize: 28, color: '#FFFFFF' }} />
+              <AddRoundedIcon sx={{ fontSize: 28, color: 'var(--nx-on-accent)' }} />
             </div>
           </motion.button>
         </div>

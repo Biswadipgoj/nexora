@@ -5,6 +5,28 @@
 
 import { z } from 'zod';
 
+/**
+ * A reference to a status or work-item type.
+ *
+ * These are database UUIDs when a project has its own `statuses` rows, and
+ * built-in slugs — `status-todo`, `type-ui` — when the board falls back to the
+ * defaults in KanbanBoard and lib/constants/categories.
+ *
+ * Requiring `.uuid()` here rejected every write on the fallback path with a 400
+ * that no client surfaced, so moving a card between columns or changing a
+ * category looked saved and was silently discarded (section 3.4). The pattern
+ * stays narrow — lowercase alphanumerics and hyphens only — so nothing
+ * unexpected reaches a query.
+ */
+const referenceId = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[a-z0-9][a-z0-9-]*$/i, 'Must be a UUID or a built-in identifier slug');
+
+/** A Quill-style delta document. */
+const richText = z.record(z.string(), z.unknown());
+
 export const workspaceSchemas = {
   create: z.object({
     name: z.string().min(1).max(100),
@@ -70,10 +92,11 @@ export const workItemSchemas = {
 
   update: z.object({
     title: z.string().min(1).max(500).optional(),
-    description: z.record(z.string(), z.unknown()).optional().nullable(),
-    status_id: z.string().uuid().optional(),
+    // The drawer sends plain text; the board sends a Quill delta. Accept both.
+    description: z.union([richText, z.string().max(50_000)]).optional().nullable(),
+    status_id: referenceId.optional(),
     priority: z.number().int().min(0).max(4).optional(),
-    type_id: z.string().uuid().optional(),
+    type_id: referenceId.optional(),
     start_date: z.string().date().optional().nullable(),
     due_date: z.string().date().optional().nullable(),
     estimate: z.number().positive().optional().nullable(),

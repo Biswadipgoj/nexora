@@ -5,11 +5,9 @@ import { LandingHeader } from '@/components/landing/LandingHeader';
 import { HeroLiveSandbox } from '@/components/landing/HeroLiveSandbox';
 import { DimensionalFeatureGrid } from '@/components/landing/DimensionalFeatureGrid';
 import { DemoWorkspaceButton } from '@/components/landing/DemoWorkspaceButton';
-import { CreatorBadge } from '@/components/ui/CreatorBadge';
+
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import BoltRoundedIcon from '@mui/icons-material/BoltRounded';
-import AutoAwesomeRoundedIcon from '@mui/icons-material/AutoAwesomeRounded';
 
 export default async function Home() {
   const supabase = await createServerClient();
@@ -25,69 +23,51 @@ export default async function Home() {
       {/* Suspended Frosted Header */}
       <LandingHeader user={user} />
 
-      {/* Main Hero Stage */}
+      {/* Main Hero Stage
+
+          Section 6.1: "Simplify the hero to one primary promise, one primary
+          CTA, and one secondary demo action. Retain one proof row below the
+          CTA, but remove unsupported numerical claims such as delivery
+          multipliers or completion percentages unless they are backed by a
+          visible source and real product data."
+
+          The floating "2.4x Faster Sprint Delivery" and "99.4% On-Time
+          Completion" badges, the NEW RELEASE pill and the four-item trust bar
+          were removed: the numbers were invented, and the competing badges are
+          what made the page read as generated rather than built. Everything
+          stated below is verifiable from the product itself. */}
       <main className="landing-hero-stage">
-        {/* Floating Live Badges */}
-        <div className="hero-floating-badge hero-floating-badge--left">
-          <span style={{ color: '#059669', fontSize: '1rem' }}>⚡</span>
-          <span>2.4x Faster Sprint Delivery</span>
-        </div>
-        <div className="hero-floating-badge hero-floating-badge--right">
-          <span style={{ color: '#2563eb', fontSize: '1rem' }}>✓</span>
-          <span>99.4% On-Time Completion</span>
-        </div>
-
-        {/* Release Pill Badge (No duplicate NEXORA) */}
-        <div className="hero-pill-badge">
-          <span className="hero-beacon" />
-          <span>NEW RELEASE</span>
-          <span style={{ color: 'var(--text-muted)' }}>•</span>
-          <span style={{ color: 'var(--aurora-iris)', fontWeight: 600 }}>
-            Modern Workspace for Productive Teams
-          </span>
-        </div>
-
-        {/* Hero Title with Shimmering Gradient */}
         <h1 className="hero-main-title">
-          Where high-performing teams plan, track, and{' '}
-          <span className="text-prismatic">deliver great work</span>
+          Plan the work, watch it move, <span className="text-prismatic">finish it together</span>
         </h1>
 
-        {/* Subtitle */}
         <p className="hero-subtitle">
-          From daily task lists to company-wide roadmaps, NEXORA brings your team's projects into one clear, focused, and intuitive workspace.
+          Nexora keeps a team&apos;s projects, tasks and daily priorities on one board — fast to scan, quick to
+          update, and clear about what changed.
         </p>
 
-        {/* Hero Action Buttons */}
         <div className="hero-cta-group">
-          <Link
-            href={user ? '/dashboard' : '/auth/signup'}
-            className="btn-hero-cta btn-hero-cta--primary"
-          >
-            <span>{user ? 'Open Workspace' : 'Start Free Workspace'}</span>
+          <Link href={user ? '/dashboard' : '/auth/signup'} className="btn-hero-cta btn-hero-cta--primary">
+            <span>{user ? 'Open workspace' : 'Create a workspace'}</span>
             <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
           </Link>
 
           <DemoWorkspaceButton />
         </div>
 
-        {/* Trust Badges */}
+        {/* One proof row. Each item is a shipped capability, not a claim. */}
         <div className="hero-trust-bar">
           <span className="hero-trust-item">
-            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            Real-time team collaboration
+            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-green)' }} />
+            Board, inbox and personal task views
           </span>
           <span className="hero-trust-item">
-            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            Customizable team workflows
+            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-green)' }} />
+            Keyboard-first, with a command palette
           </span>
           <span className="hero-trust-item">
-            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            Enterprise privacy & security
-          </span>
-          <span className="hero-trust-item">
-            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-jade)' }} />
-            Web • Windows • Android
+            <CheckCircleRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-green)' }} />
+            Web, Windows and Android
           </span>
         </div>
 
@@ -99,26 +79,19 @@ export default async function Home() {
         {/* Dimensional Feature Grid */}
         <DimensionalFeatureGrid />
 
-        {/* Bottom CTA Banner */}
+        {/* Closing CTA. Section 6.1: "The final CTA should be shorter and
+            quieter than the hero." The glow, the icon medallion and the
+            "join thousands of forward-thinking teams" claim are gone — the
+            first was decoration, the second unsupported. */}
         <div className="landing-cta-banner">
-          <div className="cta-banner-glow" />
           <div className="cta-banner-inner">
-            <div className="cta-banner-icon">
-              <BoltRoundedIcon sx={{ fontSize: 32 }} />
-            </div>
-            <h3 className="cta-banner-title">
-              Ready to elevate how your team works?
-            </h3>
+            <h2 className="cta-banner-title">Start with one project</h2>
             <p className="cta-banner-desc">
-              Join thousands of forward-thinking teams shipping higher-impact deliverables on schedule with NEXORA.
+              Create a workspace, add your first board, and invite the people who need it.
             </p>
             <div className="cta-banner-actions">
-              <Link
-                href={user ? '/dashboard' : '/auth/signup'}
-                className="btn-landing-primary"
-                style={{ padding: '12px 28px', fontSize: '0.9375rem' }}
-              >
-                <span>{user ? 'Enter Dashboard' : 'Get Started Free'}</span>
+              <Link href={user ? '/dashboard' : '/auth/signup'} className="btn-landing-primary">
+                <span>{user ? 'Open workspace' : 'Create a workspace'}</span>
                 <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />
               </Link>
             </div>
@@ -127,19 +100,14 @@ export default async function Home() {
 
         {/* Footer */}
         <footer className="landing-footer">
-          <span>© 2026 NEXORA. All rights reserved.</span>
-
-          {/* Unique Creator Signature with Playful Burst Animation */}
-          <div className="landing-footer-creator">
-            <CreatorBadge size="md" />
-          </div>
+          <span>© {new Date().getFullYear()} Nexora</span>
 
           <div className="landing-footer-links">
             <Link href="/auth/login" className="landing-footer-link">
-              Sign In
+              Sign in
             </Link>
             <Link href="/dashboard" className="landing-footer-link">
-              Demo
+              Demo workspace
             </Link>
             <a
               href="https://github.com/Biswadipgoj/nexora"

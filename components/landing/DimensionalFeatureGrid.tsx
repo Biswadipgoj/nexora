@@ -1,182 +1,181 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
 import { TiltCard } from '@/components/ui/motion/TiltCard';
-import SpeedRoundedIcon from '@mui/icons-material/SpeedRounded';
-import DevicesRoundedIcon from '@mui/icons-material/DevicesRounded';
-import SecurityRoundedIcon from '@mui/icons-material/SecurityRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
+import ViewKanbanRoundedIcon from '@mui/icons-material/ViewKanbanRounded';
+import SwapHorizRoundedIcon from '@mui/icons-material/SwapHorizRounded';
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
 import AndroidRoundedIcon from '@mui/icons-material/AndroidRounded';
 import WindowRoundedIcon from '@mui/icons-material/WindowRounded';
 import LanguageRoundedIcon from '@mui/icons-material/LanguageRounded';
 
+/**
+ * Feature section — Master Design Document, section 6.1.
+ *
+ * "The feature section should use three or four product-led cards: Plan
+ * clearly, Move work visibly, Finish together, and Stay in control. Each card
+ * should show a cropped product state or a precise UI illustration, not an
+ * abstract AI-generated scene."
+ *
+ * The previous version carried a "Weekly Team Velocity" chart built from
+ * hard-coded numbers and a security card claiming "continuous compliance
+ * verification". Both were invented. Section 6.1 allows a claim only when it is
+ * "backed by a visible source and real product data", so every statement below
+ * describes behaviour that exists in this repository, and the micro-widgets
+ * show real interface states rather than fictional metrics.
+ */
 export function DimensionalFeatureGrid() {
   const [platform, setPlatform] = useState<'web' | 'win' | 'android'>('web');
-  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
-
-  const velocityBars = [42, 68, 55, 92, 78, 105, 118];
 
   return (
     <section id="features" className="feature-section">
       <div className="feature-header-text">
-        <span className="feature-pill-badge">
-          Core Capabilities
-        </span>
-        <h2 className="feature-title">
-          Engineered for clarity, momentum, and <span className="text-prismatic">team alignment</span>
-        </h2>
-        <p className="feature-card-desc" style={{ maxWidth: 640, margin: '0 auto' }}>
-          Everything your team needs to organize complex roadmaps, coordinate daily work, and ship on time.
+        <h2 className="feature-title">Built around how work actually moves</h2>
+        <p className="feature-card-desc" style={{ maxWidth: 560, margin: '0 auto' }}>
+          Four things a team needs from a tracker, and nothing that gets in the way of them.
         </p>
       </div>
 
-      <div className="feature-grid-3">
-        {/* Card 1: Streamlined Sprint Planning */}
-        <TiltCard glowColor="rgba(139, 92, 246, 0.35)">
+      <div className="feature-grid-4">
+        {/* 1 — Plan clearly */}
+        <TiltCard glowColor="rgba(110, 168, 255, 0.22)">
           <div className="tilt-card-inner">
             <div>
-              <div
-                className="feature-icon-avatar"
-                style={{
-                  background: 'linear-gradient(135deg, var(--aurora-iris) 0%, var(--aurora-aqua) 100%)',
-                  boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)',
-                }}
-              >
-                <SpeedRoundedIcon sx={{ fontSize: 28 }} />
+              <div className="feature-icon-avatar feature-icon-avatar--blue">
+                <ViewKanbanRoundedIcon sx={{ fontSize: 24 }} />
               </div>
-              <h3 className="feature-card-title">Streamlined Sprint Planning</h3>
+              <h3 className="feature-card-title">Plan clearly</h3>
               <p className="feature-card-desc">
-                Keep deliverables moving with visual drag-and-drop boards, automated status tracking, and clear team ownership.
+                Projects carry a short key, so every task has a name people can say out loud. Set status, priority,
+                assignee and a due date — nothing more to fill in.
               </p>
             </div>
 
-            {/* Micro-interactive Velocity Chart */}
             <div className="feature-micro-widget">
-              <div className="velocity-chart-header">
-                <span>Weekly Team Velocity</span>
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--aurora-aqua)', fontWeight: 700 }}>
-                  {hoveredBar !== null ? `${velocityBars[hoveredBar]} pts` : '118 pts (Current)'}
-                </span>
+              <div className="feature-micro-row">
+                <span className="feature-chip feature-chip--mono">APP-104</span>
+                <span className="feature-micro-title">Stripe checkout integration</span>
               </div>
-              <div className="velocity-bars-wrap">
-                {velocityBars.map((val, idx) => (
-                  <div
-                    key={idx}
-                    onMouseEnter={() => setHoveredBar(idx)}
-                    onMouseLeave={() => setHoveredBar(null)}
-                    className="velocity-bar-col"
-                  >
-                    <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: `${(val / 120) * 100}%` }}
-                      transition={{ duration: 0.8, delay: idx * 0.08 }}
-                      className={`velocity-bar-fill ${hoveredBar === idx ? 'velocity-bar-fill--active' : ''}`}
-                    />
-                  </div>
-                ))}
+              <div className="feature-micro-row">
+                <span className="badge-priority badge-priority--high">High</span>
+                <span className="feature-chip">In progress</span>
+                <span className="feature-micro-meta">Due Friday</span>
               </div>
             </div>
           </div>
         </TiltCard>
 
-        {/* Card 2: Cross-Platform Tri-Target */}
-        <TiltCard glowColor="rgba(6, 182, 212, 0.35)">
+        {/* 2 — Move work visibly */}
+        <TiltCard glowColor="rgba(155, 140, 255, 0.22)">
           <div className="tilt-card-inner">
             <div>
-              <div
-                className="feature-icon-avatar"
-                style={{
-                  background: 'linear-gradient(135deg, var(--aurora-aqua) 0%, var(--aurora-jade) 100%)',
-                  boxShadow: '0 0 20px rgba(6, 182, 212, 0.4)',
-                }}
-              >
-                <DevicesRoundedIcon sx={{ fontSize: 28 }} />
+              <div className="feature-icon-avatar feature-icon-avatar--violet">
+                <SwapHorizRoundedIcon sx={{ fontSize: 24 }} />
               </div>
-              <h3 className="feature-card-title">Cross-Platform Continuity</h3>
+              <h3 className="feature-card-title">Move work visibly</h3>
               <p className="feature-card-desc">
-                Work seamlessly from anywhere. One unified workspace available on Web, native Windows desktop, and mobile Android.
+                Drag a card, or move it from the keyboard without touching the mouse. Column counts update as you go,
+                so the board always says how much is in flight.
               </p>
             </div>
 
-            {/* Interactive Platform Switcher */}
             <div className="feature-micro-widget">
-              <div className="platform-btn-group">
-                <button
-                  type="button"
-                  onClick={() => setPlatform('web')}
-                  className={`platform-btn ${platform === 'web' ? 'platform-btn--active' : ''}`}
-                >
-                  <LanguageRoundedIcon sx={{ fontSize: 15 }} />
-                  <span>Web</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPlatform('win')}
-                  className={`platform-btn ${platform === 'win' ? 'platform-btn--active' : ''}`}
-                >
-                  <WindowRoundedIcon sx={{ fontSize: 15 }} />
-                  <span>Windows</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPlatform('android')}
-                  className={`platform-btn ${platform === 'android' ? 'platform-btn--active' : ''}`}
-                >
-                  <AndroidRoundedIcon sx={{ fontSize: 15 }} />
-                  <span>Android</span>
-                </button>
+              <div className="feature-columns">
+                <span className="feature-column">
+                  <span className="feature-column__dot feature-column__dot--todo" />
+                  To do <b>6</b>
+                </span>
+                <span className="feature-column feature-column--active">
+                  <span className="feature-column__dot feature-column__dot--progress" />
+                  In progress <b>3</b>
+                </span>
+                <span className="feature-column">
+                  <span className="feature-column__dot feature-column__dot--done" />
+                  Done <b>12</b>
+                </span>
+              </div>
+              <div className="feature-micro-meta">
+                Press <kbd className="kbd-shortcut">←</kbd> <kbd className="kbd-shortcut">→</kbd> to change status
+              </div>
+            </div>
+          </div>
+        </TiltCard>
+
+        {/* 3 — Finish together */}
+        <TiltCard glowColor="rgba(87, 211, 154, 0.22)">
+          <div className="tilt-card-inner">
+            <div>
+              <div className="feature-icon-avatar feature-icon-avatar--green">
+                <GroupsRoundedIcon sx={{ fontSize: 24 }} />
+              </div>
+              <h3 className="feature-card-title">Finish together</h3>
+              <p className="feature-card-desc">
+                Open a task to see its history, leave a comment, and hand it on. Share a project by link when someone
+                needs to look without joining the workspace.
+              </p>
+            </div>
+
+            <div className="feature-micro-widget">
+              <div className="feature-activity">
+                <span className="feature-activity__row">
+                  <span className="feature-activity__dot" />
+                  Moved to <b>In review</b>
+                </span>
+                <span className="feature-activity__row">
+                  <span className="feature-activity__dot" />
+                  Assigned to <b>Priya</b>
+                </span>
+                <span className="feature-activity__row">
+                  <span className="feature-activity__dot" />
+                  Comment added
+                </span>
+              </div>
+            </div>
+          </div>
+        </TiltCard>
+
+        {/* 4 — Stay in control */}
+        <TiltCard glowColor="rgba(70, 215, 232, 0.22)">
+          <div className="tilt-card-inner">
+            <div>
+              <div className="feature-icon-avatar feature-icon-avatar--cyan">
+                <ShieldRoundedIcon sx={{ fontSize: 24 }} />
+              </div>
+              <h3 className="feature-card-title">Stay in control</h3>
+              <p className="feature-card-desc">
+                Workspaces are isolated in the database itself, not just in the interface, and the same account works
+                on the web, on Windows and on Android.
+              </p>
+            </div>
+
+            <div className="feature-micro-widget">
+              <div className="platform-btn-group" role="tablist" aria-label="Available platforms">
+                {(
+                  [
+                    ['web', 'Web', LanguageRoundedIcon],
+                    ['win', 'Windows', WindowRoundedIcon],
+                    ['android', 'Android', AndroidRoundedIcon],
+                  ] as const
+                ).map(([id, label, Icon]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={platform === id}
+                    onClick={() => setPlatform(id)}
+                    className={`platform-btn ${platform === id ? 'platform-btn--active' : ''}`}
+                  >
+                    <Icon sx={{ fontSize: 15 }} />
+                    <span>{label}</span>
+                  </button>
+                ))}
               </div>
 
               <div className="platform-info-row">
-                <span>Platform Client:</span>
-                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--aurora-amber)', fontWeight: 600 }}>
-                  {platform === 'web' && 'Web App (Real-time Cloud Sync)'}
-                  {platform === 'win' && 'Windows Desktop (.exe client)'}
-                  {platform === 'android' && 'Mobile Android App'}
-                </span>
-              </div>
-            </div>
-          </div>
-        </TiltCard>
-
-        {/* Card 3: Enterprise Tenancy & Security */}
-        <TiltCard glowColor="rgba(244, 63, 94, 0.35)">
-          <div className="tilt-card-inner">
-            <div>
-              <div
-                className="feature-icon-avatar"
-                style={{
-                  background: 'linear-gradient(135deg, var(--aurora-rose) 0%, var(--aurora-amber) 100%)',
-                  boxShadow: '0 0 20px rgba(244, 63, 94, 0.4)',
-                }}
-              >
-                <SecurityRoundedIcon sx={{ fontSize: 28 }} />
-              </div>
-              <h3 className="feature-card-title">Enterprise Data Security</h3>
-              <p className="feature-card-desc">
-                Granular role-based permissions, encrypted workspace storage, and continuous compliance verification built in.
-              </p>
-            </div>
-
-            {/* Micro-security Status Display */}
-            <div className="feature-micro-widget">
-              <div className="security-metrics-list">
-                <div className="security-metric-row">
-                  <span>Access Control:</span>
-                  <span className="security-metric-val" style={{ color: 'var(--aurora-jade)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                    <CheckCircleRoundedIcon sx={{ fontSize: 14 }} />
-                    Multi-Tenant RLS Verified
-                  </span>
-                </div>
-                <div className="security-metric-row">
-                  <span>Data Protection:</span>
-                  <span className="security-metric-val" style={{ color: 'var(--aurora-jade)' }}>Strict Workspace Isolation</span>
-                </div>
-                <div className="security-metric-row">
-                  <span>Workspace Security:</span>
-                  <span className="security-metric-val" style={{ color: 'var(--aurora-aqua)' }}>Encrypted & Compliant</span>
-                </div>
+                {platform === 'web' && 'Runs in the browser, no install needed.'}
+                {platform === 'win' && 'Desktop window with the same keyboard shortcuts.'}
+                {platform === 'android' && 'Bottom navigation built for one thumb.'}
               </div>
             </div>
           </div>

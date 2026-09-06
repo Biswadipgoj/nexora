@@ -15,9 +15,13 @@ import { logger } from '@/lib/logger';
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const DEFAULT_STATUSES = [
-  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#6366F1' },
-  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#8B5CF6' },
-  { id: 'status-done', name: 'Done', category: 'done', position: 2, color: '#10B981' },
+  // Must stay in step with KanbanBoard's DEFAULT_STATUSES. When these lists
+  // disagreed the board rendered four columns, then the first load replaced
+  // them with three and quietly moved every Code Review card elsewhere.
+  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: '#9B8CFF' },
+  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: '#F1B86A' },
+  { id: 'status-review', name: 'Code Review', category: 'in_progress', position: 2, color: '#46D7E8' },
+  { id: 'status-done', name: 'Done', category: 'done', position: 3, color: '#57D39A' },
 ];
 
 const DEFAULT_TYPES = [
@@ -189,23 +193,35 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({ workItem }, { status: 201 });
     } catch (createErr: unknown) {
-      console.warn('[WorkItemsRoute] Direct DB creation notice, returning resilient client work item:', createErr);
-      const fallbackItem = {
-        id: 'wi-' + Date.now(),
+      /**
+       * A failed write must never be reported as a success.
+       *
+       * This previously swallowed the error and returned 201 with a fabricated
+       * row (`id: 'wi-' + Date.now()`, a random sequence). The client showed the
+       * task on the board, but nothing was stored — and because an RLS denial
+       * arrives here too, a permission failure was indistinguishable from a
+       * save. Section 3.4: "A user must understand whether a change was saved,
+       * queued, rejected, or still in progress." Section 10 requires an
+       * unauthorized id to "return safe errors and reveal no data".
+       */
+      const message = createErr instanceof Error ? createErr.message : '';
+      const denied = /row-level security|permission|not authorized|violates/i.test(message);
+
+      logger.warn('Work item creation failed', {
+        action: 'work_item_create',
+        outcome: denied ? 'denied' : 'error',
         workspace_id: validated.workspace_id,
         project_id: validated.project_id,
-        type_id: finalTypeId,
-        status_id: finalStatusId,
-        title: validated.title,
-        description: validated.description ?? null,
-        priority: validated.priority ?? 0,
-        creator_id: user.id,
-        sequence: Math.floor(Math.random() * 900) + 10,
-        position: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      return NextResponse.json({ workItem: fallbackItem }, { status: 201 });
+      });
+
+      return NextResponse.json(
+        {
+          error: denied
+            ? 'You do not have access to create work in this project.'
+            : 'Could not create the task. Try again.',
+        },
+        { status: denied ? 403 : 500 }
+      );
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Invalid request payload';

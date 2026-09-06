@@ -41,10 +41,10 @@ export function LandingHeader({ user }: { user: any }) {
           ) : (
             <>
               <Link href="/auth/login" className="btn-landing-ghost">
-                Sign In
+                Sign in
               </Link>
               <Link href="/auth/signup" className="btn-landing-primary">
-                <span>Get Started Free</span>
+                <span>Create a workspace</span>
                 <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
               </Link>
             </>

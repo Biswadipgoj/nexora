@@ -58,8 +58,12 @@ async function createWindow() {
     height: 900,
     minWidth: 980,
     minHeight: 640,
-    title: 'NEXORA',
-    backgroundColor: '#6372ec',
+    title: 'Nexora',
+    // The application canvas (--nx-bg). Matching it here means the window
+    // paints obsidian before the first frame instead of flashing a brand
+    // colour — section 10, "Layout shift".
+    backgroundColor: '#080B12',
+    icon: path.join(__dirname, 'icon.ico'),
     show: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -94,7 +98,7 @@ async function createWindow() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>NEXORA — Connecting</title>
+          <title>Nexora</title>
           <style>
             body {
               font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -104,27 +108,30 @@ async function createWindow() {
               justify-content: center;
               height: 100vh;
               margin: 0;
-              background: #F8FAFC;
-              color: #0F172A;
+              background: #080B12;
+              color: #F4F7FB;
             }
             .spinner {
-              width: 48px;
-              height: 48px;
-              border: 4px solid #E2E8F0;
-              border-top-color: #4F46E5;
+              width: 40px;
+              height: 40px;
+              border: 3px solid rgba(174, 205, 255, 0.14);
+              border-top-color: #6EA8FF;
               border-radius: 50%;
               animation: spin 0.8s linear infinite;
               margin-bottom: 20px;
             }
             @keyframes spin { to { transform: rotate(360deg); } }
-            h2 { font-size: 1.25rem; font-weight: 700; margin: 0 0 8px; }
-            p { font-size: 0.875rem; color: #64748B; margin: 0; }
+            @media (prefers-reduced-motion: reduce) {
+              .spinner { animation: none; border-top-color: #6EA8FF; }
+            }
+            h2 { font-size: 1.0625rem; font-weight: 650; margin: 0 0 6px; }
+            p { font-size: 0.875rem; color: #7E8DA3; margin: 0; }
           </style>
         </head>
         <body>
           <div class="spinner"></div>
-          <h2>Starting NEXORA Desktop Engine...</h2>
-          <p>Connecting to ultra-fast agile workspace (120fps)</p>
+          <h2>Starting Nexora</h2>
+          <p>Connecting to your workspace…</p>
           <script>
             setTimeout(() => { window.location.href = '${appUrl}'; }, 2000);
           </script>

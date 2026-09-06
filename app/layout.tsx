@@ -23,8 +23,12 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'NEXORA — Project and Task Management',
-  description: 'Fast and simple task tracking for teams and projects.',
+  title: {
+    default: 'Nexora — Project and Task Management',
+    template: '%s — Nexora',
+  },
+  description: 'A calm command center for planning, tracking and shipping work.',
+  applicationName: 'Nexora',
   keywords: [
     'project management',
     'task management',
@@ -32,18 +36,21 @@ export const metadata: Metadata = {
     'kanban',
     'sprint planning',
   ],
-  icons: {
-    icon: '/logo.svg',
-    apple: '/logo.svg',
-  },
+  // Icons resolve from the app-directory file conventions — app/favicon.ico,
+  // app/icon.svg and app/apple-icon.png — all generated from the single master
+  // mark by scripts/generate-icons.mjs (section 8). The file-based API is used
+  // in preference to an explicit `icons` object so the metadata cannot drift
+  // out of sync with the artwork on disk. Launcher icons are in app/manifest.ts.
 };
-
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  // Section 9: text must stay legible at 200% zoom, so pinch-zoom is not capped.
   maximumScale: 5,
-  themeColor: '#6372ec',
+  viewportFit: 'cover',
+  themeColor: '#080B12',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({
@@ -54,7 +61,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      data-theme="prismatic"
+      data-theme="dark"
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
       suppressHydrationWarning

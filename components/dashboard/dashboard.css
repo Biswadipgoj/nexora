@@ -37,7 +37,7 @@
   height: 550px;
   top: -10%;
   left: -5%;
-  background: radial-gradient(circle, rgba(139, 92, 246, 0.32) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(155, 140, 255, 0.32) 0%, transparent 70%);
 }
 
 .aurora-orb--2 {
@@ -45,7 +45,7 @@
   height: 650px;
   bottom: -15%;
   right: -10%;
-  background: radial-gradient(circle, rgba(6, 182, 212, 0.26) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(70, 215, 232, 0.26) 0%, transparent 70%);
 }
 
 .aurora-orb--3 {
@@ -53,7 +53,7 @@
   height: 480px;
   top: 35%;
   left: 45%;
-  background: radial-gradient(circle, rgba(244, 63, 94, 0.18) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 113, 133, 0.18) 0%, transparent 70%);
 }
 
 /* Sleek Prismatic Sidebar Navigation */
@@ -62,7 +62,7 @@
   background: var(--surface-primary) !important;
   backdrop-filter: blur(28px) saturate(220%) brightness(106%);
   -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(106%);
-  border-right: 1px solid rgba(255, 255, 255, 0.75);
+  border-right: 1px solid var(--nx-border);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
@@ -70,7 +70,7 @@
   position: sticky;
   top: 0;
   height: 100vh;
-  box-shadow: 4px 0 24px -2px rgba(20, 15, 60, 0.14);
+  box-shadow: 4px 0 24px -2px rgba(0, 0, 0, 0.36);
   transition: all var(--transition-fast);
 }
 
@@ -79,7 +79,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.7);
+  border-bottom: 1px solid var(--nx-border);
 }
 
 .sidebar-brand-header {
@@ -95,31 +95,31 @@
   gap: 10px;
   padding: 8px 10px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05), inset 0 1px 0 #ffffff;
+  background: var(--nx-surface);
+  border: 1px solid var(--nx-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   transition: all var(--transition-fast);
 }
 
 .sidebar-workspace-pill:hover {
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08), inset 0 1px 0 #ffffff;
+  background: var(--nx-surface-2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.21), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .workspace-pill-avatar {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
+  color: var(--nx-on-accent);
   font-weight: 800;
   font-size: 0.8125rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+  box-shadow: 0 2px 6px rgba(110, 168, 255, 0.3);
   flex-shrink: 0;
 }
 
@@ -133,7 +133,7 @@
 .workspace-pill-name {
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--nx-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -146,15 +146,15 @@
   gap: 5px;
   font-size: 0.65rem;
   font-weight: 600;
-  color: #059669;
+  color: var(--nx-green);
 }
 
 .workspace-pill-dot {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+  background: var(--nx-green);
+  box-shadow: 0 0 6px rgba(87, 211, 154, 0.7);
 }
 
 .sidebar-nav {
@@ -169,7 +169,7 @@
 .nav-group-title {
   font-size: 0.6875rem;
   font-weight: 800;
-  color: #64748b;
+  color: var(--nx-text-3);
   letter-spacing: 0.08em;
   padding: 10px 10px 4px;
   display: flex;
@@ -178,8 +178,8 @@
 }
 
 .nav-count-chip {
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
+  background: rgba(110, 168, 255, 0.1);
+  color: var(--nx-blue);
   font-size: 0.6875rem;
   padding: 1px 6px;
   border-radius: 9999px;
@@ -195,7 +195,7 @@
   border-radius: 10px;
   background: transparent;
   border: 1px solid transparent;
-  color: #334155;
+  color: var(--nx-text-2);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -205,17 +205,17 @@
 }
 
 .nav-item-btn:hover {
-  background: rgba(255, 255, 255, 0.55);
-  color: #0f172a;
+  background: var(--nx-surface);
+  color: var(--nx-text);
   transform: translateX(2px);
 }
 
 .nav-item-btn--active {
-  background: rgba(255, 255, 255, 0.95) !important;
-  color: #1e3a8a !important;
+  background: var(--nx-surface-2) !important;
+  color: var(--nx-blue) !important;
   font-weight: 700;
-  border-color: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07), inset 0 1px 0 #ffffff;
+  border-color: var(--nx-border-strong);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .nav-active-bar {
@@ -225,15 +225,15 @@
   bottom: 8px;
   width: 3.5px;
   border-radius: 0 3px 3px 0;
-  background: #2563eb;
-  box-shadow: 0 0 8px rgba(37, 99, 235, 0.6);
+  background: var(--nx-blue);
+  box-shadow: 0 0 8px rgba(110, 168, 255, 0.6);
 }
 
 .nav-icon-container {
   width: 26px;
   height: 26px;
   border-radius: 7px;
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(0, 0, 0, 0.10);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -242,8 +242,8 @@
 }
 
 .nav-item-btn--active .nav-icon-container {
-  background: rgba(37, 99, 235, 0.12);
-  color: #2563eb;
+  background: rgba(110, 168, 255, 0.12);
+  color: var(--nx-blue);
 }
 
 .nav-label {
@@ -251,13 +251,13 @@
 }
 
 .nav-badge-pill {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--nx-red), var(--nx-red));
+  color: var(--nx-on-accent);
   font-size: 0.6875rem;
   font-weight: 800;
   padding: 1px 6px;
   border-radius: 9999px;
-  box-shadow: 0 1px 6px rgba(220, 38, 38, 0.35);
+  box-shadow: 0 1px 6px rgba(255, 113, 133, 0.35);
 }
 
 .nav-divider {
@@ -323,9 +323,9 @@
   gap: 10px;
   padding: 8px 10px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  background: var(--nx-surface);
+  border: 1px solid var(--nx-border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
@@ -373,15 +373,17 @@
   padding: 18px 20px;
   border-radius: 16px;
   background: var(--surface-primary);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--nx-border);
   box-shadow: var(--shadow-sm), var(--border-rim-highlight);
   backdrop-filter: blur(28px) saturate(220%) brightness(106%);
   -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(106%);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: var(--nx-motion-hover);
+  transition-timing-function: var(--nx-ease-out);
 }
 
 .metric-card:hover {
-  border-color: #ffffff;
+  border-color: var(--nx-border-strong);
   box-shadow: var(--shadow-md), var(--border-rim-highlight);
   transform: translateY(-2px);
 }
@@ -435,7 +437,7 @@
 .metric-progress-fill {
   height: 100%;
   border-radius: 9999px;
-  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: width var(--nx-t-panel);
 }
 
 /* Responsiveness */
@@ -466,7 +468,7 @@
   margin-bottom: 24px;
   border-radius: 20px;
   background: var(--surface-primary) !important;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--nx-border);
   box-shadow: var(--shadow-md), var(--border-rim-highlight);
   backdrop-filter: blur(28px) saturate(220%) brightness(106%);
   -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(106%);
@@ -495,10 +497,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--nx-bg-raised);
   padding: 4px 12px;
   border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--nx-border);
 }
 
 .dash-header__project-name {
@@ -510,7 +512,7 @@
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 800;
-  background: rgba(109, 40, 217, 0.15);
+  background: rgba(155, 140, 255, 0.15);
   color: var(--aurora-iris);
   padding: 1px 7px;
   border-radius: 6px;
@@ -527,8 +529,8 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: var(--nx-bg-raised);
+  border: 1px solid var(--nx-border);
   border-radius: 12px;
   padding: 7px 14px;
   cursor: pointer;
@@ -536,12 +538,12 @@
   color: var(--text-main);
   font-size: 0.8125rem;
   font-weight: 600;
-  box-shadow: inset 0 1px 2px rgba(20, 15, 60, 0.05);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.13);
 }
 
 .dash-search-trigger:hover {
-  border-color: #ffffff;
-  background: rgba(255, 255, 255, 0.8);
+  border-color: var(--nx-border-strong);
+  background: var(--nx-surface);
 }
 
 .dash-search-placeholder {
@@ -562,18 +564,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: var(--nx-bg-raised);
+  border: 1px solid var(--nx-border);
   color: var(--text-main);
   cursor: pointer;
   position: relative;
   transition: all var(--transition-fast);
-  box-shadow: 0 2px 6px rgba(20, 15, 60, 0.06);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
 }
 
 .header-icon-btn:hover {
-  background: rgba(255, 255, 255, 0.8);
-  border-color: #ffffff;
+  background: var(--nx-surface);
+  border-color: var(--nx-border-strong);
   transform: translateY(-1px);
 }
 
@@ -581,34 +583,36 @@
   position: absolute;
   top: -4px;
   right: -4px;
-  background: #EF4444;
-  color: #FFFFFF;
+  background: var(--nx-red);
+  color: var(--nx-on-accent);
   font-size: 0.625rem;
   font-weight: 800;
   padding: 1px 5px;
   border-radius: 9999px;
-  border: 2px solid #ffffff;
+  border: 2px solid var(--nx-surface);
 }
 
 .btn-primary-gradient {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
+  color: var(--nx-on-accent);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-control);
   padding: 8px 18px;
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.7);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(110, 168, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  transition: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: var(--nx-motion-hover);
+  transition-timing-function: var(--nx-ease-out);
 }
 
 .btn-primary-gradient:hover {
   transform: translateY(-1px) scale(1.03);
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.5), inset 0 1.5px 0 #ffffff;
+  box-shadow: 0 8px 24px rgba(110, 168, 255, 0.5), inset 0 1.5px 0 rgba(255, 255, 255, 0.05);
 }
 
 /* ====================================================================
@@ -629,7 +633,7 @@
   padding: 20px 24px;
   border-radius: 18px;
   background: var(--surface-primary);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--nx-border);
   box-shadow: var(--shadow-sm), var(--border-rim-highlight);
   backdrop-filter: blur(28px) saturate(180%);
   -webkit-backdrop-filter: blur(28px) saturate(180%);
@@ -669,10 +673,10 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--nx-surface);
   padding: 4px;
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--nx-border);
 }
 
 .tab-filter-pill {
@@ -684,18 +688,20 @@
   cursor: pointer;
   background: transparent;
   color: var(--text-muted);
-  transition: all 0.15s ease;
+  transition: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: var(--nx-motion-hover);
+  transition-timing-function: var(--nx-ease-out);
 }
 
 .tab-filter-pill:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--nx-bg-raised);
 }
 
 .tab-filter-pill--active {
-  background: #ffffff !important;
+  background: var(--nx-surface-2) !important;
   color: var(--text-main) !important;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.21);
 }
 
 .btn-tab-action {
@@ -703,20 +709,22 @@
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: var(--nx-radius-control);
+  border: 1px solid var(--nx-border);
   background: var(--surface-elevated);
   color: var(--text-main);
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.06);
-  transition: all 0.2s ease;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
+  transition: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: var(--nx-motion-hover);
+  transition-timing-function: var(--nx-ease-out);
 }
 
 .btn-tab-action:hover {
   background: var(--surface-hover);
-  border-color: #ffffff;
+  border-color: var(--nx-border-strong);
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
 }
@@ -735,25 +743,27 @@
   padding: 16px 20px;
   border-radius: 14px;
   background: var(--surface-primary);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--nx-border);
   box-shadow: var(--shadow-sm), var(--border-rim-highlight);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: var(--nx-motion-hover);
+  transition-timing-function: var(--nx-ease-out);
   position: relative;
 }
 
 .inbox-card:hover {
   background: var(--surface-hover);
-  border-color: #ffffff;
+  border-color: var(--nx-border-strong);
   transform: translateY(-1.5px);
   box-shadow: var(--shadow-md), var(--border-rim-highlight);
 }
 
 .inbox-card--unread {
-  background: rgba(255, 255, 255, 0.94);
-  border-left: 3.5px solid #2563eb !important;
+  background: var(--nx-surface-2);
+  border-left: 3.5px solid var(--nx-blue) !important;
 }
 
 .inbox-card--read {
@@ -769,9 +779,9 @@
   justify-content: center;
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--nx-on-accent);
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.31);
 }
 
 .inbox-content {
@@ -802,9 +812,9 @@
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 6px;
-  background: rgba(37, 99, 235, 0.1);
-  color: #2563eb;
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: rgba(110, 168, 255, 0.1);
+  color: var(--nx-blue);
+  border: 1px solid rgba(110, 168, 255, 0.2);
 }
 
 .inbox-card-time {
@@ -828,17 +838,19 @@
   padding: 14px 18px;
   border-radius: 12px;
   background: var(--surface-primary);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--nx-border);
   box-shadow: var(--shadow-sm), var(--border-rim-highlight);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: var(--nx-motion-hover);
+  transition-timing-function: var(--nx-ease-out);
 }
 
 .task-row-card:hover {
   background: var(--surface-hover);
-  border-color: #ffffff;
+  border-color: var(--nx-border-strong);
   transform: translateY(-1.5px);
   box-shadow: var(--shadow-md), var(--border-rim-highlight);
 }
@@ -863,23 +875,23 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  color: #94a3b8;
-  transition: color 0.15s ease;
+  color: var(--nx-text-3);
+  transition: color var(--nx-t-hover);
 }
 
 .task-checkbox-btn:hover {
-  color: #2563eb;
+  color: var(--nx-blue);
 }
 
 .task-checkbox-btn--done {
-  color: #059669 !important;
+  color: var(--nx-green) !important;
 }
 
 .task-row-key {
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   font-weight: 700;
-  color: #2563eb;
+  color: var(--nx-blue);
   flex-shrink: 0;
 }
 
@@ -934,7 +946,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(0, 0, 0, 0.10);
   padding: 3px 8px;
   border-radius: 6px;
 }
@@ -947,7 +959,1085 @@
   padding: 48px 24px;
   border-radius: 16px;
   background: var(--surface-primary);
-  border: 1px dashed rgba(255, 255, 255, 0.9);
+  border: 1px dashed var(--nx-border-strong);
   text-align: center;
   color: var(--text-muted);
+}
+/* ============================================================================
+   Sidebar profile actions
+
+   Icon-only controls. Section 9 requires an accessible name and a tooltip, both
+   supplied at the call site, plus a visible focus ring, supplied here.
+   ========================================================================= */
+.sidebar-profile-action {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--nx-text-3);
+  padding: 6px;
+  border-radius: var(--nx-radius-control);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--nx-t-hover), background-color var(--nx-t-hover);
+}
+
+.sidebar-profile-action:hover {
+  color: var(--nx-blue);
+  background-color: var(--nx-surface-2);
+}
+
+.sidebar-profile-action--danger:hover {
+  color: var(--nx-red);
+  background-color: var(--nx-red-soft);
+}
+
+.sidebar-profile-action:focus-visible {
+  box-shadow: var(--nx-focus-ring);
+}
+
+/* ============================================================================
+   Command palette — section 5.7
+
+   A global accelerator: grouped results, keyboard hints, an empty-query state
+   and a no-results state. Section 4.2 permits backdrop-filter here because the
+   palette is a short-lived overlay.
+   ========================================================================= */
+.palette-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(4, 6, 11, 0.66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12vh 16px 16px;
+  animation: nxPaletteFade 140ms var(--nx-ease-out);
+}
+
+.palette-modal {
+  width: 100%;
+  max-width: 600px;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(145deg, rgba(29, 43, 64, 0.98), rgba(18, 26, 39, 0.99));
+  border: 1px solid var(--nx-border-strong);
+  border-radius: var(--nx-radius-panel);
+  box-shadow: var(--nx-shadow-lg), var(--nx-shadow-xl), var(--nx-rim-strong);
+  animation: nxPaletteIn 180ms var(--nx-ease-spring);
+}
+
+.palette-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--nx-border);
+  flex-shrink: 0;
+}
+
+.palette-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.9375rem;
+  color: var(--nx-text);
+  font-family: inherit;
+}
+
+.palette-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--nx-text-3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 6px;
+  transition: color var(--nx-t-hover), background-color var(--nx-t-hover);
+}
+
+.palette-close-btn:hover {
+  color: var(--nx-text);
+  background: var(--nx-surface-2);
+}
+
+.palette-list {
+  overflow-y: auto;
+  padding: 6px;
+  flex: 1;
+}
+
+.palette-group + .palette-group {
+  margin-top: 4px;
+}
+
+.palette-group__label {
+  padding: 8px 12px 4px;
+  font: var(--nx-text-key);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--nx-text-3);
+}
+
+.palette-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: var(--nx-radius-control);
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover);
+}
+
+.palette-item--selected {
+  background: var(--nx-surface-2);
+}
+
+.palette-item__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.palette-item__content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.palette-item__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nx-text);
+  /* Long task titles truncate rather than wrapping the row (section 10). */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-item__subtitle {
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.palette-empty {
+  padding: 34px 24px;
+  text-align: center;
+}
+
+.palette-empty__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--nx-text);
+  margin-bottom: 6px;
+}
+
+.palette-empty__body {
+  font-size: 0.8125rem;
+  color: var(--nx-text-3);
+  line-height: 1.5;
+  max-width: 340px;
+  margin: 0 auto 16px;
+}
+
+.palette-empty__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--nx-radius-control);
+  border: 1px solid var(--nx-border);
+  background: var(--nx-surface);
+  color: var(--nx-text);
+  font: var(--nx-text-button);
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover);
+}
+
+.palette-empty__action:hover {
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border-strong);
+}
+
+.palette-footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 18px;
+  background: rgba(8, 11, 18, 0.5);
+  border-top: 1px solid var(--nx-border);
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+  flex-shrink: 0;
+}
+
+.palette-footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@keyframes nxPaletteFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes nxPaletteIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ============================================================================
+   Overview — section 5.2
+
+   "The dashboard should answer three questions within the first viewport:
+   What needs attention? What is moving? What should I open next?"
+   ========================================================================= */
+.overview-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+.overview-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.overview-title {
+  font-family: var(--nx-font-display);
+  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--nx-text);
+}
+
+.overview-date {
+  margin-top: 3px;
+  font-size: 0.8125rem;
+  color: var(--nx-text-3);
+}
+
+/* ---- Priority strip ----------------------------------------------------- */
+.priority-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.priority-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-card);
+  box-shadow: var(--nx-elevation-1);
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover),
+    transform var(--nx-t-hover);
+}
+
+.priority-tile:hover {
+  border-color: var(--nx-border-strong);
+  transform: translateY(-1px);
+}
+
+.priority-tile:focus-visible {
+  box-shadow: var(--nx-focus-ring);
+}
+
+.priority-tile__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.priority-tile__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--nx-text-2);
+}
+
+.priority-tile__icon {
+  display: inline-flex;
+  color: var(--nx-text-3);
+}
+
+.priority-tile__value {
+  /* Tabular figures keep the row from reflowing as counts change
+     (section 10, "Layout shift"). */
+  font-family: var(--nx-font-display);
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--nx-text);
+}
+
+.priority-tile__caption {
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+/* A tile carries its accent only while it has something to report, so a quiet
+   board stays quiet (section 3.1). */
+.priority-tile--red:not(.priority-tile--empty) .priority-tile__icon,
+.priority-tile--red:not(.priority-tile--empty) .priority-tile__value { color: var(--nx-red); }
+.priority-tile--amber:not(.priority-tile--empty) .priority-tile__icon,
+.priority-tile--amber:not(.priority-tile--empty) .priority-tile__value { color: var(--nx-amber); }
+.priority-tile--violet:not(.priority-tile--empty) .priority-tile__icon { color: var(--nx-violet); }
+.priority-tile--green:not(.priority-tile--empty) .priority-tile__icon { color: var(--nx-green); }
+
+.priority-tile--empty .priority-tile__value {
+  color: var(--nx-text-3);
+}
+
+/* ---- Two-column body ---------------------------------------------------- */
+.overview-columns {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.overview-panel {
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-panel);
+  box-shadow: var(--nx-elevation-1);
+  padding: 16px 18px 18px;
+  min-width: 0;
+}
+
+.overview-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.overview-panel__title {
+  font-family: var(--nx-font-display);
+  font-size: 1.0625rem;
+  font-weight: 650;
+  color: var(--nx-text);
+}
+
+.overview-panel__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--nx-blue);
+  border-radius: 6px;
+  transition: color var(--nx-t-hover);
+}
+
+.overview-panel__link:hover { color: var(--nx-text); }
+
+/* ---- My focus ----------------------------------------------------------- */
+.focus-list,
+.pulse-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.focus-row {
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 10px;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--nx-radius-control);
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover);
+}
+
+.focus-row:hover {
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border);
+}
+
+.focus-row:focus-visible { box-shadow: var(--nx-focus-ring); }
+
+/* Status rail: a shape cue that survives colour-blindness and greyscale,
+   paired with the text label beside it (section 9). */
+.focus-row__rail {
+  width: 3px;
+  border-radius: var(--nx-radius-pill);
+  flex-shrink: 0;
+  background: var(--nx-border-strong);
+}
+
+.focus-row__rail--overdue { background: var(--nx-red); }
+.focus-row__rail--due-today { background: var(--nx-amber); }
+.focus-row__rail--due-soon { background: var(--nx-blue); }
+
+.focus-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.focus-row__title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nx-text);
+  /* Wraps to two lines rather than being clipped, then stops. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.focus-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+.focus-row__key {
+  font-family: var(--nx-font-mono);
+  font-size: 0.6875rem;
+}
+
+.focus-row__due--overdue { color: var(--nx-red); font-weight: 600; }
+.focus-row__due--due-today { color: var(--nx-amber); font-weight: 600; }
+
+/* ---- Project pulse ------------------------------------------------------ */
+.pulse-row {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px;
+  border-radius: var(--nx-radius-control);
+  border: 1px solid transparent;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover);
+}
+
+.pulse-row:hover {
+  background: var(--nx-surface-2);
+  border-color: var(--nx-border);
+}
+
+.pulse-row:focus-visible { box-shadow: var(--nx-focus-ring); }
+
+.pulse-row__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pulse-row__name {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--nx-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pulse-row__key {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--nx-font-mono);
+  font-size: 0.6875rem;
+  color: var(--nx-text-3);
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--nx-bg-raised);
+  border: 1px solid var(--nx-border);
+}
+
+.pulse-row__track {
+  height: 4px;
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-bg-raised);
+  overflow: hidden;
+}
+
+.pulse-row__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--nx-radius-pill);
+  background: linear-gradient(90deg, var(--nx-blue), var(--nx-violet));
+  transition: width var(--nx-t-panel);
+}
+
+.pulse-row__meta {
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+/* ---- Empty states (section 5.2) ----------------------------------------- */
+.overview-empty {
+  padding: 22px 16px 24px;
+  text-align: center;
+}
+
+.overview-empty__title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--nx-text);
+  margin-bottom: 5px;
+}
+
+.overview-empty__body {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--nx-text-3);
+  max-width: 320px;
+  margin: 0 auto 14px;
+}
+
+.overview-empty__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--nx-radius-control);
+  border: 1px solid var(--nx-border);
+  background: var(--nx-surface-2);
+  color: var(--nx-text);
+  font: var(--nx-text-button);
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover);
+}
+
+.overview-empty__action:hover {
+  border-color: var(--nx-border-strong);
+  background: var(--nx-surface-3);
+}
+
+/* ---- Board -------------------------------------------------------------- */
+.overview-board {
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  border-radius: var(--nx-radius-panel);
+  box-shadow: var(--nx-elevation-1);
+  padding: 18px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* ---- Responsive (section 11) -------------------------------------------- */
+@media (max-width: 1100px) {
+  .overview-columns { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 860px) {
+  .priority-strip { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 420px) {
+  .priority-tile { padding: 12px 13px; }
+  .priority-tile__value { font-size: 1.5rem; }
+}
+
+/* ---- My Tasks: due chips and empty state (sections 5.4, 9) --------------- */
+.task-date-chip--overdue {
+  color: var(--nx-red);
+  background: var(--nx-red-soft);
+  border-color: var(--nx-red-line);
+  font-weight: 600;
+}
+
+.task-date-chip--due-today {
+  color: var(--nx-amber);
+  background: var(--nx-amber-soft);
+  border-color: var(--nx-amber-line);
+  font-weight: 600;
+}
+
+.empty-state-box__title {
+  font-family: var(--nx-font-display);
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--nx-text);
+  margin-bottom: 5px;
+}
+
+.empty-state-box__body {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--nx-text-3);
+  max-width: 340px;
+  margin: 0 auto;
+}
+
+.empty-state-box__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ============================================================================
+   Mobile and safe-area corrections — sections 6.4, 9, 10, 11
+
+   Three defects this closes:
+   - The rail hides at 900px but the bottom dock only appeared at 768px, so
+     between 769 and 900px there was no primary navigation at all.
+   - Nothing reserved space for the fixed dock, so the last rows of every list
+     sat permanently underneath it.
+   - The top bar never wrapped and the page clips overflow, so at 360-390px the
+     search trigger and New task button were cut off with no way to reach them.
+   ========================================================================= */
+
+/* Section 6.4: the WebView draws behind the Android status bar because the
+   viewport is set to cover. Sticky headers must clear it. */
+.dash-header {
+  top: calc(12px + var(--nx-safe-top));
+}
+
+@media (max-width: 900px) {
+  /* Reserve the dock's height plus its safe-area padding so content can always
+     be scrolled clear of it (section 10). */
+  .dash-main {
+    padding-bottom: calc(var(--nx-bottombar-h) + 24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Section 10: the header wraps instead of being clipped by the page's
+     overflow-x: hidden. */
+  .dash-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--nx-radius-panel);
+  }
+
+  .dash-header__center {
+    order: 3;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+
+  .dash-header__left,
+  .dash-header__right {
+    min-width: 0;
+  }
+
+  .dash-search-trigger {
+    width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  /* The breadcrumb is the first thing worth dropping: the page title beside it
+     already says where the user is. */
+  .dash-header__ws,
+  .dash-header__sep {
+    display: none;
+  }
+
+  .dash-header__project-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 40vw;
+  }
+}
+
+/* Section 10: filter rows scroll horizontally inside their own container
+   rather than being clipped by the page. */
+.tab-filter-group {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tab-filter-group::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-filter-pill {
+  flex-shrink: 0;
+}
+
+/* Section 4.2: backdrop-filter belongs on short-lived overlays and floating
+   navigation, not on persistent cards. These sit on opaque surfaces, so the
+   filter bought nothing and cost a compositing layer per card while scrolling.
+   The floating header and the dock keep theirs. */
+.metric-card,
+.tab-header-card,
+.inbox-card,
+.task-row-card,
+.sidebar-workspace-pill,
+.profile-chip {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ============================================================================
+   Outcome notices — sections 3.4, 5.6
+
+   "A user must understand whether a change was saved, queued, rejected, or
+   still in progress." Sits above the mobile dock so it is never hidden by it.
+   ========================================================================= */
+.nx-notice-region {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 9998;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(440px, calc(100vw - 32px));
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .nx-notice-region {
+    bottom: calc(var(--nx-bottombar-h) + 20px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.nx-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--nx-radius-control);
+  background: linear-gradient(145deg, rgba(29, 43, 64, 0.98), rgba(18, 26, 39, 0.99));
+  border: 1px solid var(--nx-border-strong);
+  box-shadow: var(--nx-shadow-lg), var(--nx-shadow-xl);
+  color: var(--nx-text);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  pointer-events: auto;
+  animation: nxNoticeIn 200ms var(--nx-ease-spring);
+}
+
+/* A coloured rail rather than a coloured fill, so the accent stays small
+   (section 4.1) and the text keeps full contrast. */
+.nx-notice--error {
+  border-left: 3px solid var(--nx-red);
+}
+
+.nx-notice--success {
+  border-left: 3px solid var(--nx-green);
+}
+
+.nx-notice__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.nx-notice__dismiss {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  color: var(--nx-text-3);
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition: color var(--nx-t-hover), background-color var(--nx-t-hover);
+}
+
+.nx-notice__dismiss:hover {
+  color: var(--nx-text);
+  background: var(--nx-surface-2);
+}
+
+.nx-notice__dismiss:focus-visible {
+  box-shadow: var(--nx-focus-ring);
+}
+
+@keyframes nxNoticeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Board load and move errors (section 3.4) */
+.board-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-red-soft);
+  border: 1px solid var(--nx-red-line);
+  color: var(--nx-text);
+  font-size: 0.8125rem;
+}
+
+.board-error button {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: transparent;
+  border: 1px solid var(--nx-red-line);
+  color: var(--nx-red);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.board-error button:hover {
+  background: var(--nx-red-soft);
+}
+
+/* Project directory rows (section 6.4 Projects destination) */
+.project-directory {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+}
+
+.project-directory__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: var(--nx-radius-card);
+  background: var(--nx-surface-gradient);
+  border: 1px solid var(--nx-border);
+  box-shadow: var(--nx-elevation-1);
+  transition: border-color var(--nx-t-hover), background-color var(--nx-t-hover);
+}
+
+.project-directory__row:hover {
+  border-color: var(--nx-border-strong);
+  background: var(--nx-surface-2);
+}
+
+.project-directory__row:focus-visible {
+  box-shadow: var(--nx-focus-ring);
+}
+
+.project-directory__main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.project-directory__name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--nx-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-directory__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+}
+
+.project-directory__overdue {
+  color: var(--nx-red);
+  font-weight: 600;
+}
+
+.project-directory__right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.project-directory__track {
+  width: 90px;
+  height: 4px;
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-bg-raised);
+  overflow: hidden;
+}
+
+@media (max-width: 620px) {
+  .project-directory__track {
+    display: none;
+  }
+}
+
+/* Share dialog: honest description of what link sharing does (section 3.5) */
+.share-note {
+  padding: 12px 14px;
+  margin-bottom: 20px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-bg-raised);
+  border: 1px solid var(--nx-border);
+}
+
+.share-note__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--nx-text);
+  margin: 0 0 4px;
+}
+
+.share-note__body {
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--nx-text-3);
+  margin: 0;
+}
+
+.share-error {
+  font-size: 0.75rem;
+  color: var(--nx-red);
+  font-weight: 600;
+  margin: 8px 0 0;
+}
+
+/* ============================================================================
+   Detail drawer states — sections 3.4, 5.5
+   ========================================================================= */
+.drawer-save-state {
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 4px;
+  min-width: 54px;
+  text-align: right;
+  color: var(--nx-text-3);
+  transition: color var(--nx-t-hover), opacity var(--nx-t-hover);
+}
+
+.drawer-save-state--idle {
+  opacity: 0;
+}
+
+.drawer-save-state--saved {
+  color: var(--nx-green);
+}
+
+.drawer-save-state--error {
+  color: var(--nx-red);
+}
+
+.drawer-save-error {
+  margin: 12px 16px 0;
+  padding: 10px 12px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-red-soft);
+  border: 1px solid var(--nx-red-line);
+  color: var(--nx-text);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* Destructive confirmation, named (section 5.5) */
+.drawer-confirm {
+  margin: 12px 16px 0;
+  padding: 14px 16px;
+  border-radius: var(--nx-radius-card);
+  background: var(--nx-surface-3);
+  border: 1px solid var(--nx-red-line);
+  box-shadow: var(--nx-elevation-2);
+}
+
+.drawer-confirm__title {
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--nx-text);
+  margin: 0 0 4px;
+}
+
+.drawer-confirm__body {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--nx-text-2);
+  margin: 0 0 14px;
+}
+
+.drawer-confirm__body strong {
+  color: var(--nx-text);
+}
+
+.drawer-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.drawer-confirm__cancel,
+.drawer-confirm__delete {
+  padding: 7px 14px;
+  border-radius: var(--nx-radius-control);
+  font: var(--nx-text-button);
+  cursor: pointer;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover);
+}
+
+.drawer-confirm__cancel {
+  background: transparent;
+  border: 1px solid var(--nx-border);
+  color: var(--nx-text-2);
+}
+
+.drawer-confirm__cancel:hover {
+  background: var(--nx-surface-2);
+  color: var(--nx-text);
+}
+
+.drawer-confirm__delete {
+  background: var(--nx-red);
+  border: 1px solid var(--nx-red);
+  color: var(--nx-on-accent);
+}
+
+.drawer-confirm__delete:hover {
+  background: #FF8A9C;
+  border-color: #FF8A9C;
+}
+
+/* Session-local panels say so, rather than implying stored content. */
+.drawer-local-note {
+  font-size: 0.75rem;
+  color: var(--nx-text-3);
+  margin-bottom: 10px;
+  line-height: 1.45;
 }

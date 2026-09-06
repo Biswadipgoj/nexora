@@ -314,11 +314,11 @@ let demoItems: DemoWorkItem[] = [...INITIAL_WORK_ITEMS];
 let currentCounter = 105;
 
 export function getDemoWorkItems(projectId?: string, statusId?: string): DemoWorkItem[] {
-  return demoItems.filter((item) => {
-    if (item.deleted_at !== null) return false;
-    if (projectId && item.project_id !== projectId && projectId !== 'default-workspace') {
-      // Allow general demo project match
-    }
+  // projectId used to be accepted and then ignored, so every demo project
+  // rendered the same six items regardless of which board was open.
+  return demoItems.filter((item: DemoWorkItem) => {
+    if (item.deleted_at) return false;
+    if (projectId && item.project_id !== projectId) return false;
     if (statusId && item.status_id !== statusId) return false;
     return true;
   });

@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirect, notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerClient } from '@/lib/supabase/server';
 import { KanbanBoard } from '@/components/board/KanbanBoard';
@@ -6,7 +6,6 @@ import { DEMO_PROJECT } from '@/lib/demo/demo-store';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Logo } from '@/components/ui/Logo';
-import { LivingAuroraCanvas } from '@/components/ui/motion/LivingAuroraCanvas';
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded';
 import FolderSpecialRoundedIcon from '@mui/icons-material/FolderSpecialRounded';
 import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
@@ -76,16 +75,29 @@ export default async function ProjectBoardPage({
       .is('deleted_at', null)
       .single();
 
-    if (fetchedProject) {
-      activeProject = fetchedProject;
+    /**
+     * A missing, deleted or access-denied project must not silently fall back to
+     * the demo board.
+     *
+     * This previously left `activeProject` as DEMO_PROJECT, so a real signed-in
+     * user following a stale link got a fully working board branded "Mobile App"
+     * with key "APP" — someone else's sample data, presented as theirs. Section
+     * 10 requires a broken deep link to "produce a useful recovery path", and
+     * section 3.4 requires a permission-denied state to be designed.
+     *
+     * The same 404 answers "not found" and "not yours", so the response reveals
+     * nothing about projects the user cannot see (section 10, permission
+     * leakage).
+     */
+    if (!fetchedProject) {
+      notFound();
     }
+
+    activeProject = fetchedProject;
   }
 
   return (
     <div className="project-page-root">
-      {/* Living Aurora Background Canvas */}
-      <LivingAuroraCanvas />
-
       {/* Floating Prismatic Top Navigation Bar */}
       <header className="project-header-wrap">
         <div className="project-header-pill">
@@ -131,7 +143,7 @@ export default async function ProjectBoardPage({
             </Link>
 
             <a
-              href="/auth/login?logout=true"
+              href="/api/auth/signout"
               className="project-signout-btn"
               title="Sign Out"
             >

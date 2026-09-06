@@ -58,9 +58,9 @@ const INITIAL_TASKS: SandboxTask[] = [
 ];
 
 const COLUMNS = [
-  { id: 'todo', label: 'To Do', color: 'var(--aurora-iris)', glow: 'rgba(139, 92, 246, 0.35)' },
-  { id: 'progress', label: 'In Progress', color: 'var(--aurora-amber)', glow: 'rgba(245, 158, 11, 0.35)' },
-  { id: 'done', label: 'Done', color: 'var(--aurora-jade)', glow: 'rgba(16, 185, 129, 0.35)' },
+  { id: 'todo', label: 'To Do', color: 'var(--aurora-iris)', glow: 'rgba(155, 140, 255, 0.35)' },
+  { id: 'progress', label: 'In Progress', color: 'var(--aurora-amber)', glow: 'rgba(241, 184, 106, 0.35)' },
+  { id: 'done', label: 'Done', color: 'var(--aurora-jade)', glow: 'rgba(87, 211, 154, 0.35)' },
 ] as const;
 
 export function HeroLiveSandbox() {
@@ -97,7 +97,7 @@ export function HeroLiveSandbox() {
           left: 0,
           right: 0,
           height: 1,
-          background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%)',
+          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%)',
           pointerEvents: 'none',
         }}
       />
@@ -114,13 +114,13 @@ export function HeroLiveSandbox() {
             nexora-workspace-live-preview.app
           </span>
 
-          <div style={{ display: 'flex', gap: 4, background: 'rgba(15, 23, 42, 0.06)', padding: 3, borderRadius: 8, marginLeft: 8 }}>
+          <div style={{ display: 'flex', gap: 4, background: 'rgba(0, 0, 0, 0.16)', padding: 3, borderRadius: 8, marginLeft: 8 }}>
             <button
               onClick={() => setViewMode('board')}
               style={{
-                background: viewMode === 'board' ? '#ffffff' : 'transparent',
-                color: viewMode === 'board' ? '#0f172a' : '#64748b',
-                boxShadow: viewMode === 'board' ? '0 1px 4px rgba(15, 23, 42, 0.1)' : 'none',
+                background: viewMode === 'board' ? 'var(--nx-surface-2)' : 'transparent',
+                color: viewMode === 'board' ? 'var(--nx-text)' : 'var(--nx-text-3)',
+                boxShadow: viewMode === 'board' ? '0 1px 4px rgba(0, 0, 0, 0.26)' : 'none',
                 border: 'none',
                 borderRadius: 6,
                 padding: '4px 10px',
@@ -135,9 +135,9 @@ export function HeroLiveSandbox() {
             <button
               onClick={() => setViewMode('list')}
               style={{
-                background: viewMode === 'list' ? '#ffffff' : 'transparent',
-                color: viewMode === 'list' ? '#0f172a' : '#64748b',
-                boxShadow: viewMode === 'list' ? '0 1px 4px rgba(15, 23, 42, 0.1)' : 'none',
+                background: viewMode === 'list' ? 'var(--nx-surface-2)' : 'transparent',
+                color: viewMode === 'list' ? 'var(--nx-text)' : 'var(--nx-text-3)',
+                boxShadow: viewMode === 'list' ? '0 1px 4px rgba(0, 0, 0, 0.26)' : 'none',
                 border: 'none',
                 borderRadius: 6,
                 padding: '4px 10px',
@@ -233,10 +233,10 @@ export function HeroLiveSandbox() {
                             style={{
                               backgroundColor:
                                 task.priority === 'urgent'
-                                  ? 'rgba(244, 63, 94, 0.2)'
+                                  ? 'rgba(255, 113, 133, 0.2)'
                                   : task.priority === 'high'
-                                  ? 'rgba(245, 158, 11, 0.2)'
-                                  : 'rgba(6, 182, 212, 0.2)',
+                                  ? 'rgba(241, 184, 106, 0.2)'
+                                  : 'rgba(70, 215, 232, 0.2)',
                               color:
                                 task.priority === 'urgent'
                                   ? 'var(--aurora-rose)'
@@ -291,17 +291,17 @@ export function HeroLiveSandbox() {
             <motion.div
               key={task.id}
               onClick={() => cycleTask(task.id)}
-              whileHover={{ scale: 1.01, backgroundColor: 'rgba(255, 255, 255, 0.95)' }}
+              whileHover={{ scale: 1.01, backgroundColor: 'var(--nx-surface-2)' }}
               whileTap={{ scale: 0.99 }}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
-                background: 'rgba(255, 255, 255, 0.78)',
+                background: 'var(--nx-surface)',
                 borderRadius: 12,
-                border: '1px solid rgba(255, 255, 255, 0.9)',
-                boxShadow: '0 2px 8px rgba(15, 23, 42, 0.05)',
+                border: '1px solid var(--nx-border)',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.13)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
               }}
@@ -310,7 +310,7 @@ export function HeroLiveSandbox() {
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--aurora-iris)' }}>
                   {task.key}
                 </span>
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--nx-text)' }}>
                   {task.title}
                 </span>
               </div>
@@ -321,12 +321,12 @@ export function HeroLiveSandbox() {
                   fontSize: '0.75rem',
                   fontWeight: 600,
                   textTransform: 'capitalize',
-                  background: task.column === 'done' ? 'rgba(5, 150, 105, 0.15)' : task.column === 'progress' ? 'rgba(217, 119, 6, 0.15)' : 'rgba(79, 70, 229, 0.15)',
-                  color: task.column === 'done' ? '#059669' : task.column === 'progress' ? '#d97706' : '#4f46e5',
+                  background: task.column === 'done' ? 'rgba(87, 211, 154, 0.15)' : task.column === 'progress' ? 'rgba(241, 184, 106, 0.15)' : 'rgba(155, 140, 255, 0.15)',
+                  color: task.column === 'done' ? 'var(--nx-green)' : task.column === 'progress' ? 'var(--nx-amber)' : 'var(--nx-violet)',
                 }}>
                   {task.column === 'done' ? 'Done' : task.column === 'progress' ? 'In Progress' : 'To Do'}
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{task.tag}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--nx-text-3)' }}>{task.tag}</span>
               </div>
             </motion.div>
           ))}
