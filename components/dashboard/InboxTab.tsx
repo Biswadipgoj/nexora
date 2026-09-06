@@ -24,9 +24,10 @@ interface InboxTabProps {
   notifications: NotificationItem[];
   onMarkRead: (id: string) => void;
   onMarkAllRead: () => void;
+  onSelectTaskByKey?: (targetKey: string) => void;
 }
 
-export function InboxTab({ notifications, onMarkRead, onMarkAllRead }: InboxTabProps) {
+export function InboxTab({ notifications, onMarkRead, onMarkAllRead, onSelectTaskByKey }: InboxTabProps) {
   const [filter, setFilter] = useState<'all' | 'unread' | 'mentions'>('all');
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -113,7 +114,13 @@ export function InboxTab({ notifications, onMarkRead, onMarkAllRead }: InboxTabP
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.2 }}
               className={`inbox-card ${notif.isRead ? 'inbox-card--read' : 'inbox-card--unread'}`}
-              onClick={() => onMarkRead(notif.id)}
+              onClick={() => {
+                onMarkRead(notif.id);
+                if (notif.targetKey && onSelectTaskByKey) {
+                  onSelectTaskByKey(notif.targetKey);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
             >
               <div
                 className="inbox-avatar"

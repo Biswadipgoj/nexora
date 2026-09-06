@@ -165,6 +165,78 @@ export function DashboardClientView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const [desktopPermission, setDesktopPermission] = useState<NotificationPermission | 'unsupported'>('default');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('Notification' in window) {
+        setDesktopPermission(Notification.permission);
+      } else {
+        setDesktopPermission('unsupported');
+      }
+    }
+  }, []);
+
+  const handleRequestDesktopNotification = async () => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      try {
+        const permission = await Notification.requestPermission();
+        setDesktopPermission(permission);
+        if (permission === 'granted') {
+          setNotice({ tone: 'success', message: 'Desktop notifications enabled successfully!' });
+          new Notification('Nexora Notifications Active', {
+            body: 'You will receive real-time alerts for task updates, milestones, and team invitations.',
+          });
+        } else if (permission === 'denied') {
+          setNotice({ tone: 'error', message: 'Notification permission was denied in browser settings.' });
+        }
+      } catch {
+        // browser restriction
+      }
+    }
+  };
+
+  const dispatchNotification = (
+    title: string,
+    description: string,
+    type: 'comment' | 'assign' | 'milestone' = 'comment',
+    targetKey?: string
+  ) => {
+    const newNotif: NotificationItem = {
+      id: 'notif-' + Date.now(),
+      type,
+      title,
+      description,
+      timestamp: 'Just now',
+      isRead: false,
+      author: { name: user.name || 'Workspace', avatar: user.avatar || '' },
+      targetKey,
+    };
+    setNotifications((prev) => [newNotif, ...prev]);
+
+    // Fire native desktop notification if granted
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body: description,
+        });
+      } catch {
+        // ignore
+      }
+    }
+  };
+
+  const handleSelectTaskByKey = (key: string) => {
+    const found = workItems.find(
+      (w) => w.id === key || (w.sequence && `${activeProject.key}-${w.sequence}` === key)
+    );
+    if (found) {
+      setSelectedItem(found);
+    } else {
+      setActiveTab('tasks');
+    }
+  };
+
   const handleMarkRead = (id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
   };
@@ -230,9 +302,15 @@ export function DashboardClientView({
           projectKey={activeProject.key}
           inboxCount={inboxCount}
           activeTab={activeTab}
+          notifications={notifications}
           onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
           onQuickCreate={() => setIsQuickCreateOpen(true)}
           onOpenInbox={() => setActiveTab('inbox')}
+          onMarkRead={handleMarkRead}
+          onMarkAllRead={handleMarkAllRead}
+          onSelectTaskByKey={handleSelectTaskByKey}
+          onRequestDesktopNotification={handleRequestDesktopNotification}
+          desktopPermission={desktopPermission}
         />
 
         {/* Tab Views */}
@@ -256,6 +334,7 @@ export function DashboardClientView({
               notifications={notifications}
               onMarkRead={handleMarkRead}
               onMarkAllRead={handleMarkAllRead}
+              onSelectTaskByKey={handleSelectTaskByKey}
             />
           )}
 
@@ -333,6 +412,13 @@ export function DashboardClientView({
         projectId={activeProject.id}
         onSuccess={(newItem) => {
           setWorkItems((prev) => [newItem, ...prev]);
+          const taskKey = newItem.sequence ? `${activeProject.key}-${newItem.sequence}` : newItem.id.slice(0, 7);
+          dispatchNotification(
+            `Task Created: ${newItem.title}`,
+            `Added to ${activeProject.name} as ${taskKey}`,
+            'comment',
+            taskKey
+          );
         }}
         /* Swap the placeholder for the row the server stored, so its real id and
            sequence are what later edits reference (section 10, stale data). */
@@ -365,6 +451,11 @@ export function DashboardClientView({
         onProjectCreated={(newProj) => {
           setProjectList((prev) => [newProj, ...prev]);
           setNotice({ tone: 'success', message: `Project "${newProj.name}" created successfully!` });
+          dispatchNotification(
+            `Project Created: ${newProj.name}`,
+            `New project workspace configured with key ${newProj.key}.`,
+            'milestone'
+          );
         }}
       />
 

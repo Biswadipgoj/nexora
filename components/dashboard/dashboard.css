@@ -1738,26 +1738,29 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: var(--nx-radius-control);
-  background: linear-gradient(145deg, rgba(29, 43, 64, 0.98), rgba(18, 26, 39, 0.99));
-  border: 1px solid var(--nx-border-strong);
-  box-shadow: var(--nx-shadow-lg), var(--nx-shadow-xl);
-  color: var(--nx-text);
-  font-size: 0.8125rem;
+  padding: 12px 16px;
+  border-radius: var(--nx-radius-control, 12px);
+  background: var(--nx-surface, #FFFFFF);
+  border: 1px solid var(--nx-border, #E2E8F0);
+  box-shadow: 0 12px 30px -6px rgba(15, 23, 42, 0.14), 0 4px 10px rgba(15, 23, 42, 0.06);
+  color: var(--nx-text, #0F172A);
+  font-size: 0.84375rem;
+  font-weight: 550;
   line-height: 1.45;
   pointer-events: auto;
-  animation: nxNoticeIn 200ms var(--nx-ease-spring);
+  animation: nxNoticeIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* A coloured rail rather than a coloured fill, so the accent stays small
    (section 4.1) and the text keeps full contrast. */
 .nx-notice--error {
-  border-left: 3px solid var(--nx-red);
+  border-left: 4px solid var(--nx-red, #E11D48);
+  background: var(--nx-surface, #FFFFFF);
 }
 
 .nx-notice--success {
-  border-left: 3px solid var(--nx-green);
+  border-left: 4px solid var(--nx-green, #059669);
+  background: var(--nx-surface, #FFFFFF);
 }
 
 .nx-notice__text {
