@@ -1,56 +1,37 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'motion/react';
 import { Logo } from '@/components/ui/Logo';
-import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import { SPRING_SNAPPY } from '@/components/ui/motion/spring-presets';
 
-export function LandingHeader({ user }: { user: any }) {
+export function LandingHeader({ signedIn }: { signedIn: boolean }) {
   return (
-    <header className="landing-header-wrap">
-      <motion.div
-        initial={{ y: -24, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={SPRING_SNAPPY}
-        className="landing-header-pill"
-      >
-        <Link href="/" className="landing-brand-link">
-          <Logo size="md" withText animated />
+    <header className="lp-header">
+      <div className="lp-wrap lp-header__row">
+        <Link href="/" aria-label="Nexora home">
+          <Logo size="md" />
         </Link>
 
-        <nav className="landing-nav-links" aria-label="Main Navigation">
-          <a href="#features" className="landing-nav-link">
-            Features
-          </a>
-          <a href="#sandbox" className="landing-nav-link">
-            Live Sandbox
-          </a>
-          <a href="#platforms" className="landing-nav-link">
-            Cross-Platform
-          </a>
+        <nav className="lp-nav" aria-label="Main">
+          <a href="#board">The board</a>
+          <a href="#how">How it works</a>
         </nav>
 
-        <div className="landing-header-actions">
-          {user ? (
-            <Link href="/dashboard" className="btn-landing-primary">
-              <span>Go to Workspace</span>
-              <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
+        <div className="lp-header__actions">
+          {signedIn ? (
+            <Link href="/dashboard" className="nx-btn nx-btn--primary">
+              Open workspace
             </Link>
           ) : (
             <>
-              <Link href="/auth/login" className="btn-landing-ghost">
+              <Link href="/auth/login" className="nx-btn nx-btn--ghost lp-header__signin">
                 Sign in
               </Link>
-              <Link href="/auth/signup" className="btn-landing-primary">
-                <span>Create a workspace</span>
-                <ArrowForwardRoundedIcon sx={{ fontSize: 16 }} />
+              <Link href="/auth/signup" className="nx-btn nx-btn--secondary">
+                Create a workspace
               </Link>
             </>
           )}
         </div>
-      </motion.div>
+      </div>
     </header>
   );
 }

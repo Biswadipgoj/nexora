@@ -67,20 +67,26 @@ export const projectSchemas = {
 };
 
 export const workItemSchemas = {
+  /**
+   * Optional fields also accept `null`. The quick-create form sends
+   * `due_date: null` and `description: null` when they are left empty, and the
+   * schema used to reject that — so creating a task without a due date failed
+   * with a 400 and the card vanished from the board.
+   */
   create: z.object({
     workspace_id: z.string().uuid(),
     project_id: z.string().uuid(),
-    type_id: z.string().min(1),
-    status_id: z.string().min(1),
-    title: z.string().min(1).max(500),
-    description: z.record(z.string(), z.unknown()).optional(),
+    type_id: referenceId,
+    status_id: referenceId,
+    title: z.string().trim().min(1).max(500),
+    description: richText.nullish(),
     priority: z.number().int().min(0).max(4).default(0),
-    parent_id: z.string().uuid().optional(),
-    team_id: z.string().uuid().optional(),
-    start_date: z.string().date().optional(),
-    due_date: z.string().date().optional(),
-    estimate: z.number().positive().optional(),
-    sprint_id: z.string().uuid().optional(),
+    parent_id: z.string().uuid().nullish(),
+    team_id: z.string().uuid().nullish(),
+    start_date: z.string().date().nullish(),
+    due_date: z.string().date().nullish(),
+    estimate: z.number().positive().nullish(),
+    sprint_id: z.string().uuid().nullish(),
     assignee_ids: z.array(z.string().uuid()).optional(),
     assignees: z.array(z.object({
       name: z.string(),
@@ -152,7 +158,8 @@ export const invitationSchemas = {
     workspace_id: z.string().uuid(),
     project_id: z.string().uuid().optional(),
     email: z.string().email('Please enter a valid email address'),
-    role: z.enum(['admin', 'manager', 'member', 'viewer', 'guest', 'owner']).default('member'),
+    // Ownership is transferred, never granted through an invitation link.
+    role: z.enum(['admin', 'manager', 'member', 'viewer', 'guest']).default('member'),
   }),
   accept: z.object({
     token: z.string().min(1, 'Invitation token is required'),

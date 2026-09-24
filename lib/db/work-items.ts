@@ -257,11 +257,16 @@ export const workItemQueries = {
    * §11.1: Soft deletes so undo is possible.
    */
   async softDelete(supabase: SupabaseClient<Database>, id: string) {
-    const { error } = await supabase
+    // RLS turns a forbidden update into "0 rows changed" rather than an error,
+    // so confirm a row was actually deleted before reporting success.
+    const { data, error } = await supabase
       .from('work_items')
       .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
+      .eq('id', id)
+      .is('deleted_at', null)
+      .select('id');
 
     if (error) throw error;
+    if (!data || data.length === 0) throw new Error('Work item not found');
   },
 };

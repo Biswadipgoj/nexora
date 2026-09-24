@@ -11,5 +11,7 @@ fi
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}"
 
 # `npm install` (not `npm ci`) so the cached container's node_modules is reused.
+# `--no-save` keeps package-lock.json untouched: the container's npm may be older
+# than the one that wrote the lockfile and would otherwise rewrite it.
 # Output goes to stderr so it never pollutes hook stdout.
-npm install --no-audit --no-fund --loglevel=error 1>&2
+npm install --no-save --no-audit --no-fund --loglevel=error 1>&2

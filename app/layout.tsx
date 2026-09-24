@@ -1,71 +1,72 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, Outfit, JetBrains_Mono } from 'next/font/google';
+import { IBM_Plex_Mono, IBM_Plex_Sans, Newsreader } from 'next/font/google';
 import './globals.css';
 import { NexoraMuiTheme } from '@/components/theme/NexoraMuiTheme';
-import { ThemeProvider } from '@/components/theme/ThemeProvider';
+import { ThemeProvider, THEME_INIT_SCRIPT } from '@/components/theme/ThemeProvider';
 
-const inter = Inter({
+/**
+ * Type: Newsreader, a literary serif, carries page titles and headlines;
+ * IBM Plex Sans, an engineered grotesk with true tabular figures, carries the
+ * interface; IBM Plex Mono sets item keys and shortcuts.
+ */
+const newsreader = Newsreader({
   subsets: ['latin'],
-  variable: '--font-sans',
+  variable: '--font-newsreader',
+  style: ['normal', 'italic'],
+  axes: ['opsz'],
   display: 'swap',
 });
 
-const outfit = Outfit({
+const plexSans = IBM_Plex_Sans({
   subsets: ['latin'],
-  variable: '--font-display',
+  weight: ['400', '500', '600'],
+  variable: '--font-plex-sans',
   display: 'swap',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const plexMono = IBM_Plex_Mono({
   subsets: ['latin'],
-  variable: '--font-mono',
+  weight: ['400', '500'],
+  variable: '--font-plex-mono',
   display: 'swap',
 });
 
 export const metadata: Metadata = {
   title: {
-    default: 'Nexora — Project and Task Management',
+    default: 'Nexora — Projects and tasks, on one board',
     template: '%s — Nexora',
   },
-  description: 'A calm command center for planning, tracking and shipping work.',
+  description: 'Plan the work, see it move, and finish it together. Boards, a focus list and an inbox for small teams.',
   applicationName: 'Nexora',
-  keywords: [
-    'project management',
-    'task management',
-    'work management',
-    'kanban',
-    'sprint planning',
-  ],
-  // Icons resolve from the app-directory file conventions — app/favicon.ico,
-  // app/icon.svg and app/apple-icon.png — all generated from the single master
-  // mark by scripts/generate-icons.mjs (section 8). The file-based API is used
-  // in preference to an explicit `icons` object so the metadata cannot drift
-  // out of sync with the artwork on disk. Launcher icons are in app/manifest.ts.
+  keywords: ['project management', 'task management', 'kanban', 'team planning'],
+  // Icons resolve from app/favicon.ico, app/icon.svg and app/apple-icon.png,
+  // generated from public/logo.svg by scripts/generate-icons.mjs.
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Section 9: text must stay legible at 200% zoom, so pinch-zoom is not capped.
+  // Text must stay legible at 200% zoom, so pinch-zoom is not capped.
   maximumScale: 5,
   viewportFit: 'cover',
-  themeColor: '#F8FAFC',
-  colorScheme: 'light',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F2F2EE' },
+    { media: '(prefers-color-scheme: dark)', color: '#121311' },
+  ],
+  colorScheme: 'light dark',
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      data-theme="light"
       data-scroll-behavior="smooth"
-      className={`${inter.variable} ${outfit.variable} ${jetbrainsMono.variable}`}
+      className={`${newsreader.variable} ${plexSans.variable} ${plexMono.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         <ThemeProvider>
           <NexoraMuiTheme>

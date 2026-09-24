@@ -1,70 +1,65 @@
 'use client';
 
 import { useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Alert from '@mui/material/Alert';
-import CircularProgress from '@mui/material/CircularProgress';
-import MarkEmailReadRoundedIcon from '@mui/icons-material/MarkEmailReadRounded';
+import MarkEmailReadOutlinedIcon from '@mui/icons-material/MarkEmailReadOutlined';
+import { createClient } from '@/lib/supabase/client';
+import { describeAuthFailure } from '@/components/auth/AuthParts';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  async function handleReset(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    if (!email.trim()) {
+      setError('Enter the email address you sign in with.');
+      return;
+    }
 
+    setLoading(true);
     try {
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
+      // The link lands on the callback, which exchanges the code for a
+      // recovery session and continues to the reset form. It used to point
+      // straight at /auth/reset-password, a page that did not exist.
+      const callback = new URL('/auth/callback', window.location.origin);
+      callback.searchParams.set('next', '/auth/reset-password');
 
+      const { error: authError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+        redirectTo: callback.toString(),
+      });
       if (authError) {
         setError(authError.message);
         return;
       }
-
-      setSuccess(true);
-    } catch {
-      setError('Could not send the reset link. Check your connection and try again.');
+      setSent(true);
+    } catch (err) {
+      setError(describeAuthFailure(err, 'Could not send the reset link. Try again.'));
     } finally {
       setLoading(false);
     }
   }
 
-  if (success) {
+  if (sent) {
     return (
-      <div style={{ textAlign: 'center', padding: '8px 0' }}>
-        <div
-          style={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'var(--nx-blue-soft)',
-            border: '1px solid var(--nx-blue-line)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-          }}
-        >
-          <MarkEmailReadRoundedIcon sx={{ fontSize: 26, color: 'var(--nx-blue)' }} />
-        </div>
+      <div className="auth-success">
+        <span className="auth-success__mark" aria-hidden="true">
+          <MarkEmailReadOutlinedIcon sx={{ fontSize: 20 }} />
+        </span>
         <h1 className="auth-heading">Check your inbox</h1>
         <p className="auth-subheading">
-          If an account matches <strong style={{ color: 'var(--nx-text)' }}>{email}</strong>, we sent instructions for
-          resetting your password.
+          If an account matches <strong style={{ color: 'var(--nx-ink)' }}>{email}</strong>, a link to choose a new
+          password is on its way. It expires in an hour.
         </p>
-        <Link href="/auth/login" className="auth-link auth-link--bold">
-          Return to sign in
-        </Link>
+        <p className="auth-footer">
+          <Link href="/auth/login" className="auth-link">
+            Back to sign in
+          </Link>
+        </p>
       </div>
     );
   }
@@ -72,50 +67,44 @@ export default function ForgotPasswordPage() {
   return (
     <>
       <h1 className="auth-heading">Reset your password</h1>
-      <p className="auth-subheading">Enter your work email address and we will send you a reset link.</p>
+      <p className="auth-subheading">We will email you a link to choose a new one.</p>
 
-      <form onSubmit={handleReset} className="auth-form" noValidate>
-        <TextField
-          type="email"
-          label="Work email"
-          placeholder="name@company.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          fullWidth
-          autoComplete="email"
-          disabled={loading}
-        />
+      <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        <div className="nx-field">
+          <label htmlFor="reset-email" className="nx-label">
+            Email
+          </label>
+          <input
+            id="reset-email"
+            type="email"
+            className="nx-input"
+            placeholder="name@company.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            disabled={loading}
+            required
+          />
+        </div>
 
         {error && (
-          <Alert severity="error" onClose={() => setError(null)}>
-            {error}
-          </Alert>
+          <div className="nx-alert nx-alert--error" role="alert">
+            <span>{error}</span>
+          </div>
         )}
 
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          disabled={loading}
-          sx={{ py: 1.15, fontSize: '0.875rem', fontWeight: 600 }}
-        >
-          {loading ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-              <CircularProgress size={16} color="inherit" />
-              Sending link…
-            </span>
-          ) : (
-            'Send reset link'
-          )}
-        </Button>
+        <button type="submit" className="nx-btn nx-btn--primary nx-btn--lg nx-btn--block" disabled={loading}>
+          {loading && <span className="nx-spinner" aria-hidden="true" />}
+          {loading ? 'Sending link…' : 'Send reset link'}
+        </button>
       </form>
 
-      <div className="auth-footer">
-        <Link href="/auth/login" className="auth-link auth-link--bold">
-          Return to sign in
+      <p className="auth-footer">
+        Remembered it?{' '}
+        <Link href="/auth/login" className="auth-link">
+          Sign in
         </Link>
-      </div>
+      </p>
     </>
   );
 }

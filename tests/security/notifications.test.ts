@@ -66,7 +66,7 @@ describe('Notifications API & Engine Suite', () => {
     // Verify through GET that all items are read
     const getRes = await GET();
     const data = await getRes.json();
-    const unread = data.notifications.filter((n: any) => !n.isRead);
+    const unread = data.notifications.filter((n: { isRead: boolean }) => !n.isRead);
     expect(unread.length).toBe(0);
   });
 });

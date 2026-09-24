@@ -1,34 +1,19 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import ViewAgendaOutlinedIcon from '@mui/icons-material/ViewAgendaOutlined';
 import { WorkItemCard } from './WorkItemCard';
 import { QuickCreateModal } from './QuickCreateModal';
 import { WorkItemDetailDrawer } from './WorkItemDetailDrawer';
-import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
-import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
-import ViewWeekRoundedIcon from '@mui/icons-material/ViewWeekRounded';
-import TableRowsRoundedIcon from '@mui/icons-material/TableRowsRounded';
-import { TASK_CATEGORIES, getCategoryByIdOrName } from '@/lib/constants/categories';
+import { TASK_CATEGORIES } from '@/lib/constants/categories';
+import { categoryOf, statusTone } from '@/lib/work/display';
+import { isDone } from '@/lib/work/focus';
+import type { StatusColumn, WorkItemData } from '@/lib/work/types';
+import './board.css';
 
-export interface WorkItemData {
-  id: string;
-  sequence?: number;
-  project_id?: string;
-  workspace_id?: string;
-  title: string;
-  description?: any;
-  priority?: number;
-  status_id?: string;
-  type_id?: string;
-  start_date?: string | null;
-  due_date?: string | null;
-  estimate?: number | null;
-  assignees?: any[];
-  position?: number;
-  created_at?: string;
-  updated_at?: string;
-}
+export type { WorkItemData } from '@/lib/work/types';
 
 export interface KanbanBoardProps {
   workspaceId: string;
@@ -38,240 +23,208 @@ export interface KanbanBoardProps {
   projectMode?: 'simple' | 'advanced';
   initialItems?: WorkItemData[];
   /**
-   * Lets an embedding surface stay in step with the board.
-   *
-   * Without this the Overview board and the priority strip directly above it
-   * diverged: a drag changed the board's private state, the strip kept the old
-   * counts, and the next parent render pushed the stale list back into the
-   * board (section 10, "Stale data").
+   * Lets an embedding surface stay in step with the board. Without it the
+   * Overview metrics and the board above them diverged after a drag.
    */
   onItemsChange?: (items: WorkItemData[]) => void;
+  /** Handle the "C" shortcut here. Off when the page owns the shortcut. */
+  enableShortcuts?: boolean;
 }
 
-interface StatusColumn {
-  id: string;
-  name: string;
-  category: string;
-  position: number;
-  color?: string;
-}
-
+/** Must stay in step with the API's DEFAULT_STATUSES (app/api/work-items). */
 const DEFAULT_STATUSES: StatusColumn[] = [
-  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0, color: 'var(--nx-violet)' },
-  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1, color: 'var(--nx-amber)' },
-  { id: 'status-review', name: 'Code Review', category: 'in_progress', position: 2, color: 'var(--nx-cyan)' },
-  { id: 'status-done', name: 'Done', category: 'done', position: 3, color: 'var(--nx-green)' },
+  { id: 'status-todo', name: 'To Do', category: 'todo', position: 0 },
+  { id: 'status-in-progress', name: 'In Progress', category: 'in_progress', position: 1 },
+  { id: 'status-review', name: 'Code Review', category: 'in_progress', position: 2 },
+  { id: 'status-done', name: 'Done', category: 'done', position: 3 },
 ];
+
+const DEFAULT_TYPES = TASK_CATEGORIES.map((c) => ({ id: c.id, name: c.name }));
+
+const PRIORITY_FILTERS: Array<{ label: string; value: number | null }> = [
+  { label: 'All', value: null },
+  { label: 'Urgent', value: 4 },
+  { label: 'High', value: 3 },
+  { label: 'Medium', value: 2 },
+  { label: 'Low', value: 1 },
+];
+
+/** Content signature: a parent list is adopted only when it really differs. */
+const signatureOf = (items: WorkItemData[]) =>
+  items
+    .map((i) => [i.id, i.status_id, i.title, i.priority, i.due_date, i.type_id, i.sequence, i.updated_at].join(':'))
+    .join('|');
+
+interface BoardPayload {
+  items?: WorkItemData[];
+  statuses?: StatusColumn[];
+  types?: Array<{ id: string; name: string }>;
+}
+
+async function fetchBoard(projectId: string, signal?: AbortSignal): Promise<BoardPayload> {
+  const res = await fetch(`/api/work-items?projectId=${encodeURIComponent(projectId)}`, { signal });
+  if (!res.ok) throw new Error(String(res.status));
+  return res.json();
+}
+
+/** Column an item belongs in; unknown status ids resolve by category. */
+function columnFor(item: WorkItemData, statuses: StatusColumn[]): string | undefined {
+  if (statuses.some((s) => s.id === item.status_id)) return item.status_id;
+  const id = (item.status_id ?? '').toLowerCase();
+  const byCategory =
+    statuses.find((s) => item.status_category && s.category === item.status_category) ??
+    statuses.find((s) => id.includes(String(s.category)) || id.endsWith(s.name.toLowerCase().replace(/\s+/g, '-')));
+  return (byCategory ?? statuses[0])?.id;
+}
 
 export function KanbanBoard({
   workspaceId,
   projectId,
-  projectName = 'Main Project',
   projectKey = 'PRJ',
-  projectMode = 'advanced',
   initialItems = [],
   onItemsChange,
+  enableShortcuts = true,
 }: KanbanBoardProps) {
   const [items, setItems] = useState<WorkItemData[]>(initialItems);
   const [statuses, setStatuses] = useState<StatusColumn[]>(DEFAULT_STATUSES);
-  const [types, setTypes] = useState<Array<{ id: string; name: string }>>(
-    TASK_CATEGORIES.map((c) => ({ id: c.id, name: c.name }))
-  );
+  const [types, setTypes] = useState<Array<{ id: string; name: string }>>(DEFAULT_TYPES);
+  const [loaded, setLoaded] = useState(initialItems.length > 0);
 
-  // Filters & View Mode
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPriority, setSelectedPriority] = useState<number | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [compact, setCompact] = useState(false);
 
-  // Modals & Drawers
-  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
-  const [activeStatusForCreate, setActiveStatusForCreate] = useState<string | null>(null);
-  const [selectedItem, setSelectedItem] = useState<WorkItemData | null>(null);
-  const [draggedItemId, setDraggedItemId] = useState<string | null>(null);
-  const [dragOverColumnId, setDragOverColumnId] = useState<string | null>(null);
-  /** Section 3.4 — a refused move is reported, not swallowed. */
+  const [quickCreate, setQuickCreate] = useState<{ open: boolean; statusId: string | null; key: number }>({
+    open: false,
+    statusId: null,
+    key: 0,
+  });
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
+  /** A refused move or a failed load is reported, not swallowed. */
   const [moveError, setMoveError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
 
-  /**
-   * Adopt the parent's list only when it genuinely differs.
-   *
-   * `initialItems` is a new array identity on most parent renders, so this
-   * effect used to fire constantly and overwrite the board's own state —
-   * a card dragged to another column snapped back the moment anything else on
-   * the dashboard re-rendered. Comparing content instead of identity keeps
-   * legitimate refreshes working without discarding local edits.
-   */
-  const initialSignature = useMemo(
-    () => (initialItems ?? []).map((i) => `${i.id}:${i.status_id}:${i.updated_at ?? ''}`).join('|'),
-    [initialItems]
-  );
+  // Adopt the parent's list when its content changes (derived state, not an
+  // effect, so a parent refresh never overwrites a board edit in flight).
+  const initialSignature = signatureOf(initialItems);
+  const [adoptedSignature, setAdoptedSignature] = useState(initialSignature);
+  if (initialSignature !== adoptedSignature) {
+    setAdoptedSignature(initialSignature);
+    if (initialItems.length > 0 && signatureOf(items) !== initialSignature) setItems(initialItems);
+  }
+
+  // Report board changes upward.
+  const onItemsChangeRef = useRef(onItemsChange);
+  useEffect(() => {
+    onItemsChangeRef.current = onItemsChange;
+  }, [onItemsChange]);
+  const reported = useRef(signatureOf(initialItems));
+  useEffect(() => {
+    const signature = signatureOf(items);
+    if (signature === reported.current) return;
+    reported.current = signature;
+    onItemsChangeRef.current?.(items);
+  }, [items]);
+
+  const applyBoard = useCallback((data: BoardPayload) => {
+    setItems(Array.isArray(data.items) ? data.items : []);
+    if (Array.isArray(data.statuses) && data.statuses.length > 0) setStatuses(data.statuses);
+    if (Array.isArray(data.types) && data.types.length > 0) setTypes(data.types);
+    setMoveError(null);
+    setLoaded(true);
+  }, []);
+
+  const failBoard = useCallback((err: unknown) => {
+    if ((err as Error)?.name === 'AbortError') return;
+    // A failed load is reported, never shown as an empty board.
+    setMoveError('Could not load this board. Check your connection and try again.');
+    setLoaded(true);
+  }, []);
 
   useEffect(() => {
-    if (!initialItems || initialItems.length === 0) return;
-    setItems((current) => {
-      const currentSignature = current
-        .map((i) => `${i.id}:${i.status_id}:${i.updated_at ?? ''}`)
-        .join('|');
-      return currentSignature === initialSignature ? current : initialItems;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialSignature]);
-
-  /** Report every board change upward so embedding surfaces stay in step. */
-  const applyItems = useCallback(
-    (updater: (prev: WorkItemData[]) => WorkItemData[]) => {
-      setItems((prev) => {
-        const next = updater(prev);
-        onItemsChange?.(next);
-        return next;
-      });
-    },
-    [onItemsChange]
-  );
-
-  // Load live data from API
-  /**
-   * Loads the board.
-   *
-   * Two problems this fixes (section 3.4 — loading and error states must be
-   * designed alongside the ideal state):
-   * - a failed request silently rendered as an empty board, indistinguishable
-   *   from a project with no work in it;
-   * - results were applied only when non-empty, so deleting the last card left
-   *   the stale one on screen until a full reload.
-   */
-  const loadData = useCallback(async () => {
     if (!projectId) return;
-    setIsLoading(true);
-    try {
-      const res = await fetch(`/api/work-items?projectId=${projectId}`);
-      if (!res.ok) throw new Error(String(res.status));
+    const controller = new AbortController();
+    fetchBoard(projectId, controller.signal).then(applyBoard, failBoard);
+    return () => controller.abort();
+  }, [projectId, applyBoard, failBoard]);
 
-      const data = await res.json();
-      setItems(Array.isArray(data.items) ? data.items : []);
-      if (data.statuses && data.statuses.length > 0) setStatuses(data.statuses);
-      if (data.types && data.types.length > 0) setTypes(data.types);
-      setMoveError(null);
-    } catch {
-      setMoveError('Could not load this board. Check your connection and try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [projectId]);
+  const reload = () => fetchBoard(projectId).then(applyBoard, failBoard);
 
+  const openQuickCreate = useCallback((statusId: string | null) => {
+    setQuickCreate((prev) => ({ open: true, statusId, key: prev.key + 1 }));
+  }, []);
+
+  // "C" creates a task — but never with a modifier (Ctrl+C is copy), inside a
+  // field, or while a dialog is already open.
   useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  // Global Keyboard Shortcuts
-  useEffect(() => {
+    if (!enableShortcuts) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement ||
-        (e.target as HTMLElement)?.isContentEditable
-      ) {
-        return;
-      }
-      if (e.key === 'c' || e.key === 'C') {
-        e.preventDefault();
-        setActiveStatusForCreate(null);
-        setIsQuickCreateOpen(true);
-      }
+      if (e.key !== 'c' && e.key !== 'C') return;
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('input, textarea, select, [contenteditable="true"]')) return;
+      if (document.querySelector('[role="dialog"]')) return;
+      e.preventDefault();
+      openQuickCreate(null);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [enableShortcuts, openQuickCreate]);
 
-  // Filter items based on search, priority, and category
+  const filtersActive = Boolean(searchQuery.trim() || selectedPriority !== null || selectedCategory);
+
   const filteredItems = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return items.filter((item) => {
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchTitle = item.title.toLowerCase().includes(q);
-        const matchKey = `${projectKey}-${item.sequence}`.toLowerCase().includes(q);
-        if (!matchTitle && !matchKey) return false;
+      if (q) {
+        const key = `${projectKey}-${item.sequence ?? ''}`.toLowerCase();
+        if (!item.title.toLowerCase().includes(q) && !key.includes(q)) return false;
       }
-      if (selectedPriority !== null && item.priority !== selectedPriority) {
-        return false;
-      }
-      if (selectedCategory) {
-        const itCat = getCategoryByIdOrName(item.type_id);
-        if (itCat.id !== selectedCategory) {
-          return false;
-        }
-      }
+      if (selectedPriority !== null && (item.priority ?? 0) !== selectedPriority) return false;
+      if (selectedCategory && categoryOf(item.type_id, types).id !== selectedCategory) return false;
       return true;
     });
-  }, [items, searchQuery, selectedPriority, selectedCategory, projectKey]);
+  }, [items, searchQuery, selectedPriority, selectedCategory, projectKey, types]);
 
-  // Map items to columns
-  const columnItemsMap = useMemo(() => {
-    const map: Record<string, WorkItemData[]> = {};
-    for (const col of statuses) {
-      map[col.id] = [];
-    }
-
+  const columns = useMemo(() => {
+    const map: Record<string, WorkItemData[]> = Object.fromEntries(statuses.map((s) => [s.id, []]));
     for (const item of filteredItems) {
-      let colId = item.status_id;
-      // Resolve status by category or name if ID doesn't directly match
-      if (!map[colId || '']) {
-        const found = statuses.find(
-          (s) =>
-            s.id === colId ||
-            s.category.toLowerCase() === (colId || '').toLowerCase() ||
-            (colId || '').includes(s.category)
-        );
-        colId = found ? found.id : statuses[0]?.id;
-      }
-      if (colId && map[colId]) {
-        map[colId].push(item);
-      } else if (statuses[0]) {
-        map[statuses[0].id]?.push(item);
-      }
+      const col = columnFor(item, statuses);
+      if (col && map[col]) map[col].push(item);
     }
+    for (const list of Object.values(map)) list.sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
     return map;
   }, [filteredItems, statuses]);
 
-  // Handle Drag & Drop
-  const handleDragStart = (e: React.DragEvent, id: string) => {
-    e.dataTransfer.setData('text/plain', id);
-    setDraggedItemId(id);
-  };
-
-  const handleDragOver = (e: React.DragEvent, columnId: string) => {
-    e.preventDefault();
-    if (dragOverColumnId !== columnId) {
-      setDragOverColumnId(columnId);
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+      const id = categoryOf(item.type_id, types).id;
+      counts.set(id, (counts.get(id) ?? 0) + 1);
     }
-  };
-
-  const handleDrop = async (e: React.DragEvent, targetStatusId: string) => {
-    e.preventDefault();
-    const itemId = e.dataTransfer.getData('text/plain') || draggedItemId;
-    setDraggedItemId(null);
-    setDragOverColumnId(null);
-
-    if (!itemId) return;
-    await moveItem(itemId, targetStatusId);
-  };
+    return counts;
+  }, [items, types]);
 
   /**
-   * Moves a card and keeps the board honest about the outcome.
-   *
-   * The write was previously fire-and-forget inside an empty catch with no
-   * `res.ok` check, so a rejected move stayed on screen and reverted on the
-   * next reload — the card appeared to move and silently did not (section 3.4,
-   * section 10 "Stale data").
+   * Moves a card and stays honest about the outcome: the change is shown at
+   * once, and put back with a message if the server refuses it.
    */
   const moveItem = async (itemId: string, targetStatusId: string) => {
-    const previousStatusId = items.find((i) => i.id === itemId)?.status_id;
-    if (previousStatusId === targetStatusId) return;
+    const current = items.find((i) => i.id === itemId);
+    if (!current) return;
+    const previousStatusId = current.status_id;
+    const previousCategory = current.status_category ?? null;
+    if (columnFor(current, statuses) === targetStatusId) return;
 
-    applyItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, status_id: targetStatusId } : item))
+    const target = statuses.find((s) => s.id === targetStatusId);
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? { ...item, status_id: targetStatusId, status_category: target?.category ?? null }
+          : item
+      )
     );
 
     try {
@@ -283,513 +236,240 @@ export function KanbanBoard({
       if (!res.ok) throw new Error(String(res.status));
       setMoveError(null);
     } catch {
-      // Return the card to the column the server still has it in.
-      applyItems((prev) =>
+      setItems((prev) =>
         prev.map((item) =>
-          item.id === itemId ? { ...item, status_id: previousStatusId } : item
+          item.id === itemId ? { ...item, status_id: previousStatusId, status_category: previousCategory } : item
         )
       );
-      setMoveError('That move could not be saved. The card was put back.');
+      setMoveError('That move could not be saved, so the card was put back.');
     }
   };
 
-  const handleStatusChange = async (itemId: string, newStatusId: string) => {
-    await moveItem(itemId, newStatusId);
+  const toggleDone = (item: WorkItemData) => {
+    const done = isDone(item);
+    const target = done
+      ? statuses.find((s) => s.category === 'todo') ?? statuses[0]
+      : statuses.find((s) => s.category === 'done') ?? statuses[statuses.length - 1];
+    if (target) void moveItem(item.id, target.id);
   };
 
-  const handleCreateSuccess = (newItem: WorkItemData) => {
-    applyItems((prev) => [newItem, ...prev]);
-    setIsQuickCreateOpen(false);
+  const handleDrop = (e: React.DragEvent, targetStatusId: string) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData('text/plain') || draggedId;
+    setDraggedId(null);
+    setDragOverColumn(null);
+    if (itemId) void moveItem(itemId, targetStatusId);
   };
+
+  const selectedItem = selectedId ? items.find((i) => i.id === selectedId) ?? null : null;
+  const totalVisible = filteredItems.length;
 
   return (
-    <div className="board-root">
-      {/* Section 3.4 — a refused move or a failed load says so, with a retry. */}
+    <div className={`board ${compact ? 'board--compact' : ''}`}>
       {moveError && (
-        <div className="board-error" role="alert">
+        <div className="nx-alert nx-alert--error board-error" role="alert">
           <span>{moveError}</span>
-          <button type="button" onClick={() => loadData()}>
+          <button type="button" className="nx-alert__action" onClick={() => void reload()}>
             Retry
           </button>
         </div>
       )}
 
-      {/* Board Top Controls & Filtering */}
-      <div className="board-controls">
-        <div className="board-controls__left">
-          {/* Search Input */}
-          <div className="board-search">
-            <SearchRoundedIcon sx={{ fontSize: 16, color: 'var(--color-text-tertiary)' }} />
+      <div className="board-toolbar">
+        <div className="board-toolbar__group">
+          <label className="board-search">
+            <SearchRoundedIcon sx={{ fontSize: 16 }} />
             <input
-              type="text"
-              placeholder="Filter tasks by name or ID..."
+              type="search"
+              className="nx-input"
+              placeholder="Filter by title or key"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="board-search__input"
+              aria-label="Filter tasks by title or key"
             />
-          </div>
+          </label>
 
-          {/* Priority Quick Filter */}
-          <div className="priority-filters">
-            {[
-              { label: 'All', value: null },
-              { label: 'Urgent', value: 4 },
-              { label: 'High', value: 3 },
-              { label: 'Medium', value: 2 },
-              { label: 'Low', value: 1 },
-            ].map((p) => (
+          <div className="nx-segmented" role="group" aria-label="Filter by priority">
+            {PRIORITY_FILTERS.map((p) => (
               <button
                 key={p.label}
+                type="button"
+                aria-pressed={selectedPriority === p.value}
                 onClick={() => setSelectedPriority(p.value)}
-                className={`filter-pill ${selectedPriority === p.value ? 'filter-pill--active' : ''}`}
               >
                 {p.label}
               </button>
             ))}
           </div>
 
-          {/* Category Quick Filter */}
-          <div className="category-filter-wrap">
-            <select
-              value={selectedCategory || ''}
-              onChange={(e) => setSelectedCategory(e.target.value || null)}
-              className="category-filter-select"
-              aria-label="Filter tasks by category"
-            >
-              <option value="">All Categories ({items.length})</option>
-              {TASK_CATEGORIES.map((cat) => {
-                const count = items.filter((it) => {
-                  const itCat = getCategoryByIdOrName(it.type_id);
-                  return itCat.id === cat.id;
-                }).length;
-                return (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.shortName} ({count})
-                  </option>
-                );
-              })}
-            </select>
-          </div>
+          <select
+            className="nx-select"
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            aria-label="Filter by category"
+          >
+            <option value="">All categories</option>
+            {TASK_CATEGORIES.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.shortName} ({categoryCounts.get(cat.id) ?? 0})
+              </option>
+            ))}
+          </select>
         </div>
 
-        <div className="board-controls__right">
-          {/* Density Toggle */}
+        <div className="board-toolbar__group">
           <button
-            className={`icon-btn ${density === 'compact' ? 'icon-btn--active' : ''}`}
-            onClick={() => setDensity(density === 'compact' ? 'comfortable' : 'compact')}
-            title="Toggle Density"
+            type="button"
+            className={`nx-icon-btn ${compact ? 'nx-icon-btn--active' : ''}`}
+            onClick={() => setCompact((v) => !v)}
+            aria-pressed={compact}
+            aria-label="Compact cards"
+            title="Compact cards"
           >
-            {density === 'compact' ? (
-              <TableRowsRoundedIcon sx={{ fontSize: 16 }} />
-            ) : (
-              <ViewWeekRoundedIcon sx={{ fontSize: 16 }} />
-            )}
+            <ViewAgendaOutlinedIcon sx={{ fontSize: 17 }} />
           </button>
-
-          {/* New Task Button */}
-          <button
-            className="btn-create"
-            onClick={() => {
-              setActiveStatusForCreate(null);
-              setIsQuickCreateOpen(true);
-            }}
-          >
+          <button type="button" className="nx-btn nx-btn--secondary nx-btn--sm" onClick={() => openQuickCreate(null)}>
             <AddRoundedIcon sx={{ fontSize: 16 }} />
-            <span>Add Task</span>
-            <kbd className="kbd-shortcut">C</kbd>
+            Add task
+            {enableShortcuts && <kbd className="nx-kbd">C</kbd>}
           </button>
         </div>
       </div>
 
-      {/* Kanban Columns Grid */}
-      <div className="board-grid">
-        {statuses.map((col) => {
-          const colItems = columnItemsMap[col.id] || [];
-          const isDragOver = dragOverColumnId === col.id;
+      {filtersActive && loaded && totalVisible === 0 && (
+        <div className="nx-empty">
+          <p className="nx-empty__title">Nothing matches these filters</p>
+          <p className="nx-empty__body">
+            {items.length} {items.length === 1 ? 'task is' : 'tasks are'} on this board, but none fit the current
+            search, priority and category.
+          </p>
+          <div className="nx-empty__actions">
+            <button
+              type="button"
+              className="nx-btn nx-btn--secondary nx-btn--sm"
+              onClick={() => {
+                setSearchQuery('');
+                setSelectedPriority(null);
+                setSelectedCategory('');
+              }}
+            >
+              Clear filters
+            </button>
+          </div>
+        </div>
+      )}
 
+      <div className="board-lanes">
+        {statuses.map((col, index) => {
+          const colItems = columns[col.id] ?? [];
+          const tone = statusTone(col);
           return (
-            <div
+            <section
               key={col.id}
-              className={`board-column ${isDragOver ? 'board-column--dragover' : ''}`}
-              onDragOver={(e) => handleDragOver(e, col.id)}
+              className={`board-lane ${dragOverColumn === col.id ? 'board-lane--over' : ''}`}
+              aria-label={`${col.name}, ${colItems.length} ${colItems.length === 1 ? 'task' : 'tasks'}`}
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (dragOverColumn !== col.id) setDragOverColumn(col.id);
+              }}
+              onDragLeave={(e) => {
+                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDragOverColumn(null);
+              }}
               onDrop={(e) => handleDrop(e, col.id)}
             >
-              {/* Column Header */}
-              <div className="column-header">
-                <div className="column-header__info">
-                  <span
-                    className="column-dot"
-                    style={{ backgroundColor: col.color || 'var(--color-primary)' }}
-                  />
-                  <span className="column-title">{col.name}</span>
-                  <span className="column-count">{colItems.length}</span>
-                </div>
-
+              <header className="lane-head">
+                <span className={`lane-dot lane-dot--${tone}`} aria-hidden="true" />
+                <h3 className="lane-head__name">{col.name}</h3>
+                <span className="lane-head__count">{colItems.length}</span>
                 <button
-                  className="column-add-btn"
-                  onClick={() => {
-                    setActiveStatusForCreate(col.id);
-                    setIsQuickCreateOpen(true);
-                  }}
-                  title={`Add task to ${col.name}`}
-                  aria-label={`Add task to ${col.name}`}
+                  type="button"
+                  className="nx-icon-btn lane-head__add"
+                  onClick={() => openQuickCreate(col.id)}
+                  aria-label={`Add a task to ${col.name}`}
+                  title={`Add to ${col.name}`}
                 >
                   <AddRoundedIcon sx={{ fontSize: 16 }} />
                 </button>
-              </div>
+              </header>
 
-              {/* Card List in Column */}
-              <div className={`card-list card-list--${density}`}>
-                {colItems.length === 0 ? (
-                  <div className="column-empty-state">
-                    <span>Drop tasks here</span>
+              <div className="lane-cards">
+                {!loaded ? (
+                  <div className="lane-empty" aria-hidden="true">
+                    Loading…
+                  </div>
+                ) : colItems.length === 0 ? (
+                  <div className="lane-empty">
+                    {items.length === 0 && index === 0 ? (
+                      <button type="button" className="auth-link" onClick={() => openQuickCreate(col.id)}>
+                        Add the first task
+                      </button>
+                    ) : (
+                      'Drop tasks here'
+                    )}
                   </div>
                 ) : (
-                  colItems.map((item) => {
-                    const itemCat = getCategoryByIdOrName(
-                      item.type_id || types.find((t) => t.id === item.type_id)?.name
-                    );
-                    return (
-                      <div
-                        key={item.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, item.id)}
-                      >
-                        <WorkItemCard
-                          id={item.id}
-                          sequence={item.sequence || 1}
-                          projectKey={projectKey}
-                          title={item.title}
-                          priority={item.priority ?? 0}
-                          statusId={col.id}
-                          dueDate={item.due_date}
-                          typeName={itemCat.name}
-                          assignees={item.assignees}
-                          onClick={() => setSelectedItem(item)}
-                          onStatusChange={(newSt) => handleStatusChange(item.id, newSt)}
-                          availableStatuses={statuses}
-                        />
-                      </div>
-                    );
-                  })
+                  colItems.map((item) => (
+                    <WorkItemCard
+                      key={item.id}
+                      item={item}
+                      projectKey={projectKey}
+                      category={categoryOf(item.type_id, types)}
+                      isDone={isDone({ ...item, status_category: item.status_category ?? col.category })}
+                      statusId={col.id}
+                      statuses={statuses}
+                      dragging={draggedId === item.id}
+                      onOpen={() => setSelectedId(item.id)}
+                      onToggleDone={() => toggleDone({ ...item, status_category: item.status_category ?? col.category })}
+                      onMove={(statusId) => void moveItem(item.id, statusId)}
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/plain', item.id);
+                        e.dataTransfer.effectAllowed = 'move';
+                        setDraggedId(item.id);
+                      }}
+                      onDragEnd={() => {
+                        setDraggedId(null);
+                        setDragOverColumn(null);
+                      }}
+                    />
+                  ))
                 )}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>
 
-      {/* Quick Create Modal */}
       <QuickCreateModal
-        isOpen={isQuickCreateOpen}
-        onClose={() => setIsQuickCreateOpen(false)}
+        key={quickCreate.key}
+        isOpen={quickCreate.open}
+        onClose={() => setQuickCreate((prev) => ({ ...prev, open: false }))}
         workspaceId={workspaceId}
         projectId={projectId}
-        initialStatusId={activeStatusForCreate || statuses[0]?.id || ''}
+        initialStatusId={quickCreate.statusId || statuses[0]?.id || 'status-todo'}
         availableStatuses={statuses}
-        availableTypes={types}
-        onSuccess={handleCreateSuccess}
+        onSuccess={(newItem) => setItems((prev) => [newItem, ...prev])}
+        onItemReconciled={(optimisticId, stored) =>
+          setItems((prev) => prev.map((it) => (it.id === optimisticId ? stored : it)))
+        }
+        onCreateFailed={(optimistic, message) => {
+          setItems((prev) => prev.filter((it) => it.id !== optimistic.id));
+          setMoveError(message);
+        }}
       />
 
-      {/* Task Detail Slide-Over Drawer */}
       <WorkItemDetailDrawer
         item={selectedItem}
         statuses={statuses}
         types={types}
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
+        isOpen={Boolean(selectedItem)}
+        onClose={() => setSelectedId(null)}
         projectKey={projectKey}
-        onUpdateItem={(updated) => {
-          setItems((prev) =>
-            prev.map((it) => (it.id === updated.id ? { ...it, ...updated } : it))
-          );
-          setSelectedItem((prev) => (prev ? { ...prev, ...updated } : null));
-        }}
+        onUpdateItem={(updated) => setItems((prev) => prev.map((it) => (it.id === updated.id ? { ...it, ...updated } : it)))}
         onDeleteItem={(deletedId) => {
           setItems((prev) => prev.filter((it) => it.id !== deletedId));
-          setSelectedItem(null);
+          setSelectedId(null);
         }}
       />
-
-      <style jsx>{`
-        .board-root {
-          display: flex;
-          flex-direction: column;
-          flex: 1;
-          min-height: 0;
-          gap: 16px;
-        }
-
-        .board-controls {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-wrap: wrap;
-          gap: 12px;
-          padding: 8px 0;
-        }
-
-        .board-controls__left {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-
-        .board-search {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          background: var(--nx-bg-raised);
-          border: 1px solid var(--nx-border);
-          border-radius: 12px;
-          padding: 7px 14px;
-          width: 260px;
-          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.21);
-          backdrop-filter: blur(20px);
-          transition: all 0.2s ease;
-        }
-
-        .board-search:focus-within {
-          border-color: var(--aurora-iris);
-          box-shadow: 0 0 18px rgba(155, 140, 255, 0.35), inset 0 1px 2px rgba(0, 0, 0, 0.16);
-        }
-
-        .board-search__input {
-          background: transparent;
-          border: none;
-          outline: none;
-          font-size: 0.8125rem;
-          font-weight: 600;
-          color: var(--text-main);
-          width: 100%;
-        }
-
-        .priority-filters {
-          display: flex;
-          gap: 6px;
-        }
-
-        .filter-pill {
-          background: var(--nx-bg-raised);
-          border: 1px solid var(--nx-border);
-          color: var(--text-main);
-          font-size: 0.75rem;
-          font-weight: 700;
-          padding: 5px 14px;
-          border-radius: 9999px;
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
-          transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .filter-pill:hover {
-          background: var(--nx-surface);
-          border-color: var(--nx-border-strong);
-          transform: translateY(-1px);
-        }
-
-        .filter-pill--active {
-          background: linear-gradient(135deg, var(--nx-violet), var(--nx-violet));
-          color: var(--nx-on-accent);
-          border-color: var(--nx-border-strong);
-          box-shadow: 0 4px 14px rgba(155, 140, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-
-        .category-filter-wrap {
-          display: flex;
-          align-items: center;
-        }
-
-        .category-filter-select {
-          background: var(--nx-surface);
-          border: 1px solid var(--nx-border);
-          color: var(--text-main);
-          font-size: 0.8125rem;
-          font-weight: 600;
-          padding: 6px 12px;
-          border-radius: 9999px;
-          outline: none;
-          cursor: pointer;
-          backdrop-filter: blur(12px);
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
-          transition: all 0.2s ease;
-        }
-
-        .category-filter-select:hover,
-        .category-filter-select:focus {
-          background: var(--nx-surface-2);
-          border-color: var(--nx-violet);
-          box-shadow: 0 0 0 3px rgba(155, 140, 255, 0.15);
-        }
-
-        .board-controls__right {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .icon-btn {
-          width: 36px;
-          height: 36px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: var(--nx-bg-raised);
-          border: 1px solid var(--nx-border);
-          border-radius: 10px;
-          color: var(--text-main);
-          cursor: pointer;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
-          transition: all 0.2s ease;
-        }
-
-        .icon-btn:hover {
-          background: var(--nx-surface);
-          border-color: var(--nx-border-strong);
-          transform: translateY(-1px);
-        }
-
-        .icon-btn--active {
-          color: var(--nx-cyan);
-          border-color: var(--nx-cyan);
-          box-shadow: 0 0 14px rgba(70, 215, 232, 0.4);
-        }
-
-        .btn-create {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          background: linear-gradient(135deg, var(--nx-violet) 0%, var(--nx-violet) 50%, var(--nx-cyan) 100%);
-          color: var(--nx-on-accent);
-          border: 1px solid var(--nx-border);
-          border-radius: 9999px;
-          padding: 8px 18px;
-          font-size: 0.8125rem;
-          font-weight: 700;
-          cursor: pointer;
-          box-shadow: 0 4px 18px rgba(155, 140, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .btn-create:hover {
-          transform: translateY(-1px) scale(1.03);
-          box-shadow: 0 8px 24px rgba(155, 140, 255, 0.6), inset 0 1.5px 0 rgba(255, 255, 255, 0.05);
-        }
-
-        /* Columns Grid */
-        .board-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-          gap: 20px;
-          flex: 1;
-          align-items: flex-start;
-          overflow-x: auto;
-          padding-bottom: 20px;
-        }
-
-        .board-column {
-          background: var(--nx-bg-raised);
-          border: 1px solid var(--nx-border);
-          border-radius: 20px;
-          padding: 16px;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          min-height: 520px;
-          backdrop-filter: blur(28px) saturate(220%) brightness(106%);
-          -webkit-backdrop-filter: blur(28px) saturate(220%) brightness(106%);
-          box-shadow: 0 8px 24px -2px rgba(0, 0, 0, 0.31), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.05);
-          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .board-column--dragover {
-          border-color: var(--aurora-iris);
-          background: var(--nx-surface);
-          box-shadow: 0 0 32px rgba(155, 140, 255, 0.4), inset 0 1.5px 0 0 rgba(255, 255, 255, 0.05);
-          transform: scale(1.015);
-        }
-
-        .column-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 4px 6px 10px;
-          border-bottom: 1px solid var(--nx-border);
-          margin-bottom: 4px;
-        }
-
-        .column-header__info {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-
-        .column-dot {
-          width: 9px;
-          height: 9px;
-          border-radius: 50%;
-          box-shadow: 0 0 10px currentColor;
-        }
-
-        .column-title {
-          font-size: 0.8125rem;
-          font-weight: 800;
-          color: var(--text-main);
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .column-count {
-          font-family: var(--font-mono);
-          font-size: 0.6875rem;
-          font-weight: 800;
-          color: var(--text-main);
-          background: var(--nx-surface);
-          border: 1px solid var(--nx-border);
-          padding: 2px 8px;
-          border-radius: 9999px;
-        }
-
-        .column-add-btn {
-          width: 24px;
-          height: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 6px;
-          border: none;
-          background: transparent;
-          color: var(--text-muted);
-          cursor: pointer;
-        }
-
-        .column-add-btn:hover {
-          background: var(--nx-bg-raised);
-          color: var(--text-main);
-        }
-
-        .card-list {
-          display: flex;
-          flex-direction: column;
-          gap: 10px;
-          flex: 1;
-        }
-
-        .card-list--compact {
-          gap: 6px;
-        }
-
-        .column-empty-state {
-          border: 2px dashed var(--nx-border-strong);
-          border-radius: 12px;
-          padding: 32px 16px;
-          text-align: center;
-          color: var(--text-muted);
-          font-weight: 600;
-          font-size: 0.75rem;
-        }
-      `}</style>
     </div>
   );
 }

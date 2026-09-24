@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
     // url: 'http://10.0.2.2:3000',
   },
   android: {
-    backgroundColor: '#080B12',
+    backgroundColor: '#1B1C19',
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: process.env.NODE_ENV !== 'production',
@@ -29,7 +29,7 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 800,
       launchAutoHide: true,
-      backgroundColor: '#080B12',
+      backgroundColor: '#1B1C19',
       androidSplashResourceName: 'splash',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,

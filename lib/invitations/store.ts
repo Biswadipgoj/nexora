@@ -5,7 +5,7 @@
  */
 
 import crypto from 'crypto';
-import { DEMO_PROJECT, DEMO_WORKSPACE } from '@/lib/demo/demo-store';
+import { DEMO_PROJECT } from '@/lib/demo/demo-store';
 
 export type WorkspaceRole = 'owner' | 'admin' | 'manager' | 'member' | 'viewer' | 'guest';
 
@@ -25,24 +25,14 @@ export interface ProjectInvitation {
   created_at: string;
 }
 
-// In-memory persistent cache for invitations across dev and demo sessions
-let invitationsStore: ProjectInvitation[] = [
-  {
-    id: 'inv-sample-001',
-    workspace_id: DEMO_WORKSPACE.id,
-    project_id: DEMO_PROJECT.id,
-    project_name: DEMO_PROJECT.name,
-    project_key: DEMO_PROJECT.key,
-    email: 'sarah.lead@company.com',
-    role: 'manager',
-    invited_by: 'a0000000-0000-4000-8000-000000000001',
-    invited_by_name: 'Alex Morgan',
-    token: 'nexora_inv_demo_pm_7729',
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    accepted_at: null,
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-  },
-];
+/**
+ * In-memory invitation registry.
+ *
+ * It used to be seeded with a sample invitation whose token was a fixed,
+ * guessable string, valid on every deployment. Invitations now exist only once
+ * someone creates them.
+ */
+let invitationsStore: ProjectInvitation[] = [];
 
 export function generateInviteToken(): string {
   return crypto.randomBytes(32).toString('hex');
@@ -129,6 +119,11 @@ export function acceptInvitation(token: string, userId: string, userEmail?: stri
 
   invite.accepted_at = new Date().toISOString();
   return { success: true, invitation: invite };
+}
+
+/** Looks an invitation up by id or token, whatever its state. */
+export function findInvitation(identifier: string): ProjectInvitation | null {
+  return invitationsStore.find((inv) => inv.token === identifier || inv.id === identifier) ?? null;
 }
 
 export function revokeInvitation(identifier: string): boolean {

@@ -54,12 +54,13 @@ function checkUrlReady(url, maxRetries = 30, interval = 500) {
 
 async function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 2000,
-    height: 1080,
-    minWidth: 1400,
-    minHeight: 720,
+    // Fits a 1440×900 laptop screen; the layout reflows down to 960px.
+    width: 1440,
+    height: 900,
+    minWidth: 960,
+    minHeight: 640,
     title: 'Nexora',
-    backgroundColor: '#F8FAFC',
+    backgroundColor: '#F2F2EE',
     icon: path.join(__dirname, 'icon.ico'),
     show: false,
     autoHideMenuBar: true,
@@ -105,24 +106,24 @@ async function createWindow() {
               justify-content: center;
               height: 100vh;
               margin: 0;
-              background: #080B12;
-              color: #F4F7FB;
+              background: #F2F2EE;
+              color: #1B1C19;
             }
             .spinner {
               width: 40px;
               height: 40px;
-              border: 3px solid rgba(174, 205, 255, 0.14);
-              border-top-color: #6EA8FF;
+              border: 2px solid #E2E2DB;
+              border-top-color: #26375F;
               border-radius: 50%;
               animation: spin 0.8s linear infinite;
               margin-bottom: 20px;
             }
             @keyframes spin { to { transform: rotate(360deg); } }
             @media (prefers-reduced-motion: reduce) {
-              .spinner { animation: none; border-top-color: #6EA8FF; }
+              .spinner { animation: none; }
             }
-            h2 { font-size: 1.0625rem; font-weight: 650; margin: 0 0 6px; }
-            p { font-size: 0.875rem; color: #7E8DA3; margin: 0; }
+            h2 { font-family: Georgia, serif; font-size: 1.375rem; font-weight: 500; margin: 0 0 6px; }
+            p { font-size: 0.875rem; color: #6A6D64; margin: 0; }
           </style>
         </head>
         <body>

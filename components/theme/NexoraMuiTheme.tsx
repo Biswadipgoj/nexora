@@ -4,164 +4,122 @@ import React from 'react';
 import { ThemeProvider as MuiThemeProvider, createTheme } from '@mui/material/styles';
 
 /**
- * Material UI bridged onto the Nexora luminous light luxury system.
+ * Material UI bridged onto the Nexora tokens.
  *
- * MUI resolves palette colours through its own manipulators (alpha, lighten,
- * darken), which cannot read CSS custom properties, so the literals below are
- * mirrored from styles/nexora-tokens.css.
+ * MUI is used only for behaviour-heavy primitives — dialogs, drawers, menus,
+ * popovers and tooltips (focus trapping, portals, scroll locking). Their
+ * surfaces are painted with CSS variables so they follow the light and dark
+ * token sets without MUI knowing which theme is active. Palette literals below
+ * only feed MUI's internal colour maths and mirror the light tokens.
  */
-const nexoraLightTheme = createTheme({
+const surfacePaper = {
+  backgroundColor: 'var(--nx-surface)',
+  backgroundImage: 'none',
+  color: 'var(--nx-ink)',
+  border: '1px solid var(--nx-line)',
+};
+
+const nexoraTheme = createTheme({
   palette: {
     mode: 'light',
-    primary: {
-      main: '#2563EB', // --nx-blue
-      light: '#60A5FA',
-      dark: '#1D4ED8',
-      contrastText: '#FFFFFF', // --nx-on-accent
-    },
-    secondary: {
-      main: '#7C3AED', // --nx-violet
-      light: '#A78BFA',
-      dark: '#5B21B6',
-      contrastText: '#FFFFFF',
-    },
-    background: {
-      default: '#F8FAFC', // --nx-bg
-      paper: '#FFFFFF', // --nx-surface
-    },
-    text: {
-      primary: '#0F172A', // --nx-text
-      secondary: '#334155', // --nx-text-2
-      disabled: '#64748B', // --nx-text-3
-    },
-    divider: 'rgba(15, 23, 42, 0.08)', // --nx-border
-    error: { main: '#E11D48', contrastText: '#FFFFFF' }, // --nx-red
-    warning: { main: '#D97706', contrastText: '#FFFFFF' }, // --nx-amber
-    info: { main: '#0891B2', contrastText: '#FFFFFF' }, // --nx-cyan
-    success: { main: '#059669', contrastText: '#FFFFFF' }, // --nx-green
+    primary: { main: '#26375F', contrastText: '#F7F8FB' },
+    secondary: { main: '#4B4E46', contrastText: '#FFFFFF' },
+    error: { main: '#B23A2E' },
+    warning: { main: '#8E560C' },
+    success: { main: '#286C49' },
+    info: { main: '#4A5F9A' },
+    background: { default: '#F2F2EE', paper: '#FFFFFF' },
+    text: { primary: '#1B1C19', secondary: '#4B4E46', disabled: '#6A6D64' },
+    divider: '#E2E2DB',
   },
-  shape: {
-    borderRadius: 12, // --nx-radius-card
-  },
+  shape: { borderRadius: 8 },
   typography: {
     fontFamily: 'var(--nx-font-sans)',
-    button: { textTransform: 'none', fontWeight: 600 },
+    button: { textTransform: 'none', fontWeight: 500 },
   },
   components: {
+    MuiBackdrop: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'var(--nx-scrim)',
+          '&.MuiBackdrop-invisible': { backgroundColor: 'transparent' },
+        },
+      },
+    },
     MuiDialog: {
       styleOverrides: {
         paper: {
-          backgroundImage: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.99))',
-          border: '1px solid rgba(15, 23, 42, 0.12)',
-          borderRadius: 16,
-          backdropFilter: 'blur(20px) saturate(140%)',
-          boxShadow: '0 18px 50px rgba(15, 23, 42, 0.12), 0 32px 80px rgba(15, 23, 42, 0.16)',
-          color: '#0F172A',
+          ...surfacePaper,
+          borderRadius: 14,
+          boxShadow: 'var(--nx-shadow-3)',
+          margin: 16,
+          width: 'calc(100% - 32px)',
+          overflow: 'hidden',
         },
       },
     },
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          backgroundImage: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.99))',
-          borderLeft: '1px solid rgba(15, 23, 42, 0.08)',
-          boxShadow: '-18px 0 50px rgba(15, 23, 42, 0.10)',
-          color: '#0F172A',
+          ...surfacePaper,
+          border: 'none',
+          borderLeft: '1px solid var(--nx-line)',
+          boxShadow: 'var(--nx-shadow-3)',
         },
+      },
+    },
+    MuiPopover: {
+      styleOverrides: {
+        paper: { ...surfacePaper, borderRadius: 12, boxShadow: 'var(--nx-shadow-2)' },
       },
     },
     MuiMenu: {
       styleOverrides: {
-        paper: {
-          backgroundImage: 'linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.99))',
-          border: '1px solid rgba(15, 23, 42, 0.12)',
-          borderRadius: 12,
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 18px 50px rgba(15, 23, 42, 0.10)',
-          color: '#0F172A',
+        paper: { ...surfacePaper, borderRadius: 10, boxShadow: 'var(--nx-shadow-2)', minWidth: 180 },
+        list: { padding: 4 },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          fontSize: '0.8125rem',
+          borderRadius: 6,
+          minHeight: 34,
+          gap: 8,
+          color: 'var(--nx-ink)',
+          '&:hover': { backgroundColor: 'var(--nx-surface-3)' },
+          '&.Mui-focusVisible': { backgroundColor: 'var(--nx-surface-3)' },
+          '&.Mui-selected, &.Mui-selected:hover': { backgroundColor: 'var(--nx-accent-soft)' },
         },
       },
     },
     MuiTooltip: {
+      defaultProps: { enterDelay: 400, arrow: false },
       styleOverrides: {
         tooltip: {
-          backgroundColor: '#0F172A',
-          border: '1px solid rgba(255, 255, 255, 0.10)',
-          color: '#FFFFFF',
+          backgroundColor: 'var(--nx-ink)',
+          color: 'var(--nx-canvas)',
           fontSize: '0.75rem',
           fontWeight: 500,
-          borderRadius: 8,
-        },
-        arrow: { color: '#0F172A' },
-      },
-    },
-    MuiOutlinedInput: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#FFFFFF',
-          borderRadius: 8,
-          '& fieldset': { borderColor: 'rgba(15, 23, 42, 0.12)' },
-          '&:hover fieldset': { borderColor: 'rgba(15, 23, 42, 0.24)' },
-          '&.Mui-focused fieldset': { borderColor: '#2563EB', borderWidth: 1.5 },
-        },
-        input: {
-          color: '#0F172A',
-          '&::placeholder': { color: '#64748B', opacity: 1 },
-        },
-      },
-    },
-    MuiInputLabel: {
-      styleOverrides: {
-        root: {
-          color: '#64748B',
-          '&.Mui-focused': { color: '#2563EB' },
-        },
-      },
-    },
-    MuiFormHelperText: {
-      styleOverrides: {
-        root: { marginLeft: 2, fontSize: '0.75rem' },
-      },
-    },
-    MuiAlert: {
-      styleOverrides: {
-        root: { borderRadius: 8, fontSize: '0.8125rem' },
-        colorError: {
-          '&.MuiAlert-standard': {
-            backgroundColor: 'rgba(225, 29, 72, 0.10)',
-            border: '1px solid rgba(225, 29, 72, 0.25)',
-            color: '#E11D48',
-          },
-        },
-        colorSuccess: {
-          '&.MuiAlert-standard': {
-            backgroundColor: 'rgba(5, 150, 105, 0.10)',
-            border: '1px solid rgba(5, 150, 105, 0.25)',
-            color: '#059669',
-          },
-        },
-        colorInfo: {
-          '&.MuiAlert-standard': {
-            backgroundColor: 'rgba(8, 145, 178, 0.10)',
-            border: '1px solid rgba(8, 145, 178, 0.25)',
-            color: '#0891B2',
-          },
+          borderRadius: 6,
+          padding: '5px 8px',
         },
       },
     },
     MuiButtonBase: {
+      defaultProps: { disableRipple: true },
       styleOverrides: {
         root: {
-          '&.Mui-focusVisible': {
-            outline: 'none',
-            boxShadow: '0 0 0 2px #F8FAFC, 0 0 0 4px #2563EB',
-          },
+          '&.Mui-focusVisible': { outline: 'none', boxShadow: 'var(--nx-focus-ring)' },
         },
       },
+    },
+    MuiCircularProgress: {
+      defaultProps: { color: 'inherit' },
     },
   },
 });
 
 export function NexoraMuiTheme({ children }: { children: React.ReactNode }) {
-  return <MuiThemeProvider theme={nexoraLightTheme}>{children}</MuiThemeProvider>;
+  return <MuiThemeProvider theme={nexoraTheme}>{children}</MuiThemeProvider>;
 }
