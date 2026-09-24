@@ -1,29 +1,20 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { motion } from 'motion/react';
 import Link from 'next/link';
-import FolderOpenRoundedIcon from '@mui/icons-material/FolderOpenRounded';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
-import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
-import type { WorkItemData } from '@/components/board/KanbanBoard';
 import { countFocus, isDone } from '@/lib/work/focus';
+import type { WorkItemData } from '@/lib/work/types';
 
 interface ProjectsTabProps {
-  projects: Array<{ id: string; name: string; key: string; mode: string }>;
+  projects: Array<{ id: string; name: string; key: string; mode: string; description?: string | null }>;
   workItems: WorkItemData[];
   onCreateProject?: () => void;
 }
 
 /**
- * Project directory — Master Design Document, sections 5.2 and 6.4.
- *
- * Section 6.4 requires the Android dock to "preserve the same four
- * destinations: Home, Inbox, My Tasks, and Projects". The dock previously sent
- * its second slot to a single hard-coded project UUID, so on any workspace
- * whose first project was not the demo one it opened a dead board, and there
- * was no route to the project list at all below 900px. This is that
- * destination.
+ * Every board in the workspace with what is left on each — the same
+ * destination the mobile dock's Projects slot opens.
  */
 export function ProjectsTab({ projects, workItems, onCreateProject }: ProjectsTabProps) {
   const rows = useMemo(
@@ -44,100 +35,70 @@ export function ProjectsTab({ projects, workItems, onCreateProject }: ProjectsTa
   );
 
   return (
-    <motion.div
-      key="projects"
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -8 }}
-      transition={{ duration: 0.18 }}
-      className="tab-content"
-    >
-      <div className="tab-header-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-        <div className="tab-header-title-wrap">
-          <div className="tab-header-title">
-            <FolderOpenRoundedIcon sx={{ fontSize: 24, color: 'var(--nx-blue)' }} />
-            <span>Projects</span>
-            <span className="nav-badge-pill" style={{ background: 'var(--nx-blue)', fontSize: '0.75rem' }}>
-              {projects.length}
-            </span>
-          </div>
-          <p className="tab-header-desc">Every board in this workspace, with what is left to do on each.</p>
+    <>
+      <header className="page-head">
+        <div>
+          <h1 className="page-head__title">Projects</h1>
+          <p className="page-head__sub">
+            {projects.length === 0
+              ? 'Nothing here yet.'
+              : `${projects.length} ${projects.length === 1 ? 'board' : 'boards'} in this workspace.`}
+          </p>
         </div>
-
         {onCreateProject && (
-          <button
-            onClick={onCreateProject}
-            className="btn-primary-gradient"
-            style={{
-              padding: '8px 16px',
-              borderRadius: 10,
-              fontSize: '0.8125rem',
-              fontWeight: 700,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              cursor: 'pointer',
-              border: 'none',
-              color: '#FFFFFF',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)',
-            }}
-          >
-            <AddRoundedIcon sx={{ fontSize: 18 }} />
-            <span>New Project</span>
-          </button>
+          <div className="page-head__actions">
+            <button type="button" className="nx-btn nx-btn--primary" onClick={onCreateProject}>
+              <AddRoundedIcon sx={{ fontSize: 17 }} />
+              New project
+            </button>
+          </div>
         )}
-      </div>
+      </header>
 
       {rows.length === 0 ? (
-        <div className="empty-state-box">
-          <FolderOpenRoundedIcon sx={{ fontSize: 32, color: 'var(--nx-text-3)', marginBottom: 1 }} />
-          <h4 className="empty-state-box__title">No projects yet</h4>
-          <p className="empty-state-box__body">
-            A project groups related work and gives every task a short key you can say out loud.
-          </p>
-          <div className="empty-state-box__actions">
-            {onCreateProject ? (
-              <button onClick={onCreateProject} className="overview-empty__action" style={{ cursor: 'pointer', border: 'none', background: 'none' }}>
-                <AddRoundedIcon sx={{ fontSize: 16 }} />
+        <div className="nx-empty">
+          <p className="nx-empty__title">No projects yet</p>
+          <p className="nx-empty__body">A project groups related work and gives every task a short key you can say out loud.</p>
+          {onCreateProject && (
+            <div className="nx-empty__actions">
+              <button type="button" className="nx-btn nx-btn--secondary nx-btn--sm" onClick={onCreateProject}>
                 Create a project
               </button>
-            ) : (
-              <Link href="/onboarding/project" className="overview-empty__action">
-                <AddRoundedIcon sx={{ fontSize: 16 }} />
-                Create a project
-              </Link>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       ) : (
-        <ul className="project-directory">
-          {rows.map((project) => (
-            <li key={project.id}>
-              <Link href={`/projects/${project.id}`} className="project-directory__row">
-                <span className="project-directory__main">
-                  <span className="project-directory__name">{project.name}</span>
-                  <span className="project-directory__meta">
-                    {project.total === 0
-                      ? 'No tasks yet'
-                      : `${project.done} of ${project.total} done`}
-                    {project.overdue > 0 && (
-                      <span className="project-directory__overdue">{project.overdue} overdue</span>
-                    )}
+        <section aria-label="All projects">
+          <div className="table-head" aria-hidden="true">
+            <span>Project</span>
+            <span>Key</span>
+            <span>Progress</span>
+            <span>Open</span>
+          </div>
+          <ul className="ruled">
+            {rows.map((project) => (
+              <li key={project.id}>
+                <Link href={`/projects/${project.id}`} className="project-row">
+                  <span>
+                    <span className="project-row__name">{project.name}</span>
+                    <span className="project-row__desc">
+                      {project.total === 0 ? 'No tasks yet' : `${project.done} of ${project.total} done`}
+                      {project.description ? ` · ${project.description}` : ''}
+                    </span>
                   </span>
-                </span>
-
-                <span className="project-directory__right">
-                  <span className="pulse-row__key">{project.key}</span>
-                  <span className="project-directory__track" aria-hidden="true">
-                    <span className="pulse-row__fill" style={{ width: `${project.percent}%` }} />
+                  <span className="nx-key">{project.key}</span>
+                  <span className="progress" aria-label={`${project.percent} percent complete`}>
+                    <span className="progress__fill" style={{ width: `${project.percent}%` }} />
                   </span>
-                  <ArrowForwardRoundedIcon sx={{ fontSize: 16, color: 'var(--nx-text-3)' }} />
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+                  <span className={`project-row__stat ${project.overdue > 0 ? 'project-row__stat--alert' : ''}`}>
+                    {project.overdue > 0 ? `${project.overdue} overdue` : `${project.total - project.done} open`}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-    </motion.div>
+    </>
   );
 }

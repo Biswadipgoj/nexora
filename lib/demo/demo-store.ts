@@ -65,6 +65,8 @@ export interface DemoWorkItem {
   project_id: string;
   sequence: number;
   title: string;
+  description?: unknown;
+  estimate?: number | null;
   priority: number;
   status_id: string;
   type_id: string;
@@ -90,7 +92,20 @@ export interface DemoWorkItem {
   deleted_at: string | null;
 }
 
-const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
+/** A calendar date `offset` days from today, as the `YYYY-MM-DD` the API stores. */
+function dayFromToday(offset: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/**
+ * The sample board. Dates are relative to today so the demo always shows a
+ * realistic spread — one task slipping, one due today, the rest ahead —
+ * instead of drifting into "everything overdue" a week after it was written.
+ */
+const buildSeed = (): DemoWorkItem[] => [
   {
     id: 'f0000000-0000-4000-8000-000000000104',
     workspace_id: DEMO_WORKSPACE.id,
@@ -99,9 +114,9 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     title: 'Stripe checkout integration',
     priority: 3, // High
     status_id: DEMO_STATUSES[1].id, // In Progress
-    type_id: DEMO_TYPES[1].id, // Feature
-    due_date: '2026-09-11',
-    start_date: '2026-09-01',
+    type_id: 'type-feature', // Feature
+    due_date: dayFromToday(2),
+    start_date: dayFromToday(-6),
     position: 0,
     story_points: 5,
     epic_name: 'Checkout v2',
@@ -140,8 +155,8 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     priority: 2, // Medium
     status_id: DEMO_STATUSES[1].id, // In Progress
     type_id: 'type-ui', // UI / UX Design
-    due_date: '2026-09-08',
-    start_date: '2026-09-03',
+    due_date: dayFromToday(0),
+    start_date: dayFromToday(-4),
     position: 1,
     story_points: 3,
     epic_name: 'Mobile Design System',
@@ -180,8 +195,8 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     priority: 3, // High
     status_id: DEMO_STATUSES[0].id, // To Do
     type_id: 'type-security', // Security & Auth
-    due_date: '2026-09-18',
-    start_date: '2026-09-10',
+    due_date: dayFromToday(6),
+    start_date: dayFromToday(1),
     position: 0,
     story_points: 8,
     epic_name: 'Identity & Security',
@@ -212,8 +227,8 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     priority: 2, // Medium
     status_id: DEMO_STATUSES[0].id, // To Do
     type_id: 'type-backend', // Backend & API
-    due_date: '2026-09-15',
-    start_date: '2026-09-08',
+    due_date: dayFromToday(-1),
+    start_date: dayFromToday(-5),
     position: 1,
     story_points: 3,
     epic_name: 'Core Infrastructure',
@@ -244,8 +259,8 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     priority: 4, // Urgent
     status_id: DEMO_STATUSES[2].id, // Done
     type_id: 'type-bug', // Bug Fix
-    due_date: '2026-09-04',
-    start_date: '2026-09-02',
+    due_date: dayFromToday(-3),
+    start_date: dayFromToday(-5),
     position: 0,
     story_points: 2,
     epic_name: 'Identity & Security',
@@ -280,12 +295,12 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
     workspace_id: DEMO_WORKSPACE.id,
     project_id: DEMO_PROJECT.id,
     sequence: 95,
-    title: 'Luminous light theme color token alignment',
+    title: 'Align light theme colour tokens',
     priority: 1, // Low
     status_id: DEMO_STATUSES[2].id, // Done
     type_id: 'type-ui', // UI / UX Design
-    due_date: '2026-09-03',
-    start_date: '2026-08-30',
+    due_date: dayFromToday(-6),
+    start_date: dayFromToday(-10),
     position: 1,
     story_points: 2,
     epic_name: 'Mobile Design System',
@@ -309,9 +324,19 @@ const INITIAL_WORK_ITEMS: DemoWorkItem[] = [
   },
 ];
 
-// Persistent across requests in Node process memory
-let demoItems: DemoWorkItem[] = [...INITIAL_WORK_ITEMS];
+/**
+ * Demo state lives in Node process memory. Every reset builds the seed afresh,
+ * so soft deletes and edits never leak into it — the previous shallow copy
+ * meant "reset" could not bring a deleted sample card back.
+ */
+let demoItems: DemoWorkItem[] = buildSeed();
 let currentCounter = 105;
+
+function newId(): string {
+  return typeof crypto !== 'undefined' && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `f0000000-0000-4000-8000-${Math.random().toString(16).slice(2, 14).padEnd(12, '0')}`;
+}
 
 export function getDemoWorkItems(projectId?: string, statusId?: string): DemoWorkItem[] {
   // projectId used to be accepted and then ignored, so every demo project
@@ -338,7 +363,17 @@ export function createDemoWorkItem(input: {
   due_date?: string | null;
   assignees?: Array<{ name: string; avatar?: string; role?: string }>;
 }): DemoWorkItem {
-  currentCounter += 1;
+  // Keys are per project (APP-106, WEB-1), as they are in the database.
+  const project = getDemoProjectById(input.project_id);
+  let sequence: number;
+  if (project) {
+    project.item_counter += 1;
+    sequence = project.item_counter;
+  } else {
+    currentCounter += 1;
+    sequence = currentCounter;
+  }
+
   const assigneesList = input.assignees?.map((a) => ({
     name: a.name,
     avatar: a.avatar || '',
@@ -346,10 +381,12 @@ export function createDemoWorkItem(input: {
   })) || [];
 
   const newItem: DemoWorkItem = {
-    id: `f0000000-0000-4000-8000-${String(Date.now()).slice(-12).padStart(12, '0')}`,
+    // Date-derived ids collided whenever two items were created in the same
+    // millisecond.
+    id: newId(),
     workspace_id: input.workspace_id || DEMO_WORKSPACE.id,
     project_id: input.project_id || DEMO_PROJECT.id,
-    sequence: currentCounter,
+    sequence,
     title: input.title,
     priority: input.priority ?? 0,
     status_id: input.status_id || DEMO_STATUSES[0].id,
@@ -408,8 +445,9 @@ export function restoreDemoWorkItem(id: string): boolean {
 }
 
 export function resetDemoStore(): void {
-  demoItems = [...INITIAL_WORK_ITEMS];
+  demoItems = buildSeed();
   currentCounter = 105;
+  demoProjects = [{ ...DEMO_PROJECT }];
 }
 
 export interface DemoProject {
@@ -445,7 +483,7 @@ export function addDemoProject(
   }
 ): DemoProject {
   const newProj: DemoProject = {
-    id: project.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'c_' + Math.random().toString(36).slice(2, 10)),
+    id: project.id || newId(),
     workspace_id: project.workspace_id || DEMO_WORKSPACE.id,
     team_id: project.team_id || null,
     name: project.name,

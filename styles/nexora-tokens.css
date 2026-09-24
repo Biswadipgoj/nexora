@@ -1,117 +1,182 @@
 /* ============================================================================
-   NEXORA — Canonical Design Tokens: Prismatic Aurora Luminous Light & Luxury Dimension
-   
-   Single source of truth for the Nexora visual system.
-   Luminous, highly lucrative, pristine light aesthetic with rich multi-chromatic accents.
+   Nexora design tokens
+
+   The product's world is the planning wall and the notebook beside it: stone
+   paper, graphite ink, index cards, ticket keys, and one colour of fountain-pen
+   ink (blue-black) reserved for the thing you can act on. Status colours sit on
+   their own axis and are always paired with a word.
+
+   Every colour is defined on :root (light). Dark mode redefines tokens only,
+   once for the unstamped system preference and once for an explicit choice,
+   so a toggle wins in both directions.
    ========================================================================= */
 
 :root {
   color-scheme: light;
 
-  /* ---- 4.1 Core palette — Luminous Light Luxury Theme ------------------ */
+  /* ---- Ground and surfaces ------------------------------------------- */
+  --nx-canvas: #F2F2EE;        /* stone paper — the application ground */
+  --nx-surface: #FFFFFF;       /* sheets, cards, dialogs */
+  --nx-surface-2: #F7F7F4;     /* hover wash, inset fields */
+  --nx-surface-3: #EAEAE4;     /* board lanes, pressed and selected neutrals */
+  --nx-scrim: rgba(27, 28, 25, 0.36);
 
-  /* Canvas and surfaces (three layers of depth) */
-  --nx-bg: #F8FAFC;          /* Luminous pearl alabaster application canvas */
-  --nx-bg-raised: #FFFFFF;   /* Main content stage and large panels */
-  --nx-surface: #FFFFFF;     /* Cards, sidebar groups, drawers */
-  --nx-surface-2: #F1F5F9;   /* Hovered or selected surfaces */
-  --nx-surface-3: #E2E8F0;   /* Elevated modal and command palette surfaces */
+  /* ---- Lines ---------------------------------------------------------- */
+  --nx-line: #E2E2DB;
+  --nx-line-strong: #CBCBC2;
 
-  /* Borders */
-  --nx-border: rgba(15, 23, 42, 0.08);        /* Crisp ultra-fine border */
-  --nx-border-strong: rgba(99, 102, 241, 0.35); /* Focused or active radiant iris border */
+  /* ---- Ink ------------------------------------------------------------ */
+  --nx-ink: #1B1C19;           /* primary text   — 16.6:1 on surface */
+  --nx-ink-2: #4B4E46;         /* secondary text —  8.7:1 on surface */
+  --nx-ink-3: #6A6D64;         /* metadata       —  5.3:1 on surface, 4.7:1 on canvas */
 
-  /* Text — Deep Obsidian Slate Ink with WCAG AAA legibility */
-  --nx-text: #0F172A;    /* Primary text */
-  --nx-text-2: #334155;  /* Secondary text */
-  --nx-text-3: #64748B;  /* Supporting text and metadata */
+  /* ---- Accent: blue-black ink, spent on actions and selection ---------- */
+  --nx-accent: #26375F;
+  --nx-accent-hover: #1D2B4C;
+  --nx-accent-soft: #E7EBF4;
+  --nx-accent-line: #B8C2DA;
+  --nx-on-accent: #F7F8FB;
 
-  /* Accents — Vibrant saturated jewel tones for maximum lucidity & luxury */
-  --nx-blue: #2563EB;    /* Primary sapphire action, selected navigation */
-  --nx-cyan: #0891B2;    /* Live, synced, electric cyan */
-  --nx-violet: #7C3AED;  /* Product identity, regal aurora iris */
-  --nx-green: #059669;   /* Emerald success, completed work */
-  --nx-amber: #D97706;   /* Solar amber gold, medium priority */
-  --nx-red: #E11D48;     /* Crimson rose, urgent priority */
+  /* ---- Status (never the accent; always paired with a label) ---------- */
+  --nx-green: #286C49;
+  --nx-green-soft: #E3F0E8;
+  --nx-amber: #8E560C;
+  --nx-amber-soft: #F6ECDA;
+  --nx-red: #B23A2E;
+  --nx-red-soft: #F7E4E1;
+  --nx-slate: #4A5F9A;
+  --nx-slate-soft: #E6EAF4;
 
-  /* Accent washes — luminous tinted chips and status rails */
-  --nx-blue-soft: rgba(37, 99, 235, 0.10);
-  --nx-cyan-soft: rgba(8, 145, 178, 0.10);
-  --nx-violet-soft: rgba(124, 58, 237, 0.10);
-  --nx-green-soft: rgba(5, 150, 105, 0.10);
-  --nx-amber-soft: rgba(217, 119, 6, 0.10);
-  --nx-red-soft: rgba(225, 29, 72, 0.10);
+  /* ---- Depth ---------------------------------------------------------- */
+  --nx-shadow-1: 0 1px 0 rgba(27, 28, 25, 0.03), 0 1px 2px rgba(27, 28, 25, 0.06);
+  --nx-shadow-2: 0 1px 2px rgba(27, 28, 25, 0.05), 0 8px 24px -10px rgba(27, 28, 25, 0.16);
+  --nx-shadow-3: 0 2px 6px rgba(27, 28, 25, 0.06), 0 28px 64px -18px rgba(27, 28, 25, 0.32);
 
-  /* Ink for text and icons sitting on a filled accent */
-  --nx-on-accent: #FFFFFF;
-  --nx-on-accent-wash: rgba(255, 255, 255, 0.20);
-  --nx-on-accent-line: rgba(255, 255, 255, 0.35);
+  /* ---- Type ----------------------------------------------------------- */
+  --nx-font-sans: var(--font-plex-sans), 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --nx-font-serif: var(--font-newsreader), 'Newsreader', 'Iowan Old Style', Georgia, serif;
+  --nx-font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --nx-blue-line: rgba(37, 99, 235, 0.30);
-  --nx-cyan-line: rgba(8, 145, 178, 0.30);
-  --nx-violet-line: rgba(124, 58, 237, 0.30);
-  --nx-green-line: rgba(5, 150, 105, 0.30);
-  --nx-amber-line: rgba(217, 119, 6, 0.30);
-  --nx-red-line: rgba(225, 29, 72, 0.30);
+  /* 1.25 scale from a 14px interface size */
+  --nx-fs-2xs: 0.6875rem;  /* 11 — keys, counts */
+  --nx-fs-xs: 0.75rem;     /* 12 — metadata */
+  --nx-fs-sm: 0.8125rem;   /* 13 — secondary UI */
+  --nx-fs-md: 0.875rem;    /* 14 — interface default */
+  --nx-fs-base: 0.9375rem; /* 15 — reading text */
+  --nx-fs-lg: 1.125rem;    /* 18 */
+  --nx-fs-xl: 1.375rem;    /* 22 */
+  --nx-fs-2xl: 1.75rem;    /* 28 */
+  --nx-fs-3xl: clamp(2rem, 1.4rem + 2.2vw, 2.75rem);
+  --nx-fs-display: clamp(2.75rem, 1.6rem + 4.6vw, 5.25rem);
 
-  /* ---- 4.2 Surface construction ---------------------------------------- */
-  --nx-surface-gradient: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.95));
-  --nx-rim: inset 0 1px 0 rgba(255, 255, 255, 0.90);
-  --nx-rim-strong: inset 0 1px 0 rgba(255, 255, 255, 1);
+  /* ---- Space (4px base) ---------------------------------------------- */
+  --nx-space-1: 4px;
+  --nx-space-2: 8px;
+  --nx-space-3: 12px;
+  --nx-space-4: 16px;
+  --nx-space-5: 20px;
+  --nx-space-6: 24px;
+  --nx-space-8: 32px;
+  --nx-space-10: 40px;
+  --nx-space-12: 48px;
+  --nx-space-16: 64px;
+  --nx-space-24: 96px;
 
-  --nx-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
-  --nx-shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.08), 0 0 12px rgba(99, 102, 241, 0.05);
-  --nx-shadow-lg: 0 12px 32px -4px rgba(15, 23, 42, 0.10), 0 0 20px rgba(6, 182, 212, 0.06);
-  --nx-shadow-xl: 0 24px 54px -8px rgba(15, 23, 42, 0.12), 0 0 32px rgba(124, 58, 237, 0.08);
+  /* ---- Shape ---------------------------------------------------------- */
+  --nx-radius-sm: 6px;      /* chips, keys */
+  --nx-radius-control: 8px; /* buttons, fields */
+  --nx-radius-card: 10px;   /* index cards */
+  --nx-radius-panel: 14px;  /* sheets, dialogs */
+  --nx-radius-pill: 999px;  /* counts only */
 
-  --nx-elevation-1: var(--nx-shadow-sm), var(--nx-rim);
-  --nx-elevation-2: var(--nx-shadow-md), var(--nx-rim);
-  --nx-elevation-3: var(--nx-shadow-lg), var(--nx-rim-strong);
-
-  /* ---- 4.3 Typography --------------------------------------------------- */
-  --nx-font-sans: var(--font-sans), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --nx-font-display: var(--font-display), 'Outfit', var(--nx-font-sans);
-  --nx-font-mono: var(--font-mono), 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-
-  --nx-text-page-title: 700 2rem/1.2 var(--nx-font-display);
-  --nx-text-section: 650 1.125rem/1.35 var(--nx-font-display);
-  --nx-text-body: 400 0.9375rem/1.5 var(--nx-font-sans);
-  --nx-text-meta: 500 0.8125rem/1.45 var(--nx-font-sans);
-  --nx-text-button: 600 0.875rem/1 var(--nx-font-sans);
-  --nx-text-key: 600 0.6875rem/1 var(--nx-font-mono);
-
-  /* ---- 4.4 Shape language ----------------------------------------------- */
-  --nx-radius-control: 8px;  /* Controls */
-  --nx-radius-card: 12px;    /* Cards */
-  --nx-radius-panel: 16px;   /* Panels */
-  --nx-radius-shell: 22px;   /* Outer shell */
-  --nx-radius-pill: 9999px;  /* Status, count, compact identity only */
-
-  /* ---- 4.5 Motion language ---------------------------------------------- */
-  --nx-ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
-  --nx-ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --nx-motion-hover: 160ms;   /* 140-180ms hover and focus */
-  --nx-motion-panel: 240ms;   /* 220-280ms panels and drawers */
+  /* ---- Motion --------------------------------------------------------- */
+  --nx-ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --nx-ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --nx-motion-hover: 150ms;
+  --nx-motion-panel: 240ms;
   --nx-t-hover: var(--nx-motion-hover) var(--nx-ease-out);
-  --nx-t-panel: var(--nx-motion-panel) var(--nx-ease-spring);
+  --nx-t-panel: var(--nx-motion-panel) var(--nx-ease-out);
 
-  /* ---- 9 Accessibility --------------------------------------------------- */
-  --nx-focus-ring: 0 0 0 2px var(--nx-bg), 0 0 0 4px var(--nx-blue);
+  /* ---- Focus ---------------------------------------------------------- */
+  --nx-focus-ring: 0 0 0 2px var(--nx-surface), 0 0 0 4px var(--nx-accent);
 
-  /* ---- Layout metrics ---------------------------------------------------- */
-  --nx-rail-w: 260px;
-  --nx-rail-w-collapsed: 72px;
-  --nx-topbar-h: 60px;
-  --nx-drawer-w: 460px;
-  --nx-bottombar-h: 64px;
+  /* ---- Layout --------------------------------------------------------- */
+  --nx-rail-w: 248px;
+  --nx-topbar-h: 56px;
+  --nx-dock-h: 64px;
+  --nx-content-w: 1320px;
   --nx-safe-top: env(safe-area-inset-top, 0px);
   --nx-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* ============================================================================
-   Section 9 — Reduced motion. Removes parallax, tilt, background drift and
-   nonessential transforms. Information must never live only in animation.
-   ========================================================================= */
+/* ---- Dark: designed, not inverted --------------------------------------
+   Shadows barely read on a near-black ground, so depth comes from hairlines
+   and a slightly lifted surface. The accent lightens so it keeps contrast. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --nx-canvas: #121311;
+    --nx-surface: #1A1B19;
+    --nx-surface-2: #20211F;
+    --nx-surface-3: #262724;
+    --nx-scrim: rgba(0, 0, 0, 0.58);
+    --nx-line: #2B2C29;
+    --nx-line-strong: #3C3D39;
+    --nx-ink: #ECECE6;
+    --nx-ink-2: #B6B8AF;
+    --nx-ink-3: #8E9188;
+    --nx-accent: #A7B7E4;
+    --nx-accent-hover: #BCC9EE;
+    --nx-accent-soft: rgba(167, 183, 228, 0.13);
+    --nx-accent-line: rgba(167, 183, 228, 0.34);
+    --nx-on-accent: #111A2E;
+    --nx-green: #74C497;
+    --nx-green-soft: rgba(116, 196, 151, 0.13);
+    --nx-amber: #E2AE55;
+    --nx-amber-soft: rgba(226, 174, 85, 0.13);
+    --nx-red: #EF8A7C;
+    --nx-red-soft: rgba(239, 138, 124, 0.13);
+    --nx-slate: #9FB0DD;
+    --nx-slate-soft: rgba(159, 176, 221, 0.13);
+    --nx-shadow-1: 0 0 0 1px rgba(0, 0, 0, 0.2);
+    --nx-shadow-2: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+    --nx-shadow-3: 0 30px 70px -16px rgba(0, 0, 0, 0.75);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --nx-canvas: #121311;
+  --nx-surface: #1A1B19;
+  --nx-surface-2: #20211F;
+  --nx-surface-3: #262724;
+  --nx-scrim: rgba(0, 0, 0, 0.58);
+  --nx-line: #2B2C29;
+  --nx-line-strong: #3C3D39;
+  --nx-ink: #ECECE6;
+  --nx-ink-2: #B6B8AF;
+  --nx-ink-3: #8E9188;
+  --nx-accent: #A7B7E4;
+  --nx-accent-hover: #BCC9EE;
+  --nx-accent-soft: rgba(167, 183, 228, 0.13);
+  --nx-accent-line: rgba(167, 183, 228, 0.34);
+  --nx-on-accent: #111A2E;
+  --nx-green: #74C497;
+  --nx-green-soft: rgba(116, 196, 151, 0.13);
+  --nx-amber: #E2AE55;
+  --nx-amber-soft: rgba(226, 174, 85, 0.13);
+  --nx-red: #EF8A7C;
+  --nx-red-soft: rgba(239, 138, 124, 0.13);
+  --nx-slate: #9FB0DD;
+  --nx-slate-soft: rgba(159, 176, 221, 0.13);
+  --nx-shadow-1: 0 0 0 1px rgba(0, 0, 0, 0.2);
+  --nx-shadow-2: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+  --nx-shadow-3: 0 30px 70px -16px rgba(0, 0, 0, 0.75);
+}
+
+/* ---- Reduced motion ----------------------------------------------------
+   Nothing in the product carries meaning through animation, so it can all
+   go: transitions collapse to an instant change. */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --nx-motion-hover: 1ms;
@@ -126,60 +191,11 @@
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
   }
-
-  .aurora-orb,
-  .aurora-mesh,
-  .aurora-canvas-wrap,
-  .tilt-card-container,
-  .tilt-card-glare,
-  .creator-badge-glow {
-    animation: none !important;
-    transform: none !important;
-  }
 }
 
-/* ============================================================================
-   Section 9 — Focus visibility. Every primary control gets a visible ring
-   with enough contrast against its surface.
-   ========================================================================= */
+/* ---- Focus ---------------------------------------------------------------
+   Every interactive element shows a ring when reached by keyboard. */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: none;
   box-shadow: var(--nx-focus-ring);
-  border-radius: var(--nx-radius-control);
-}
-
-/* ============================================================================
-   Surface primitives — Luminous Light Glass Surfaces
-   ========================================================================= */
-.nx-surface {
-  background: var(--nx-surface-gradient);
-  border: 1px solid var(--nx-border);
-  border-radius: var(--nx-radius-card);
-  box-shadow: var(--nx-elevation-1);
-}
-
-.nx-panel {
-  background: var(--nx-surface-gradient);
-  border: 1px solid var(--nx-border);
-  border-radius: var(--nx-radius-panel);
-  box-shadow: var(--nx-elevation-2);
-}
-
-.nx-elevated {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.99));
-  border: 1px solid var(--nx-border-strong);
-  border-radius: var(--nx-radius-panel);
-  box-shadow: var(--nx-elevation-3), var(--nx-shadow-xl);
-  backdrop-filter: blur(20px) saturate(140%);
-  -webkit-backdrop-filter: blur(20px) saturate(140%);
-}
-
-.nx-interactive {
-  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover),
-    box-shadow var(--nx-t-hover), transform var(--nx-t-hover);
-}
-
-.nx-interactive:hover {
-  background-color: var(--nx-surface-2);
-  border-color: var(--nx-border-strong);
 }

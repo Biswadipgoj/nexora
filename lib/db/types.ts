@@ -296,6 +296,19 @@ export type TimeEntry = {
 
 /* ============ DATABASE TYPE (Supabase GenericSchema compatible) ============ */
 
+/** Mirrors the `invitations` table (supabase/migrations/..._work_item_engine.sql). */
+export type InvitationRow = {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: WorkspaceRole;
+  invited_by: string;
+  token: string;
+  expires_at: string;
+  accepted_at: string | null;
+  created_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -860,6 +873,27 @@ export interface Database {
           logged_date: string;
           created_at: string;
           updated_at: string;
+        }>;
+        Relationships: [];
+      };
+      invitations: {
+        Row: InvitationRow;
+        Insert: {
+          id?: string;
+          workspace_id: string;
+          email: string;
+          role?: WorkspaceRole;
+          invited_by: string;
+          token: string;
+          expires_at?: string;
+          accepted_at?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<{
+          email: string;
+          role: WorkspaceRole;
+          expires_at: string;
+          accepted_at: string | null;
         }>;
         Relationships: [];
       };

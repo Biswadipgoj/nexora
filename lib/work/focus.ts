@@ -1,4 +1,4 @@
-import type { WorkItemData } from '@/components/board/KanbanBoard';
+import type { WorkItemData } from './types';
 
 /**
  * Shared work-item focus logic.
@@ -30,19 +30,38 @@ function addDays(date: Date, days: number): Date {
   return d;
 }
 
+/**
+ * Status checks prefer the status category. Database statuses have UUID ids,
+ * so the old test — "does the id contain the word done" — was never true for a
+ * real project: completed work counted as open and every metric was wrong for
+ * signed-in users. The slug fallback remains for the built-in demo columns.
+ */
 export function isDone(item: WorkItemData): boolean {
+  if (item.status_category) return item.status_category === 'done';
   return Boolean(item.status_id?.toLowerCase().includes('done'));
 }
 
 export function isInProgress(item: WorkItemData): boolean {
+  if (item.status_category) return item.status_category === 'in_progress';
   const status = item.status_id?.toLowerCase() ?? '';
   return !isDone(item) && (status.includes('progress') || status.includes('review'));
 }
 
-/** Parses a due date defensively — the field is nullable and free-form upstream. */
+const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+/**
+ * Parses a due date defensively — the field is nullable and free-form upstream.
+ *
+ * A bare `YYYY-MM-DD` is read as local midnight. `new Date('2026-09-24')`
+ * means UTC midnight, which west of Greenwich is the previous evening, so a
+ * task due today used to show as overdue.
+ */
 export function dueDateOf(item: WorkItemData): Date | null {
   if (!item.due_date) return null;
-  const parsed = new Date(item.due_date);
+  const dateOnly = DATE_ONLY.exec(item.due_date);
+  const parsed = dateOnly
+    ? new Date(Number(dateOnly[1]), Number(dateOnly[2]) - 1, Number(dateOnly[3]))
+    : new Date(item.due_date);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 

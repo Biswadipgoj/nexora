@@ -9,17 +9,17 @@ import type { MetadataRoute } from 'next';
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Nexora — Project and Task Management',
+    name: 'Nexora — Projects and tasks, on one board',
     short_name: 'Nexora',
-    description: 'A calm command center for planning, tracking and shipping work.',
+    description: 'Plan the work, see it move, and finish it together.',
     start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
     orientation: 'any',
-    // The application canvas (--nx-bg), so the splash and system chrome match
-    // the obsidian shell rather than flashing white on launch.
-    background_color: '#F8FAFC',
-    theme_color: '#F8FAFC',
+    // The application canvas (--nx-canvas), so the splash and system chrome
+    // match the app rather than flashing a different colour on launch.
+    background_color: '#F2F2EE',
+    theme_color: '#F2F2EE',
     categories: ['productivity', 'business'],
     icons: [
       { src: '/android-chrome-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },

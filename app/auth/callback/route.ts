@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 
   // Sanitize the redirect URL to prevent open redirect attacks
-  const next = sanitizeRedirectUrl(rawNext, ['/dashboard', '/onboarding', '/projects']);
+  const next = sanitizeRedirectUrl(rawNext, ['/dashboard', '/onboarding', '/projects', '/invite', '/auth/reset-password']);
   const forwardedHost = request.headers.get('x-forwarded-host');
   const isLocalEnv = process.env.NODE_ENV === 'development';
   const redirectTarget = isLocalEnv

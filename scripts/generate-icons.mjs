@@ -24,7 +24,7 @@ const render = (size) =>
  * Android masks adaptive icons to a circle, squircle or rounded square and
  * keeps only the inner 80%. The master mark's own rounded corners are
  * transparent, so masking it directly would cut visible notches out of the
- * tile. The maskable variant therefore bleeds a flat obsidian ground to the
+ * tile. The maskable variant therefore bleeds a flat ink ground to the
  * edges and holds the glyph inside the safe zone.
  */
 const SAFE_ZONE = 0.62;
@@ -36,7 +36,7 @@ async function renderMaskable(size) {
     .toBuffer();
 
   return sharp({
-    create: { width: size, height: size, channels: 4, background: '#0B111C' },
+    create: { width: size, height: size, channels: 4, background: '#1B1C19' },
   })
     .composite([{ input: glyph, gravity: 'centre' }])
     .png({ compressionLevel: 9 })
@@ -149,7 +149,7 @@ if (existsSync(androidRes)) {
   // Adaptive background colour, matching the maskable web icon ground.
   await writeFile(
     join(androidRes, 'values', 'ic_launcher_background.xml'),
-    '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#0B111C</color>\n</resources>\n'
+    '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#1B1C19</color>\n</resources>\n'
   );
 
   // Splash screens: obsidian ground with the mark centred, so launching the app
@@ -174,7 +174,7 @@ if (existsSync(androidRes)) {
     const markSize = Math.round(Math.min(width, height) * 0.22);
     const mark = await render(markSize);
     const splash = await sharp({
-      create: { width, height, channels: 4, background: '#080B12' },
+      create: { width, height, channels: 4, background: '#1B1C19' },
     })
       .composite([{ input: mark, gravity: 'centre' }])
       .png({ compressionLevel: 9 })
@@ -183,7 +183,7 @@ if (existsSync(androidRes)) {
   }
 
   console.log(`  android/.../mipmap-*  ${Object.keys(ANDROID_DENSITIES).join(', ')}`);
-  console.log('  android/.../splash.png  obsidian ground');
+  console.log('  android/.../splash.png  ink ground');
 }
 
 // Multi-resolution .ico for the browser fallback and Electron packaging.

@@ -69,7 +69,7 @@ export function sanitizeRedirectUrl(url: string, allowedPaths: string[] = ['/das
     if (!isAllowed) return '/dashboard';
 
     return url;
-  } catch (e) {
+  } catch {
     return '/dashboard';
   }
 }

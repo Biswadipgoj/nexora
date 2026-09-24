@@ -1,93 +1,56 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { AnimatePresence } from 'motion/react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { WorkItemDetailDrawer } from '@/components/board/WorkItemDetailDrawer';
 import { QuickCreateModal } from '@/components/board/QuickCreateModal';
 import { ShareProjectModal } from '@/components/board/ShareProjectModal';
 import { CreateProjectModal } from '@/components/board/CreateProjectModal';
 import { CommandPalette } from '@/components/navigation/CommandPalette';
-import { DashboardTopBar } from './DashboardTopBar';
-import type { WorkItemData } from '@/components/board/KanbanBoard';
-import { isDone, type FocusFilter } from '@/lib/work/focus';
-
-import { Sidebar } from './Sidebar';
-import { OverviewTab } from './OverviewTab';
-import { InboxTab } from './InboxTab';
-import { TasksTab } from './TasksTab';
-import { ProjectsTab } from './ProjectsTab';
+import { ShortcutsDialog } from '@/components/navigation/ShortcutsDialog';
 import { SuperAppBottomBar } from '@/components/navigation/SuperAppBottomBar';
 import { SuperActionSheet } from '@/components/navigation/SuperActionSheet';
+import { isDone, type FocusFilter } from '@/lib/work/focus';
+import type { WorkItemData } from '@/lib/work/types';
+import { createClient } from '@/lib/supabase/client';
+import { DashboardTopBar } from './DashboardTopBar';
+import { Sidebar, type DashboardTab } from './Sidebar';
+import { OverviewTab } from './OverviewTab';
+import { InboxTab, type NotificationItem } from './InboxTab';
+import { TasksTab } from './TasksTab';
+import { ProjectsTab } from './ProjectsTab';
+import '@/components/board/board.css';
 import './dashboard.css';
 
+interface DashboardProject {
+  id: string;
+  name: string;
+  key: string;
+  mode: string;
+  description?: string | null;
+}
+
 interface DashboardClientViewProps {
-  user: {
-    id: string;
-    email?: string;
-    name: string;
-    avatar?: string;
-  };
-  primaryWorkspace: {
-    id: string;
-    name: string;
-    slug: string;
-  };
-  projects: Array<{
-    id: string;
-    name: string;
-    key: string;
-    mode: string;
-  }>;
+  user: { id: string; email?: string; name: string; avatar?: string };
+  primaryWorkspace: { id: string; name: string; slug: string };
+  projects: DashboardProject[];
   initialWorkItems: WorkItemData[];
   isDemo: boolean;
+  initialTab?: DashboardTab;
 }
 
-interface NotificationItem {
-  id: string;
-  type: string;
-  title: string;
-  description: string;
-  timestamp: string;
-  isRead: boolean;
-  author: {
-    name: string;
-    avatar: string;
-  };
-  targetKey?: string;
+interface QuickCreateState {
+  open: boolean;
+  key: number;
+  typeId?: string;
+  priority?: number;
 }
 
-const INITIAL_NOTIFICATIONS: NotificationItem[] = [
-  {
-    id: 'n1',
-    type: 'comment',
-    title: 'New comment on Customer Onboarding Flow',
-    description: 'Maya Patel: "Final checkout assets and copy look fantastic. Ready for staging review!"',
-    timestamp: '12m ago',
-    isRead: false,
-    author: { name: 'Maya Patel', avatar: '' },
-    targetKey: 'APP-102',
-  },
-  {
-    id: 'n2',
-    type: 'assign',
-    title: 'Assigned to you',
-    description: 'Alex Morgan assigned you as lead for: "Quarterly budget allocation & team resource plan"',
-    timestamp: '1h ago',
-    isRead: false,
-    author: { name: 'Alex Morgan', avatar: '' },
-    targetKey: 'APP-104',
-  },
-  {
-    id: 'n3',
-    type: 'milestone',
-    title: 'Sprint 1 milestone reached',
-    description: 'All planned work for this milestone is now in Done.',
-    timestamp: '4h ago',
-    isRead: true,
-    author: { name: 'Workspace', avatar: '' },
-    targetKey: 'APP-91',
-  },
-];
+type Notice = { tone: 'success' | 'error'; message: string };
+
+const isTypingTarget = (target: EventTarget | null) =>
+  target instanceof HTMLElement && Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
 
 export function DashboardClientView({
   user,
@@ -95,245 +58,257 @@ export function DashboardClientView({
   projects,
   initialWorkItems,
   isDemo,
+  initialTab = 'overview',
 }: DashboardClientViewProps) {
-  // Navigation Tabs: 'overview' | 'inbox' | 'tasks' | 'projects'
-  const [activeTab, setActiveTab] = useState<'overview' | 'inbox' | 'tasks' | 'projects'>('overview');
-
-  // Work items & projects state
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState<DashboardTab>(initialTab);
   const [workItems, setWorkItems] = useState<WorkItemData[]>(initialWorkItems);
-  const [projectList, setProjectList] = useState(projects);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [projectList, setProjectList] = useState<DashboardProject[]>(projects);
 
-  // Modal / Drawer state
-  const [selectedItem, setSelectedItem] = useState<WorkItemData | null>(null);
-  const [isQuickCreateOpen, setIsQuickCreateOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [quickCreate, setQuickCreate] = useState<QuickCreateState>({ open: false, key: 0 });
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
-  const [isActionSheetOpen, setIsActionSheetOpen] = useState(false);
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
-  /**
-   * Section 5.6: "a toast confirms the result." Section 3.4: the user must know
-   * whether a change was saved or rejected. Nothing in the product reported the
-   * outcome of a mutation before this.
-   */
-  const [notice, setNotice] = useState<{ tone: 'success' | 'error'; message: string } | null>(null);
-
+  /** Every mutation reports its outcome in a toast. */
+  const [notice, setNotice] = useState<Notice | null>(null);
   useEffect(() => {
     if (!notice) return;
     const timer = setTimeout(() => setNotice(null), 6000);
     return () => clearTimeout(timer);
   }, [notice]);
 
-  // Section 5.2 — a dashboard metric opens My Tasks carrying its own filter, so
-  // the number the user clicked and the list they land on always agree.
+  // A figure on Overview opens My tasks carrying its own filter.
   const [taskFilter, setTaskFilter] = useState<FocusFilter>('all');
-
   const openFiltered = (filter: FocusFilter) => {
     setTaskFilter(filter);
     setActiveTab('tasks');
   };
 
-  const activeProject = projectList[0] || {
-    id: 'proj-' + primaryWorkspace.id.slice(0, 8),
-    name: `${primaryWorkspace.name} Project`,
-    key: 'PRJ',
-    mode: 'advanced',
-  };
-
-  const inboxCount = notifications.filter((n) => !n.isRead).length;
-
-  // Global Shortcut for Command Palette (Ctrl+K / Cmd+K)
+  const activeProject = projectList[0] ?? null;
+  const activeProjectId = useRef(activeProject?.id);
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl+K had no input guard, so it hijacked the shortcut while the user
-      // was typing in a field (section 3.5, unexpected navigation).
-      const target = e.target as HTMLElement | null;
-      if (
-        target instanceof HTMLInputElement ||
-        target instanceof HTMLTextAreaElement ||
-        target?.isContentEditable
-      ) {
+    activeProjectId.current = activeProject?.id;
+  }, [activeProject?.id]);
+
+  const selectedItem = selectedId ? workItems.find((w) => w.id === selectedId) ?? null : null;
+  const inboxCount = notifications.filter((n) => !n.isRead).length;
+  const openTaskCount = workItems.filter((w) => !isDone(w)).length;
+
+  // Notifications come from the API — they used to be a hard-coded list.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/notifications');
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        if (!cancelled) setNotifications(Array.isArray(data.notifications) ? data.notifications : []);
+      } catch {
+        // An unreachable inbox shows as empty rather than blocking the page.
+      } finally {
+        if (!cancelled) setNotificationsLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const openQuickCreate = useCallback(
+    (preset?: { typeId?: string; priority?: number }) => {
+      if (!activeProject) {
+        setIsCreateProjectOpen(true);
+        setNotice({ tone: 'error', message: 'Create a project first — tasks live on a project board.' });
         return;
       }
+      setQuickCreate((prev) => ({ open: true, key: prev.key + 1, ...preset }));
+    },
+    [activeProject]
+  );
+
+  const logBug = useCallback(() => openQuickCreate({ typeId: 'type-bug', priority: 3 }), [openQuickCreate]);
+
+  // Global shortcuts: Ctrl/⌘+K palette, C new task, ? shortcuts.
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
-        setIsCommandPaletteOpen((prev) => !prev);
+        setIsPaletteOpen((open) => !open);
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+      if (isTypingTarget(e.target) || document.querySelector('[role="dialog"]')) return;
+
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        openQuickCreate();
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setIsShortcutsOpen(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const [desktopPermission, setDesktopPermission] = useState<NotificationPermission | 'unsupported'>('default');
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if ('Notification' in window) {
-        setDesktopPermission(Notification.permission);
-      } else {
-        setDesktopPermission('unsupported');
-      }
-    }
-  }, []);
-
-  const handleRequestDesktopNotification = async () => {
-    if (typeof window !== 'undefined' && 'Notification' in window) {
-      try {
-        const permission = await Notification.requestPermission();
-        setDesktopPermission(permission);
-        if (permission === 'granted') {
-          setNotice({ tone: 'success', message: 'Desktop notifications enabled successfully!' });
-          new Notification('Nexora Notifications Active', {
-            body: 'You will receive real-time alerts for task updates, milestones, and team invitations.',
-          });
-        } else if (permission === 'denied') {
-          setNotice({ tone: 'error', message: 'Notification permission was denied in browser settings.' });
-        }
-      } catch {
-        // browser restriction
-      }
-    }
-  };
-
-  const dispatchNotification = (
-    title: string,
-    description: string,
-    type: 'comment' | 'assign' | 'milestone' = 'comment',
-    targetKey?: string
-  ) => {
-    const newNotif: NotificationItem = {
-      id: 'notif-' + Date.now(),
-      type,
-      title,
-      description,
-      timestamp: 'Just now',
-      isRead: false,
-      author: { name: user.name || 'Workspace', avatar: user.avatar || '' },
-      targetKey,
-    };
-    setNotifications((prev) => [newNotif, ...prev]);
-
-    // Fire native desktop notification if granted
-    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(title, {
-          body: description,
-        });
-      } catch {
-        // ignore
-      }
-    }
-  };
+  }, [openQuickCreate]);
 
   const handleSelectTaskByKey = (key: string) => {
-    const found = workItems.find(
-      (w) => w.id === key || (w.sequence && `${activeProject.key}-${w.sequence}` === key)
-    );
-    if (found) {
-      setSelectedItem(found);
-    } else {
-      setActiveTab('tasks');
+    const found = workItems.find((w) => {
+      if (w.id === key) return true;
+      const project = projectList.find((p) => p.id === w.project_id);
+      return Boolean(project && w.sequence && `${project.key}-${w.sequence}` === key);
+    });
+    if (found) setSelectedId(found.id);
+    else setActiveTab('tasks');
+  };
+
+  const markRead = async (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+    } catch {
+      // Read state is a convenience; a failed write is retried next time.
     }
   };
 
-  const handleMarkRead = (id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
-  };
-
-  const handleMarkAllRead = () => {
+  const markAllRead = async () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    try {
+      await fetch('/api/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ all: true }),
+      });
+    } catch {
+      setNotice({ tone: 'error', message: 'Could not mark notifications as read.' });
+    }
   };
 
   /**
-   * Toggling a task now persists.
-   *
-   * This previously mutated React state and made no request at all, while the
-   * panel copy above it promised "instant tactile sync" — the change vanished
-   * on reload. Section 3.4 requires the user to know whether a change was
-   * saved or rejected, and section 3.5 counts a contradictory label as an
-   * unresolved defect. The optimistic update stays for responsiveness, and is
-   * rolled back if the write is refused.
+   * Toggling a task persists, optimistically, and is rolled back if the write
+   * is refused — it used to change local state only and vanish on reload.
    */
   const handleToggleTaskStatus = async (id: string, currentStatusId: string) => {
-    const nextStatusId = currentStatusId === 'status-done' ? 'status-in-progress' : 'status-done';
+    const item = workItems.find((w) => w.id === id);
+    if (!item) return;
+    const wasDone = isDone(item);
+    const next = wasDone
+      ? { status_id: 'status-todo', status_category: 'todo' }
+      : { status_id: 'status-done', status_category: 'done' };
 
-    setWorkItems((prev) => prev.map((w) => (w.id === id ? { ...w, status_id: nextStatusId } : w)));
+    setWorkItems((prev) => prev.map((w) => (w.id === id ? { ...w, ...next } : w)));
 
     try {
       const res = await fetch(`/api/work-items/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status_id: nextStatusId }),
+        body: JSON.stringify({ status_id: next.status_id }),
       });
-
       if (!res.ok) throw new Error(String(res.status));
+      const payload = await res.json().catch(() => null);
+      if (payload?.item) setWorkItems((prev) => prev.map((w) => (w.id === id ? { ...w, ...payload.item } : w)));
     } catch {
-      // Put the card back where it was rather than showing a state the server
-      // never accepted.
       setWorkItems((prev) =>
-        prev.map((w) => (w.id === id ? { ...w, status_id: currentStatusId } : w))
+        prev.map((w) => (w.id === id ? { ...w, status_id: currentStatusId, status_category: item.status_category } : w))
       );
+      setNotice({ tone: 'error', message: 'That change could not be saved, so the task was put back.' });
+    }
+  };
+
+  /** The Overview board reports its project's items; other projects are kept. */
+  const handleBoardItemsChange = useCallback((boardItems: WorkItemData[]) => {
+    setWorkItems((prev) => {
+      const projectId = activeProjectId.current;
+      const others = prev.filter((w) => w.project_id && w.project_id !== projectId);
+      return [...boardItems, ...others];
+    });
+  }, []);
+
+  const signOut = async () => {
+    try {
+      await createClient().auth.signOut();
+    } catch {
+      // The server route below clears the session either way.
+    }
+    try {
+      await fetch('/api/auth/signout', { method: 'POST' });
+    } finally {
+      router.replace(isDemo ? '/' : '/auth/login');
+      router.refresh();
     }
   };
 
   return (
     <div className="dash-root">
-
-      {/* Modern Sidebar Navigation */}
       <Sidebar
         user={user}
         primaryWorkspace={primaryWorkspace}
         projects={projectList}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onQuickCreate={() => setIsQuickCreateOpen(true)}
-        onShareProject={() => setIsShareModalOpen(true)}
+        onQuickCreate={() => openQuickCreate()}
+        onShareProject={() => (activeProject ? setIsShareOpen(true) : setIsCreateProjectOpen(true))}
         onCreateProject={() => setIsCreateProjectOpen(true)}
+        onSignOut={signOut}
         inboxCount={inboxCount}
+        openTaskCount={openTaskCount}
+        isDemo={isDemo}
       />
 
-      {/* Main Workspace Area */}
-      <main className="dash-main">
-        {/* Floating Topbar */}
+      <div className="dash-main">
         <DashboardTopBar
           workspaceName={primaryWorkspace.name}
-          projectName={activeProject.name}
-          projectKey={activeProject.key}
-          inboxCount={inboxCount}
           activeTab={activeTab}
+          inboxCount={inboxCount}
           notifications={notifications}
-          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-          onQuickCreate={() => setIsQuickCreateOpen(true)}
+          onOpenCommandPalette={() => setIsPaletteOpen(true)}
+          onQuickCreate={() => openQuickCreate()}
           onOpenInbox={() => setActiveTab('inbox')}
-          onMarkRead={handleMarkRead}
-          onMarkAllRead={handleMarkAllRead}
+          onMarkRead={markRead}
+          onMarkAllRead={markAllRead}
           onSelectTaskByKey={handleSelectTaskByKey}
-          onRequestDesktopNotification={handleRequestDesktopNotification}
-          desktopPermission={desktopPermission}
         />
 
-        {/* Tab Views */}
-        <AnimatePresence mode="wait">
+        <main className="dash-content" id="dashboard-main">
+          {isDemo && (
+            <p className="nx-alert nx-alert--info" role="status">
+              <span>This is the demo workspace. Changes are shared with other visitors and reset now and then.</span>
+              <Link href="/auth/signup" className="nx-alert__action">
+                Create your own
+              </Link>
+            </p>
+          )}
+
           {activeTab === 'overview' && (
             <OverviewTab
               user={user}
               workspaceId={primaryWorkspace.id}
               workItems={workItems}
-              setWorkItems={setWorkItems}
               projects={projectList}
-              onOpenItem={(item) => setSelectedItem(item)}
+              onOpenItem={(item) => setSelectedId(item.id)}
               onOpenFiltered={openFiltered}
-              onItemsChange={setWorkItems}
-              onQuickCreate={() => setIsQuickCreateOpen(true)}
+              onItemsChange={handleBoardItemsChange}
+              onQuickCreate={() => openQuickCreate()}
+              onCreateProject={() => setIsCreateProjectOpen(true)}
             />
           )}
 
           {activeTab === 'inbox' && (
             <InboxTab
               notifications={notifications}
-              onMarkRead={handleMarkRead}
-              onMarkAllRead={handleMarkAllRead}
+              loading={notificationsLoading}
+              onMarkRead={markRead}
+              onMarkAllRead={markAllRead}
               onSelectTaskByKey={handleSelectTaskByKey}
             />
           )}
@@ -341,11 +316,12 @@ export function DashboardClientView({
           {activeTab === 'tasks' && (
             <TasksTab
               workItems={workItems}
+              projects={projectList}
               currentUserName={user.name}
               filter={taskFilter}
               onFilterChange={setTaskFilter}
-              onQuickCreate={() => setIsQuickCreateOpen(true)}
-              onOpenItem={(item) => setSelectedItem(item)}
+              onQuickCreate={() => openQuickCreate()}
+              onOpenItem={(item) => setSelectedId(item.id)}
               onToggleStatus={handleToggleTaskStatus}
             />
           )}
@@ -357,124 +333,114 @@ export function DashboardClientView({
               onCreateProject={() => setIsCreateProjectOpen(true)}
             />
           )}
-        </AnimatePresence>
-      </main>
+        </main>
+      </div>
 
-      {/* Outcome notice. Polite live region so screen readers hear the result
-          without the focus being stolen (section 9). */}
       <div className="nx-notice-region" role="status" aria-live="polite">
         {notice && (
           <div className={`nx-notice nx-notice--${notice.tone}`}>
+            <span className="nx-dot" aria-hidden="true" />
             <span className="nx-notice__text">{notice.message}</span>
-            <button
-              type="button"
-              className="nx-notice__dismiss"
-              onClick={() => setNotice(null)}
-              aria-label="Dismiss notification"
-            >
+            <button type="button" className="nx-notice__dismiss" onClick={() => setNotice(null)} aria-label="Dismiss">
               ×
             </button>
           </div>
         )}
       </div>
 
-      {/* Command Palette (Ctrl+K) */}
       <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={() => setIsCommandPaletteOpen(false)}
-        onNavigateTab={(tab) => setActiveTab(tab)}
-        onQuickCreate={() => setIsQuickCreateOpen(true)}
+        isOpen={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        onNavigateTab={setActiveTab}
+        onQuickCreate={() => openQuickCreate()}
+        onLogBug={logBug}
+        onCreateProject={() => setIsCreateProjectOpen(true)}
+        onShowShortcuts={() => setIsShortcutsOpen(true)}
         tasks={workItems}
-        projects={projects}
-        onSelectTask={(task) => setSelectedItem(task)}
+        projects={projectList}
+        onSelectTask={(task) => setSelectedId(task.id)}
       />
 
-      {/* Task Detail Drawer */}
+      <ShortcutsDialog open={isShortcutsOpen} onClose={() => setIsShortcutsOpen(false)} />
+
       <WorkItemDetailDrawer
         item={selectedItem}
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
-        projectKey={activeProject.key}
-        onUpdateItem={(updated) => {
-          setWorkItems((prev) => prev.map((w) => (w.id === updated.id ? { ...w, ...updated } : w)));
-        }}
+        isOpen={Boolean(selectedItem)}
+        onClose={() => setSelectedId(null)}
+        projectKey={projectList.find((p) => p.id === selectedItem?.project_id)?.key ?? activeProject?.key}
+        onUpdateItem={(updated) => setWorkItems((prev) => prev.map((w) => (w.id === updated.id ? { ...w, ...updated } : w)))}
         onDeleteItem={(deletedId) => {
           setWorkItems((prev) => prev.filter((w) => w.id !== deletedId));
-          setSelectedItem(null);
+          setSelectedId(null);
+          setNotice({ tone: 'success', message: 'Task deleted.' });
         }}
       />
 
-      {/* Quick Create Modal */}
-      <QuickCreateModal
-        isOpen={isQuickCreateOpen}
-        onClose={() => setIsQuickCreateOpen(false)}
-        workspaceId={primaryWorkspace.id}
-        projectId={activeProject.id}
-        onSuccess={(newItem) => {
-          setWorkItems((prev) => [newItem, ...prev]);
-          const taskKey = newItem.sequence ? `${activeProject.key}-${newItem.sequence}` : newItem.id.slice(0, 7);
-          dispatchNotification(
-            `Task Created: ${newItem.title}`,
-            `Added to ${activeProject.name} as ${taskKey}`,
-            'comment',
-            taskKey
-          );
-        }}
-        /* Swap the placeholder for the row the server stored, so its real id and
-           sequence are what later edits reference (section 10, stale data). */
-        onItemReconciled={(optimisticId, storedItem) => {
-          setWorkItems((prev) => prev.map((w) => (w.id === optimisticId ? storedItem : w)));
-        }}
-        /* A rejected write withdraws its card rather than leaving a task on the
-           board that does not exist (section 3.4). */
-        onCreateFailed={(optimisticItem, message) => {
-          setWorkItems((prev) => prev.filter((w) => w.id !== optimisticItem.id));
-          setNotice({ tone: 'error', message });
-        }}
-      />
+      {activeProject && (
+        <QuickCreateModal
+          key={quickCreate.key}
+          isOpen={quickCreate.open}
+          onClose={() => setQuickCreate((prev) => ({ ...prev, open: false }))}
+          workspaceId={primaryWorkspace.id}
+          projectId={activeProject.id}
+          projectName={activeProject.name}
+          initialTypeId={quickCreate.typeId}
+          initialPriority={quickCreate.priority}
+          onSuccess={(newItem) => setWorkItems((prev) => [newItem, ...prev])}
+          /* Swap the placeholder for the stored row, so its real id and key are
+             what later edits use. */
+          onItemReconciled={(optimisticId, storedItem) => {
+            setWorkItems((prev) => prev.map((w) => (w.id === optimisticId ? storedItem : w)));
+            setNotice({
+              tone: 'success',
+              message: storedItem.sequence ? `Created ${activeProject.key}-${storedItem.sequence}.` : 'Task created.',
+            });
+          }}
+          /* A rejected write withdraws its card rather than leaving a task on
+             the board that does not exist. */
+          onCreateFailed={(optimisticItem, message) => {
+            setWorkItems((prev) => prev.filter((w) => w.id !== optimisticItem.id));
+            setNotice({ tone: 'error', message });
+          }}
+        />
+      )}
 
-      {/* Share Project Modal */}
-      <ShareProjectModal
-        isOpen={isShareModalOpen}
-        onClose={() => setIsShareModalOpen(false)}
-        projectId={activeProject.id}
-        projectName={activeProject.name}
-        projectKey={activeProject.key}
-        workspaceId={primaryWorkspace.id}
-      />
+      {activeProject && (
+        <ShareProjectModal
+          isOpen={isShareOpen}
+          onClose={() => setIsShareOpen(false)}
+          projectId={activeProject.id}
+          projectName={activeProject.name}
+          projectKey={activeProject.key}
+          workspaceId={primaryWorkspace.id}
+        />
+      )}
 
-      {/* Create Project Modal */}
       <CreateProjectModal
         isOpen={isCreateProjectOpen}
         onClose={() => setIsCreateProjectOpen(false)}
         workspaceId={primaryWorkspace.id}
         onProjectCreated={(newProj) => {
           setProjectList((prev) => [newProj, ...prev]);
-          setNotice({ tone: 'success', message: `Project "${newProj.name}" created successfully!` });
-          dispatchNotification(
-            `Project Created: ${newProj.name}`,
-            `New project workspace configured with key ${newProj.key}.`,
-            'milestone'
-          );
+          setNotice({ tone: 'success', message: `Project ${newProj.name} created.` });
         }}
       />
 
-      {/* Mobile Bottom Navigation Bar */}
       <SuperAppBottomBar
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        onQuickAction={() => setIsActionSheetOpen(true)}
+        onQuickAction={() => setIsSheetOpen(true)}
         inboxCount={inboxCount}
-        taskCount={workItems.filter((w) => !isDone(w)).length}
+        taskCount={openTaskCount}
       />
 
-      {/* Mobile Action Sheet */}
       <SuperActionSheet
-        isOpen={isActionSheetOpen}
-        onClose={() => setIsActionSheetOpen(false)}
-        onQuickCreate={() => setIsQuickCreateOpen(true)}
-        onShareProject={() => setIsShareModalOpen(true)}
-        onViewBoard={() => setActiveTab('overview')}
+        isOpen={isSheetOpen}
+        onClose={() => setIsSheetOpen(false)}
+        onQuickCreate={() => openQuickCreate()}
+        onLogBug={logBug}
+        onShareProject={() => (activeProject ? setIsShareOpen(true) : setIsCreateProjectOpen(true))}
+        onCreateProject={() => setIsCreateProjectOpen(true)}
       />
     </div>
   );

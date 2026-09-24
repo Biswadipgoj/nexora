@@ -50,6 +50,11 @@ function generateRandomSlug(length = 6): string {
   return result;
 }
 
+/** Looks a link up without counting it as a visit. */
+export function getShortLinkRecord(code: string): ShortLink | undefined {
+  return shortLinksMap.get(code.toLowerCase().trim());
+}
+
 export function getShortLink(code: string): ShortLink | undefined {
   const normalized = code.toLowerCase().trim();
   const link = shortLinksMap.get(normalized);
@@ -67,9 +72,13 @@ export function createShortLink(params: {
 }): ShortLink {
   const rawCode = params.customAlias?.trim()
     ? params.customAlias.toLowerCase().trim().replace(/[^a-z0-9-_]/g, '')
-    : generateRandomSlug(6);
+    : '';
 
-  const code = rawCode || generateRandomSlug(6);
+  // Generated codes never overwrite an existing link.
+  let code = rawCode;
+  while (!code || (!rawCode && shortLinksMap.has(code))) {
+    code = generateRandomSlug(6);
+  }
 
   const link: ShortLink = {
     code,

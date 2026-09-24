@@ -1,22 +1,13 @@
 /**
- * NEXORA Design System — Obsidian Dark
+ * Nexora — global styles.
  *
- * Section 2: "the master direction below resolves that conflict by making
- * obsidian dark the default authenticated experience, with a restrained light
- * mode only after dark-mode parity is complete."
- *
- * Load order matters. nexora-tokens.css defines the canonical --nx-* system;
- * prismatic-aurora.css maps legacy names onto it; prismatic-components.css and
- * dashboard.css consume those names.
- *
- * Fonts are loaded by next/font/google in app/layout.tsx, which exposes
- * --font-sans, --font-display and --font-mono. No webfont @import here: it
- * would duplicate the download and block first paint.
+ * Tokens live in styles/nexora-tokens.css; this file holds the reset, base
+ * typography and the handful of primitives every surface shares (buttons,
+ * fields, chips, keys, empty states). Surface-specific styles live beside
+ * their components.
  */
 
 @import '../styles/nexora-tokens.css';
-@import '../styles/prismatic-aurora.css';
-@import '../styles/prismatic-components.css';
 @import '../styles/nexora-auth.css';
 
 /* ============ Reset ============ */
@@ -28,266 +19,840 @@
   padding: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
 html {
-  /* Section 9: a percentage keeps the user's own browser or Android font-size
-     setting in play. An absolute 16px silently discarded it for the whole app. */
+  /* A percentage keeps the user's own browser or Android font-size in play. */
   font-size: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   scroll-behavior: smooth;
-  background: var(--nx-bg);
+  background: var(--nx-canvas);
 }
 
 body {
-  overflow-x: hidden;
-}
-
-/* Section 9 — skip link, off-screen until keyboard focused. */
-.skip-link {
-  position: absolute;
-  top: -100px;
-  left: 16px;
-  z-index: 99999;
-  padding: 8px 16px;
-  border-radius: var(--nx-radius-control);
-  background: var(--nx-surface-3);
-  color: var(--nx-text);
-  border: 1px solid var(--nx-border-strong);
-  font: var(--nx-text-button);
-  text-decoration: none;
-  transition: top var(--nx-t-hover);
-}
-
-.skip-link:focus {
-  top: 16px;
-  box-shadow: var(--nx-focus-ring);
-}
-
-/* ============================================================================
-   Semantic aliases
-
-   Legacy --color-* names used across components, restated on the dark system.
-   New code should read --nx-* directly.
-   ========================================================================= */
-:root {
-  --color-bg: var(--nx-bg);
-  --color-bg-subtle: var(--nx-bg-raised);
-  --color-bg-alt: var(--nx-surface);
-  --color-bg-mesh: var(--canvas-gradient);
-
-  --color-surface: var(--nx-surface);
-  --color-surface-hover: var(--nx-surface-2);
-  --color-surface-active: var(--nx-surface-2);
-  --color-surface-elevated: var(--nx-surface-2);
-  --color-surface-overlay: var(--nx-surface-3);
-
-  --glass-bg: var(--nx-surface);
-  --glass-border: var(--nx-border);
-  --glass-hover: var(--nx-surface-2);
-
-  --color-border: var(--nx-border);
-  --color-border-subtle: var(--nx-border);
-  --color-border-strong: var(--nx-border-strong);
-  --color-border-accent: var(--nx-blue-line);
-
-  --color-text-primary: var(--nx-text);
-  --color-text-secondary: var(--nx-text-2);
-  --color-text-tertiary: var(--nx-text-3);
-  --color-text-inverse: var(--nx-bg);
-
-  --color-primary: var(--nx-blue);
-  --color-primary-hover: #1D4ED8;
-  --color-primary-contrast: #FFFFFF;
-  --color-primary-gradient: linear-gradient(135deg, var(--nx-blue) 0%, var(--nx-violet) 100%);
-  --color-primary-glow: 0 0 24px rgba(37, 99, 235, 0.25);
-
-  --shadow-glow: 0 0 28px -4px rgba(37, 99, 235, 0.25);
-
-  /* Status. Paired with a text label everywhere it appears (section 9). */
-  --color-todo: var(--nx-blue);
-  --color-in-progress: var(--nx-violet);
-  --color-done: var(--nx-green);
-  --color-backlog: var(--nx-text-3);
-
-  /* Priority. The palette assigns red to urgent and amber to warning. On a
-     four-step scale, urgent and high both read hot (red at full and reduced
-     emphasis), medium takes amber, and low drops to supporting text so it
-     never competes for attention. Colour is always paired with a label. */
-  --color-urgent: var(--nx-red);
-  --color-high: var(--nx-red);
-  --color-medium: var(--nx-amber);
-  --color-low: var(--nx-text-3);
-
-  /* Fonts */
-  --font-family: var(--nx-font-sans);
-  --font-display: var(--nx-font-display);
-  --font-mono: var(--nx-font-mono);
-
-  /* Motion */
-  --ease-spring: var(--nx-ease-spring);
-  --ease-out: var(--nx-ease-out);
-  --transition-fast: var(--nx-t-hover);
-  --transition-smooth: var(--nx-t-panel);
-}
-
-body {
-  font-family: var(--nx-font-sans);
-  color: var(--nx-text);
   min-height: 100vh;
+  overflow-x: hidden;
+  background: var(--nx-canvas);
+  color: var(--nx-ink);
+  font-family: var(--nx-font-sans);
+  font-size: var(--nx-fs-md);
+  line-height: 1.5;
+  font-feature-settings: 'kern', 'liga';
 }
 
-/* ============================================================================
-   Reusable surfaces
-
-   Section 4.2: backdrop-filter is for short-lived overlays and floating
-   navigation. Persistent cards are opaque so text stays legible and
-   scrolling stays cheap.
-   ========================================================================= */
-
-.glass-panel {
-  background: var(--nx-surface-gradient);
-  border: 1px solid var(--nx-border);
-  box-shadow: var(--nx-elevation-2);
-  border-radius: var(--nx-radius-panel);
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
-.glass-card {
-  background: var(--nx-surface-gradient);
-  border: 1px solid var(--nx-border);
-  border-radius: var(--nx-radius-card);
-  box-shadow: var(--nx-elevation-1);
-  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover),
-    box-shadow var(--nx-t-hover), transform var(--nx-t-hover);
+img,
+svg {
+  display: block;
+  max-width: 100%;
 }
 
-.glass-card:hover {
-  background: var(--nx-surface-2);
-  border-color: var(--nx-border-strong);
-  box-shadow: var(--nx-elevation-2);
-  transform: translateY(-2px);
-}
-
-.text-gradient {
-  background: var(--color-primary-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: var(--nx-blue);
-}
-
-/* Section 4.3 — monospace, compact capsule, for shortcuts and keys only. */
-.kbd-shortcut {
-  font: var(--nx-text-key);
-  padding: 3px 6px;
-  border-radius: 6px;
-  background: var(--nx-surface-2);
-  border: 1px solid var(--nx-border);
-  color: var(--nx-text-2);
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-}
-
-/* ============================================================================
-   Priority badges — colour plus label, never colour alone (section 9).
-   ========================================================================= */
-.badge-priority {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-
-.badge-priority--urgent {
-  background: var(--nx-red-soft);
-  color: var(--nx-red);
-  border: 1px solid var(--nx-red-line);
-}
-
-.badge-priority--high {
-  background: var(--nx-red-soft);
-  color: var(--nx-red);
-  border: 1px solid transparent;
-}
-
-.badge-priority--medium {
-  background: var(--nx-amber-soft);
-  color: var(--nx-amber);
-  border: 1px solid transparent;
-}
-
-.badge-priority--low {
-  background: rgba(126, 141, 163, 0.14);
-  color: var(--nx-text-3);
-  border: 1px solid transparent;
-}
-
-/* ============================================================================
-   Scrollbars
-   ========================================================================= */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(174, 205, 255, 0.22) transparent;
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(174, 205, 255, 0.18);
-  border: 3px solid transparent;
-  background-clip: content-box;
-  border-radius: var(--nx-radius-pill);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(174, 205, 255, 0.34);
-  background-clip: content-box;
-}
-
-::-webkit-scrollbar-corner {
-  background: transparent;
-}
-
-/* Native form controls inherit the dark canvas rather than the OS default. */
 input,
 textarea,
 select,
 button {
-  font-family: inherit;
+  font: inherit;
   color: inherit;
 }
 
+button {
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+  font-weight: 600;
+}
+
+p {
+  text-wrap: pretty;
+}
+
 ::placeholder {
-  color: var(--nx-text-3);
+  color: var(--nx-ink-3);
   opacity: 1;
 }
 
 ::selection {
-  background: rgba(110, 168, 255, 0.28);
-  color: var(--nx-text);
+  background: var(--nx-accent-soft);
+  color: var(--nx-ink);
 }
 
-/* A shortcut capsule inset into a filled accent, such as the New task button.
-   Uses the ink wash rather than a white one, which would wash out the accent. */
-.kbd-shortcut--on-accent {
-  background: var(--nx-on-accent-wash);
-  border-color: var(--nx-on-accent-line);
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--nx-line-strong) transparent;
+}
+
+/* ============ Skip link ============ */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  z-index: 9999;
+  padding: 8px 14px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-ink);
+  color: var(--nx-canvas);
+  font-weight: 500;
+  transition: top var(--nx-t-hover);
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ============ Type helpers ============ */
+.nx-serif {
+  font-family: var(--nx-font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+.nx-eyebrow {
+  font-size: var(--nx-fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--nx-ink-3);
+}
+
+.nx-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.nx-key {
+  font-family: var(--nx-font-mono);
+  font-size: var(--nx-fs-2xs);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--nx-ink-3);
+  white-space: nowrap;
+}
+
+.nx-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ============ Buttons ============
+   Primary is the accent and appears once per surface. Secondary is a sheet
+   with a hairline; ghost is text that fills on hover. */
+.nx-btn {
+  --btn-h: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--btn-h);
+  padding: 0 14px;
+  border-radius: var(--nx-radius-control);
+  border: 1px solid transparent;
+  font-size: var(--nx-fs-md);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background-color var(--nx-t-hover), border-color var(--nx-t-hover), color var(--nx-t-hover),
+    transform var(--nx-t-hover);
+}
+
+.nx-btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.nx-btn:disabled {
+  opacity: 0.5;
+}
+
+.nx-btn--primary {
+  background: var(--nx-accent);
   color: var(--nx-on-accent);
+}
+
+.nx-btn--primary:hover:not(:disabled) {
+  background: var(--nx-accent-hover);
+}
+
+.nx-btn--secondary {
+  background: var(--nx-surface);
+  border-color: var(--nx-line-strong);
+  color: var(--nx-ink);
+}
+
+.nx-btn--secondary:hover:not(:disabled) {
+  background: var(--nx-surface-2);
+  border-color: var(--nx-ink-3);
+}
+
+.nx-btn--ghost {
+  color: var(--nx-ink-2);
+}
+
+.nx-btn--ghost:hover:not(:disabled) {
+  background: var(--nx-surface-3);
+  color: var(--nx-ink);
+}
+
+.nx-btn--danger {
+  background: var(--nx-red);
+  color: #FFFFFF;
+}
+
+.nx-btn--danger:hover:not(:disabled) {
+  filter: brightness(0.94);
+}
+
+.nx-btn--sm {
+  --btn-h: 30px;
+  padding: 0 10px;
+  font-size: var(--nx-fs-sm);
+  gap: 6px;
+}
+
+.nx-btn--lg {
+  --btn-h: 44px;
+  padding: 0 20px;
+  font-size: var(--nx-fs-base);
+}
+
+.nx-btn--block {
+  width: 100%;
+}
+
+.nx-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--nx-radius-control);
+  color: var(--nx-ink-2);
+  transition: background-color var(--nx-t-hover), color var(--nx-t-hover);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nx-icon-btn:hover {
+  background: var(--nx-surface-3);
+  color: var(--nx-ink);
+}
+
+.nx-icon-btn--active {
+  background: var(--nx-surface-3);
+  color: var(--nx-ink);
+}
+
+.nx-icon-btn--danger:hover {
+  color: var(--nx-red);
+  background: var(--nx-red-soft);
+}
+
+/* ============ Fields ============ */
+.nx-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.nx-label {
+  font-size: var(--nx-fs-sm);
+  font-weight: 500;
+  color: var(--nx-ink-2);
+}
+
+.nx-label__hint {
+  font-weight: 400;
+  color: var(--nx-ink-3);
+}
+
+.nx-input,
+.nx-select,
+.nx-textarea {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: var(--nx-radius-control);
+  border: 1px solid var(--nx-line-strong);
+  background: var(--nx-surface);
+  color: var(--nx-ink);
+  font-size: var(--nx-fs-md);
+  transition: border-color var(--nx-t-hover), box-shadow var(--nx-t-hover);
+}
+
+.nx-textarea {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.nx-select {
+  appearance: none;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--nx-ink-3) 50%),
+    linear-gradient(135deg, var(--nx-ink-3) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.nx-input:hover,
+.nx-select:hover,
+.nx-textarea:hover {
+  border-color: var(--nx-ink-3);
+}
+
+.nx-input:focus,
+.nx-select:focus,
+.nx-textarea:focus {
+  outline: none;
+  border-color: var(--nx-accent);
+  box-shadow: 0 0 0 3px var(--nx-accent-soft);
+}
+
+.nx-input[aria-invalid='true'] {
+  border-color: var(--nx-red);
+}
+
+.nx-input:disabled,
+.nx-select:disabled,
+.nx-textarea:disabled {
+  background: var(--nx-surface-2);
+  color: var(--nx-ink-3);
+}
+
+.nx-field__help {
+  font-size: var(--nx-fs-xs);
+  color: var(--nx-ink-3);
+}
+
+.nx-field__error {
+  font-size: var(--nx-fs-xs);
+  color: var(--nx-red);
+}
+
+/* ============ Chips, counts and keys ============ */
+.nx-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--nx-radius-sm);
+  background: var(--nx-surface-3);
+  color: var(--nx-ink-2);
+  font-size: var(--nx-fs-xs);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.nx-chip--accent {
+  background: var(--nx-accent-soft);
+  color: var(--nx-accent);
+}
+
+.nx-chip--red {
+  background: var(--nx-red-soft);
+  color: var(--nx-red);
+}
+
+.nx-chip--amber {
+  background: var(--nx-amber-soft);
+  color: var(--nx-amber);
+}
+
+.nx-chip--green {
+  background: var(--nx-green-soft);
+  color: var(--nx-green);
+}
+
+.nx-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: var(--nx-radius-pill);
+  background: var(--nx-surface-3);
+  color: var(--nx-ink-2);
+  font-size: var(--nx-fs-2xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.nx-count--accent {
+  background: var(--nx-accent);
+  color: var(--nx-on-accent);
+}
+
+.kbd-shortcut,
+.nx-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 5px;
+  border: 1px solid var(--nx-line-strong);
+  border-bottom-width: 2px;
+  background: var(--nx-surface);
+  color: var(--nx-ink-3);
+  font-family: var(--nx-font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.nx-btn--primary .nx-kbd {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--nx-on-accent) 35%, transparent);
+  color: var(--nx-on-accent);
+  opacity: 0.85;
+}
+
+/* Status and priority markers: a mark plus a word, never colour alone. */
+.nx-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: currentColor;
+}
+
+.nx-priority {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--nx-fs-xs);
+  font-weight: 500;
+  color: var(--nx-ink-3);
+  white-space: nowrap;
+}
+
+.nx-priority__bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 1.5px;
+  height: 10px;
+}
+
+.nx-priority__bars span {
+  width: 2.5px;
+  border-radius: 1px;
+  background: var(--nx-line-strong);
+}
+
+.nx-priority__bars span:nth-child(1) { height: 4px; }
+.nx-priority__bars span:nth-child(2) { height: 7px; }
+.nx-priority__bars span:nth-child(3) { height: 10px; }
+
+.nx-priority[data-level='1'] .nx-priority__bars span:nth-child(-n + 1),
+.nx-priority[data-level='2'] .nx-priority__bars span:nth-child(-n + 2),
+.nx-priority[data-level='3'] .nx-priority__bars span:nth-child(-n + 3) {
+  background: var(--nx-ink-2);
+}
+
+.nx-priority[data-level='2'] { color: var(--nx-ink-2); }
+.nx-priority[data-level='3'] { color: var(--nx-amber); }
+.nx-priority[data-level='3'] .nx-priority__bars span { background: var(--nx-amber); }
+.nx-priority[data-level='4'] { color: var(--nx-red); }
+
+.nx-priority__urgent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--nx-red);
+  color: #FFFFFF;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Category: square swatch plus a short name. */
+.nx-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--nx-fs-xs);
+  color: var(--nx-ink-2);
+  white-space: nowrap;
+}
+
+.nx-category__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ============ Avatars ============ */
+.nx-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--nx-surface-3);
+  color: var(--nx-ink-2);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 2px var(--nx-surface);
+}
+
+.nx-avatar--lg {
+  width: 32px;
+  height: 32px;
+  font-size: var(--nx-fs-xs);
+}
+
+.nx-avatar-stack {
+  display: inline-flex;
+}
+
+.nx-avatar-stack .nx-avatar + .nx-avatar {
+  margin-left: -6px;
+}
+
+/* ============ Empty and status states ============ */
+.nx-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 28px 24px;
+  border: 1px dashed var(--nx-line-strong);
+  border-radius: var(--nx-radius-card);
+  color: var(--nx-ink-2);
+}
+
+.nx-empty__title {
+  font-family: var(--nx-font-serif);
+  font-size: var(--nx-fs-lg);
+  font-weight: 500;
+  color: var(--nx-ink);
+}
+
+.nx-empty__body {
+  max-width: 48ch;
+  font-size: var(--nx-fs-sm);
+  color: var(--nx-ink-3);
+}
+
+.nx-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.nx-alert {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--nx-radius-control);
+  font-size: var(--nx-fs-sm);
+  line-height: 1.45;
+}
+
+.nx-alert--error {
+  background: var(--nx-red-soft);
+  color: var(--nx-red);
+}
+
+.nx-alert--success {
+  background: var(--nx-green-soft);
+  color: var(--nx-green);
+}
+
+.nx-alert--info {
+  background: var(--nx-accent-soft);
+  color: var(--nx-accent);
+}
+
+.nx-alert__action {
+  flex-shrink: 0;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ============ Toast ============ */
+.nx-notice-region {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + var(--nx-safe-bottom));
+  transform: translateX(-50%);
+  z-index: 1400;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  width: min(440px, calc(100vw - 32px));
+}
+
+.nx-notice {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 10px 10px 14px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-ink);
+  color: var(--nx-canvas);
+  box-shadow: var(--nx-shadow-3);
+  font-size: var(--nx-fs-sm);
+  animation: nx-rise 220ms var(--nx-ease-out);
+}
+
+.nx-notice--error .nx-dot {
+  color: #EF8A7C;
+}
+
+.nx-notice--success .nx-dot {
+  color: #74C497;
+}
+
+.nx-notice__text {
+  flex: 1;
+}
+
+.nx-notice__dismiss {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  color: inherit;
+  opacity: 0.7;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.nx-notice__dismiss:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 900px) {
+  .nx-notice-region {
+    bottom: calc(var(--nx-dock-h) + 20px + var(--nx-safe-bottom));
+  }
+}
+
+@keyframes nx-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes nx-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes nx-spin {
+  to { transform: rotate(360deg); }
+}
+
+.nx-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: nx-spin 700ms linear infinite;
+  flex-shrink: 0;
+}
+
+/* ============ Full-page status (404, error, invite) ============ */
+.nx-status-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 48px 20px;
+}
+
+.nx-status-page__inner {
+  width: min(560px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.nx-status-page__code {
+  font-family: var(--nx-font-mono);
+  font-size: var(--nx-fs-xs);
+  color: var(--nx-ink-3);
+  letter-spacing: 0.04em;
+}
+
+.nx-status-page__title {
+  font-family: var(--nx-font-serif);
+  font-size: var(--nx-fs-3xl);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+.nx-status-page__body {
+  max-width: 52ch;
+  font-size: var(--nx-fs-base);
+  color: var(--nx-ink-2);
+}
+
+.nx-status-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.nx-status-page__digest {
+  margin-top: 8px;
+  font-size: var(--nx-fs-xs);
+  color: var(--nx-ink-3);
+}
+
+/* ============ Sheet (dialog and drawer content) ============ */
+.nx-sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 0;
+}
+
+.nx-sheet-title {
+  font-family: var(--nx-font-serif);
+  font-size: var(--nx-fs-xl);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--nx-ink);
+}
+
+.nx-sheet-sub {
+  margin-top: 4px;
+  font-size: var(--nx-fs-sm);
+  color: var(--nx-ink-3);
+}
+
+.nx-sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 24px;
+}
+
+.nx-sheet-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  border-top: 1px solid var(--nx-line);
+  background: var(--nx-surface-2);
+}
+
+.nx-sheet-foot__hint {
+  font-size: var(--nx-fs-xs);
+  color: var(--nx-ink-3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nx-sheet-foot__actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+@media (max-width: 560px) {
+  .nx-sheet-head {
+    padding: 18px 18px 0;
+  }
+  .nx-sheet-body {
+    padding: 18px;
+  }
+  .nx-sheet-foot {
+    padding: 12px 18px;
+  }
+  .nx-sheet-foot__hint {
+    display: none;
+  }
+}
+
+/* Segmented control — one row of mutually exclusive choices. */
+.nx-segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border-radius: var(--nx-radius-control);
+  background: var(--nx-surface-3);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.nx-segmented button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: var(--nx-fs-sm);
+  font-weight: 500;
+  color: var(--nx-ink-2);
+  white-space: nowrap;
+  transition: background-color var(--nx-t-hover), color var(--nx-t-hover);
+}
+
+.nx-segmented button:hover {
+  color: var(--nx-ink);
+}
+
+.nx-segmented button[aria-pressed='true'],
+.nx-segmented button[aria-selected='true'] {
+  background: var(--nx-surface);
+  color: var(--nx-ink);
+  box-shadow: var(--nx-shadow-1);
+}
+
+.nx-segmented .nx-num {
+  color: var(--nx-ink-3);
+  font-size: var(--nx-fs-xs);
 }

@@ -21,7 +21,7 @@ export async function ensureDefaultProject(
 
   try {
     // 1. Check if an active project already exists
-    const { data: existing, error: fetchErr } = await supabase
+    const { data: existing } = await supabase
       .from('projects')
       .select('id, name, key, mode, is_personal')
       .eq('workspace_id', workspaceId)

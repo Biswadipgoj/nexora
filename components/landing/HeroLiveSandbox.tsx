@@ -1,354 +1,161 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { SPRING_DRAG, SPRING_SNAPPY } from '@/components/ui/motion/spring-presets';
-import TouchAppRoundedIcon from '@mui/icons-material/TouchAppRounded';
-import CheckCircleRoundedIcon from '@mui/icons-material/CheckCircleRounded';
-import SparklesIcon from '@mui/icons-material/AutoAwesomeRounded';
-import KeyboardRoundedIcon from '@mui/icons-material/KeyboardRounded';
+import { PriorityMark, CategoryMark, Avatar } from '@/components/ui/Marks';
+import { getCategoryByIdOrName } from '@/lib/constants/categories';
+import '@/components/board/board.css';
+
+type Column = 'todo' | 'progress' | 'done';
 
 interface SandboxTask {
   id: string;
   key: string;
   title: string;
-  column: 'todo' | 'progress' | 'done';
-  priority: 'urgent' | 'high' | 'normal';
-  tag: string;
-  points: number;
+  column: Column;
+  priority: number;
+  category: string;
+  owner: string;
+  due: string;
 }
 
 const INITIAL_TASKS: SandboxTask[] = [
-  {
-    id: 'sb-1',
-    key: 'PROJ-101',
-    title: 'Finalize Q3 product launch timeline & team deliverables',
-    column: 'todo',
-    priority: 'urgent',
-    tag: 'Operations',
-    points: 8,
-  },
-  {
-    id: 'sb-2',
-    key: 'PROJ-102',
-    title: 'Design customer onboarding experience for new web app',
-    column: 'progress',
-    priority: 'high',
-    tag: 'Design',
-    points: 5,
-  },
-  {
-    id: 'sb-3',
-    key: 'PROJ-103',
-    title: 'Quarterly financial review & team budget allocation',
-    column: 'progress',
-    priority: 'normal',
-    tag: 'Finance',
-    points: 3,
-  },
-  {
-    id: 'sb-4',
-    key: 'PROJ-104',
-    title: 'Security compliance & data privacy audit sign-off',
-    column: 'done',
-    priority: 'high',
-    tag: 'Legal',
-    points: 5,
-  },
+  { id: 's1', key: 'APP-101', title: 'Biometric sign-in on Android', column: 'todo', priority: 3, category: 'type-security', owner: 'Alex Morgan', due: 'Sep 18' },
+  { id: 's2', key: 'APP-102', title: 'Deep links from push notifications', column: 'todo', priority: 2, category: 'type-backend', owner: 'Sarah Chen', due: 'Sep 15' },
+  { id: 's3', key: 'APP-104', title: 'Stripe checkout integration', column: 'progress', priority: 3, category: 'type-feature', owner: 'Alex Morgan', due: 'Friday' },
+  { id: 's4', key: 'APP-98', title: 'Profile photo upload and cropping', column: 'progress', priority: 2, category: 'type-ui', owner: 'Sarah Chen', due: 'Sep 8' },
+  { id: 's5', key: 'APP-91', title: 'Fix the login loop on an expired token', column: 'done', priority: 4, category: 'type-bug', owner: 'Alex Morgan', due: 'Sep 4' },
 ];
 
-const COLUMNS = [
-  { id: 'todo', label: 'To Do', color: 'var(--aurora-iris)', glow: 'rgba(155, 140, 255, 0.35)' },
-  { id: 'progress', label: 'In Progress', color: 'var(--aurora-amber)', glow: 'rgba(241, 184, 106, 0.35)' },
-  { id: 'done', label: 'Done', color: 'var(--aurora-jade)', glow: 'rgba(87, 211, 154, 0.35)' },
-] as const;
+const COLUMNS: Array<{ id: Column; label: string; tone: 'todo' | 'progress' | 'done' }> = [
+  { id: 'todo', label: 'To Do', tone: 'todo' },
+  { id: 'progress', label: 'In Progress', tone: 'progress' },
+  { id: 'done', label: 'Done', tone: 'done' },
+];
 
+const NEXT: Record<Column, Column> = { todo: 'progress', progress: 'done', done: 'todo' };
+
+/**
+ * A working miniature of the board, built from the same card styles as the
+ * app. Nothing here is saved; it exists so a visitor can feel how moving work
+ * behaves before signing up.
+ */
 export function HeroLiveSandbox() {
   const [tasks, setTasks] = useState<SandboxTask[]>(INITIAL_TASKS);
-  const [activeColumn, setActiveColumn] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<'board' | 'list'>('board');
+  const [view, setView] = useState<'board' | 'list'>('board');
+  const [over, setOver] = useState<Column | null>(null);
 
-  function moveTask(taskId: string, targetCol: 'todo' | 'progress' | 'done') {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === taskId ? { ...t, column: targetCol } : t))
-    );
-  }
+  const move = (id: string, column: Column) =>
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, column } : t)));
 
-  function cycleTask(taskId: string) {
-    const order: Array<'todo' | 'progress' | 'done'> = ['todo', 'progress', 'done'];
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          const nextIdx = (order.indexOf(t.column) + 1) % order.length;
-          return { ...t, column: order[nextIdx] };
-        }
-        return t;
-      })
-    );
-  }
-
-  return (
-    <div className="sandbox-card-shell">
-      {/* Top Specular Rim Lighting */}
+  const card = (task: SandboxTask) => {
+    const done = task.column === 'done';
+    return (
       <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 1,
-          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%)',
-          pointerEvents: 'none',
+        key={task.id}
+        className={`wi-card ${done ? 'wi-card--done' : ''}`}
+        role="button"
+        tabIndex={0}
+        draggable
+        onDragStart={(e) => e.dataTransfer.setData('text/plain', task.id)}
+        onClick={() => move(task.id, NEXT[task.column])}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            move(task.id, NEXT[task.column]);
+          }
         }}
-      />
-
-      {/* Sandbox Header Bar */}
-      <div className="sandbox-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="sandbox-dots">
-            <span className="sandbox-dot sandbox-dot--red" />
-            <span className="sandbox-dot sandbox-dot--yellow" />
-            <span className="sandbox-dot sandbox-dot--green" />
-          </div>
-          <span className="sandbox-app-name">
-            nexora-workspace-live-preview.app
+        aria-label={`${task.key}: ${task.title}. Press Enter to move it along.`}
+      >
+        <div className="wi-card__top">
+          <span className={`wi-card__check ${done ? 'wi-card__check--done' : ''}`} aria-hidden="true">
+            <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M2.5 6.5l2.5 2.5 4.5-6" />
+            </svg>
           </span>
-
-          <div style={{ display: 'flex', gap: 4, background: 'rgba(0, 0, 0, 0.16)', padding: 3, borderRadius: 8, marginLeft: 8 }}>
-            <button
-              onClick={() => setViewMode('board')}
-              style={{
-                background: viewMode === 'board' ? 'var(--nx-surface-2)' : 'transparent',
-                color: viewMode === 'board' ? 'var(--nx-text)' : 'var(--nx-text-3)',
-                boxShadow: viewMode === 'board' ? '0 1px 4px rgba(0, 0, 0, 0.26)' : 'none',
-                border: 'none',
-                borderRadius: 6,
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              Board View
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              style={{
-                background: viewMode === 'list' ? 'var(--nx-surface-2)' : 'transparent',
-                color: viewMode === 'list' ? 'var(--nx-text)' : 'var(--nx-text-3)',
-                boxShadow: viewMode === 'list' ? '0 1px 4px rgba(0, 0, 0, 0.26)' : 'none',
-                border: 'none',
-                borderRadius: 6,
-                padding: '4px 10px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              List View
-            </button>
-          </div>
+          <span className="nx-key">{task.key}</span>
+          <PriorityMark priority={task.priority} showLabel={task.priority >= 3} />
         </div>
-
-        <div className="sandbox-indicator-pill">
-          <TouchAppRoundedIcon sx={{ fontSize: 16 }} />
-          <span>Interactive Live Sandbox • Click or Drag to Move Cards</span>
+        <p className="wi-card__title">{task.title}</p>
+        <div className="wi-card__meta">
+          <CategoryMark category={getCategoryByIdOrName(task.category)} />
+          {!done && <span>Due {task.due}</span>}
+          <span style={{ marginLeft: 'auto' }}>
+            <Avatar name={task.owner} />
+          </span>
         </div>
       </div>
+    );
+  };
 
-      {/* Conditional View: 3-Column Kanban Board OR Crisp List View */}
-      {viewMode === 'board' ? (
-        <div className="sandbox-columns-grid">
+  return (
+    <div className="sandbox">
+      <div className="sandbox__bar">
+        <span className="sandbox__title">
+          Mobile App <span className="nx-key">APP</span>
+        </span>
+        <div className="nx-segmented" role="group" aria-label="View">
+          <button type="button" aria-pressed={view === 'board'} onClick={() => setView('board')}>
+            Board
+          </button>
+          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
+            List
+          </button>
+        </div>
+        <span className="sandbox__hint">Try it: drag a card, or click one to move it along.</span>
+      </div>
+
+      {view === 'board' ? (
+        <div className="sandbox__lanes">
           {COLUMNS.map((col) => {
             const colTasks = tasks.filter((t) => t.column === col.id);
-            const isTarget = activeColumn === col.id;
-
             return (
-              <div
+              <section
                 key={col.id}
+                className={`sandbox__lane ${over === col.id ? 'sandbox__lane--over' : ''}`}
+                aria-label={`${col.label}, ${colTasks.length} tasks`}
                 onDragOver={(e) => {
                   e.preventDefault();
-                  setActiveColumn(col.id);
+                  if (over !== col.id) setOver(col.id);
                 }}
-                onDragLeave={() => setActiveColumn(null)}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOver(null);
+                }}
                 onDrop={(e) => {
                   e.preventDefault();
-                  const taskId = e.dataTransfer.getData('text/plain');
-                  if (taskId) {
-                    moveTask(taskId, col.id);
-                  }
-                  setActiveColumn(null);
+                  const id = e.dataTransfer.getData('text/plain');
+                  if (id) move(id, col.id);
+                  setOver(null);
                 }}
-                className={`sandbox-col-box ${isTarget ? 'sandbox-col-box--dragover' : ''}`}
               >
-                {/* Column Header */}
-                <div className="sandbox-col-header">
-                  <div className="sandbox-col-title-wrap">
-                    <span
-                      className="sandbox-col-beacon"
-                      style={{
-                        backgroundColor: col.color,
-                        boxShadow: `0 0 10px ${col.glow}`,
-                      }}
-                    />
-                    <span>{col.label}</span>
-                  </div>
-                  <span
-                    className="sandbox-col-badge"
-                    style={{
-                      backgroundColor: `color-mix(in srgb, ${col.color} 20%, transparent)`,
-                      color: col.color,
-                    }}
-                  >
-                    {colTasks.length}
-                  </span>
+                <header className="lane-head">
+                  <span className={`lane-dot lane-dot--${col.tone}`} aria-hidden="true" />
+                  <h3 className="lane-head__name">{col.label}</h3>
+                  <span className="lane-head__count">{colTasks.length}</span>
+                </header>
+                <div className="lane-cards">
+                  {colTasks.length === 0 ? <div className="lane-empty">Drop a card here</div> : colTasks.map(card)}
                 </div>
-
-                {/* Column Tasks */}
-                <div className="sandbox-task-list">
-                  <AnimatePresence mode="popLayout">
-                    {colTasks.map((task) => (
-                      <motion.div
-                        key={task.id}
-                        layout
-                        layoutId={task.id}
-                        transition={SPRING_DRAG}
-                        draggable
-                        onDragStart={(e) => {
-                          (e as any).dataTransfer.setData('text/plain', task.id);
-                        }}
-                        onClick={() => cycleTask(task.id)}
-                        whileHover={{ y: -3, scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="sandbox-task-card"
-                      >
-                        <div className="sandbox-task-header">
-                          <span className="sandbox-task-key">
-                            {task.key}
-                          </span>
-                          <span
-                            className="sandbox-priority-pill"
-                            style={{
-                              backgroundColor:
-                                task.priority === 'urgent'
-                                  ? 'rgba(255, 113, 133, 0.2)'
-                                  : task.priority === 'high'
-                                  ? 'rgba(241, 184, 106, 0.2)'
-                                  : 'rgba(70, 215, 232, 0.2)',
-                              color:
-                                task.priority === 'urgent'
-                                  ? 'var(--aurora-rose)'
-                                  : task.priority === 'high'
-                                  ? 'var(--aurora-amber)'
-                                  : 'var(--aurora-aqua)',
-                              border: '1px solid currentColor',
-                            }}
-                          >
-                            {task.priority}
-                          </span>
-                        </div>
-
-                        <div className="sandbox-task-title">
-                          {task.title}
-                        </div>
-
-                        <div className="sandbox-task-footer">
-                          <span className="sandbox-tag-pill">
-                            {task.tag}
-                          </span>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              fontFamily: 'var(--font-mono)',
-                              color: 'var(--aurora-aqua)',
-                            }}
-                          >
-                            <SparklesIcon sx={{ fontSize: 13 }} />
-                            {task.points} pts
-                          </span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-
-                  {colTasks.length === 0 && (
-                    <div className="sandbox-empty-drop">
-                      Drop items here
-                    </div>
-                  )}
-                </div>
-              </div>
+              </section>
             );
           })}
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '16px 20px', minHeight: 280 }}>
+        <div className="sandbox__list">
           {tasks.map((task) => (
-            <motion.div
-              key={task.id}
-              onClick={() => cycleTask(task.id)}
-              whileHover={{ scale: 1.01, backgroundColor: 'var(--nx-surface-2)' }}
-              whileTap={{ scale: 0.99 }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '12px 16px',
-                background: 'var(--nx-surface)',
-                borderRadius: 12,
-                border: '1px solid var(--nx-border)',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.13)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.8125rem', fontWeight: 700, color: 'var(--aurora-iris)' }}>
-                  {task.key}
-                </span>
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--nx-text)' }}>
-                  {task.title}
-                </span>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{
-                  padding: '3px 8px',
-                  borderRadius: 9999,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  textTransform: 'capitalize',
-                  background: task.column === 'done' ? 'rgba(87, 211, 154, 0.15)' : task.column === 'progress' ? 'rgba(241, 184, 106, 0.15)' : 'rgba(155, 140, 255, 0.15)',
-                  color: task.column === 'done' ? 'var(--nx-green)' : task.column === 'progress' ? 'var(--nx-amber)' : 'var(--nx-violet)',
-                }}>
-                  {task.column === 'done' ? 'Done' : task.column === 'progress' ? 'In Progress' : 'To Do'}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--nx-text-3)' }}>{task.tag}</span>
-              </div>
-            </motion.div>
+            <button key={task.id} type="button" className="sandbox__row" onClick={() => move(task.id, NEXT[task.column])}>
+              <span className="nx-key">{task.key}</span>
+              <span className="sandbox__row-title">{task.title}</span>
+              <PriorityMark priority={task.priority} showLabel={false} />
+              <span className={`nx-chip ${task.column === 'done' ? 'nx-chip--green' : task.column === 'progress' ? 'nx-chip--amber' : ''}`}>
+                {COLUMNS.find((c) => c.id === task.column)?.label}
+              </span>
+            </button>
           ))}
         </div>
       )}
 
-      {/* Sandbox Footer Bar */}
-      <div className="sandbox-bottom-bar">
-        <div className="sandbox-hotkey-hint">
-          <KeyboardRoundedIcon sx={{ fontSize: 16, color: 'var(--aurora-amber)' }} />
-          <span>Press ⌘K for Command Palette anytime</span>
-        </div>
-        <div className="sandbox-trust-pills">
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--aurora-jade)' }}>
-            <CheckCircleRoundedIcon sx={{ fontSize: 14 }} />
-            Instant multi-user sync
-          </span>
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--aurora-aqua)' }}>
-            <CheckCircleRoundedIcon sx={{ fontSize: 14 }} />
-            Bank-grade data security
-          </span>
-        </div>
+      <div className="sandbox__foot">
+        <kbd className="nx-kbd">Ctrl K</kbd> opens search and commands anywhere in the app. Changes here are not saved.
       </div>
     </div>
   );

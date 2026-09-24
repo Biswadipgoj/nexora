@@ -1,53 +1,90 @@
 'use client';
 
-import React, { createContext, useContext, useMemo } from 'react';
+import React, { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from 'react';
 import { MotionConfig } from 'motion/react';
 
-export type Theme = 'dark' | 'light';
+export type Theme = 'light' | 'dark';
+export type ThemePreference = 'system' | Theme;
+
+export const THEME_STORAGE_KEY = 'nexora-theme';
+const THEME_EVENT = 'nexora-theme-change';
 
 interface ThemeContextType {
+  /** The theme currently on screen. */
   theme: Theme;
-  /** True while light mode is still unbuilt, so surfaces can hide the control. */
-  themeLocked: boolean;
+  /** What the user chose; "system" follows the OS. */
+  preference: ThemePreference;
+  setPreference: (preference: ThemePreference) => void;
+  /** Flips between light and dark, pinning the choice. */
   toggleTheme: () => void;
-  setTheme: (theme: Theme) => void;
 }
 
 /**
- * Section 2: "the master direction below resolves that conflict by making
- * obsidian dark the default authenticated experience, with a restrained light
- * mode only after dark-mode parity is complete."
- *
- * Dark is therefore the only theme the product currently ships. The context
- * keeps its shape so surfaces do not need to branch, but reports
- * `themeLocked` so they can hide a toggle that would otherwise do nothing —
- * section 3.5 counts a control that contradicts its own label as unresolved.
- *
- * To add light mode later: build the light token set in nexora-tokens.css
- * under [data-theme="light"], then replace the constant below with persisted
- * state and flip `themeLocked` to false.
+ * Inline script for <head>. Applies a stored explicit choice before first
+ * paint; with no choice the attribute stays off and the CSS media query
+ * decides, so the page is correct even before hydration.
  */
-const THEME: Theme = 'light';
+export const THEME_INIT_SCRIPT = `try{var t=localStorage.getItem('${THEME_STORAGE_KEY}');if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t)}}catch(e){}`;
+
+function readPreference(): ThemePreference {
+  try {
+    const value = localStorage.getItem(THEME_STORAGE_KEY);
+    return value === 'light' || value === 'dark' ? value : 'system';
+  } catch {
+    return 'system';
+  }
+}
+
+function systemPrefersDark(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function subscribe(onChange: () => void) {
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  media.addEventListener('change', onChange);
+  window.addEventListener('storage', onChange);
+  window.addEventListener(THEME_EVENT, onChange);
+  return () => {
+    media.removeEventListener('change', onChange);
+    window.removeEventListener('storage', onChange);
+    window.removeEventListener(THEME_EVENT, onChange);
+  };
+}
+
+const getSnapshot = () => `${readPreference()}:${systemPrefersDark() ? 'dark' : 'light'}`;
+const getServerSnapshot = () => 'system:light';
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const noop = () => {};
-
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const snapshot = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [preference, system] = snapshot.split(':') as [ThemePreference, Theme];
+  const theme: Theme = preference === 'system' ? system : preference;
+
+  const setPreference = useCallback((next: ThemePreference) => {
+    try {
+      if (next === 'system') localStorage.removeItem(THEME_STORAGE_KEY);
+      else localStorage.setItem(THEME_STORAGE_KEY, next);
+    } catch {
+      // Storage can be unavailable (private mode); the attribute still applies.
+    }
+    if (next === 'system') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', next);
+    window.dispatchEvent(new Event(THEME_EVENT));
+  }, []);
+
   const value = useMemo<ThemeContextType>(
-    () => ({ theme: THEME, themeLocked: true, toggleTheme: noop, setTheme: noop }),
-    []
+    () => ({
+      theme,
+      preference,
+      setPreference,
+      toggleTheme: () => setPreference(theme === 'dark' ? 'light' : 'dark'),
+    }),
+    [theme, preference, setPreference]
   );
 
-  /**
-   * Section 9: "Reduced-motion mode must disable aurora drift, tilt, parallax,
-   * and animated gradient shimmer."
-   *
-   * The CSS rule in nexora-tokens.css cannot reach Framer Motion, which writes
-   * transforms through JS — tab transitions, the mobile dock's sliding pill and
-   * every whileTap kept animating for users who asked for less motion.
-   * MotionConfig applies the preference across the whole tree at once.
-   */
+  // Motion honours prefers-reduced-motion across the whole tree; the CSS rule
+  // in nexora-tokens.css cannot reach transforms that Motion writes from JS.
   return (
     <ThemeContext.Provider value={value}>
       <MotionConfig reducedMotion="user">{children}</MotionConfig>
@@ -56,12 +93,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useTheme(): ThemeContextType {
-  return (
-    useContext(ThemeContext) ?? {
-      theme: THEME,
-      themeLocked: true,
-      toggleTheme: noop,
-      setTheme: noop,
-    }
-  );
+  const ctx = useContext(ThemeContext);
+  if (ctx) return ctx;
+  return { theme: 'light', preference: 'system', setPreference: () => {}, toggleTheme: () => {} };
 }
